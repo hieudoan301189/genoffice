@@ -189,6 +189,10 @@ Công việc:
      tính lại, không tạo mục Undo, tự tính lại khi định dạng nguồn đổi, được nướng thành style khi lưu
      XLSX, Excel mở thấy đúng, in/PDF đúng.
 
+**Kết quả (01/10/2026):** S1 đạt – [báo cáo](spikes/s1-office-compat.md); S5 đạt phần định dạng –
+[báo cáo](spikes/s5-format-functions.md). S2, S3, S4 chưa làm (S1 đã trả lời một phần S3: tên ẩn không
+được nạp vào Univer).
+
 **Nghiệm thu:** ADR đã duyệt; 5 spike có kết luận bằng văn bản; package rỗng chạy `npm test`;
 mọi thay đổi DVH đã commit trên `dvh/main`.
 
@@ -259,17 +263,17 @@ Công việc:
 
 ### Nhánh song song T1. Hàm DVH trả về định dạng (3–5 tuần, sau S5)
 
-Làm song song với P1–P2 nếu S5 đạt. Thiết kế ở Phụ lục A.
+S5 đạt (01/10/2026, [báo cáo](spikes/s5-format-functions.md)). Kênh định dạng, `DVH.Font`,
+`DVH.FillColor`, `DVH.Font.Color` và `DVH.Table` dạng tràn đã có ở
+`apps/sheets/src/renderer/dvh-format-channel.ts` và `dvh-format-functions.ts`. Việc còn lại:
 
-- `apps/sheets/src/renderer/dvh-formatted-function.ts`: lớp nền `DvhFormattedFunction` và
-  `FormulaFormatStore`.
-- `apps/sheets/src/renderer/dvh-format-render.ts`: interceptor tô định dạng; nghe mutation style để
-  đánh dấu hàm cần tính lại.
-- Nướng định dạng khi lưu: móc vào đường lưu của Sheets (`save-actions.ts`, `edit-journal.ts`,
-  `xlsx-gateway`), cộng marker trong `customXml`.
-- In/PDF: `print-html.ts` và `print-visuals.ts` đọc kho định dạng.
-- Chuyển các hàm theo thứ tự `DVH.Font`, `DVH.FillColor`, `DVH.Font.Color` → `DVH.Table` (dạng tràn,
-  rồi dạng cũ có `range_result`) → `DVH.JoinFormat`. Cập nhật `docs/dvh-function-status.md`.
+- **Lưu giá trị**: lấy giá trị Univer đã tính cho công thức `DVH.*` (IronCalc không biết các hàm này), và
+  ghi vùng tràn kèm metadata mảng động ở `xlsx-gateway`.
+- **Marker `customXml`** cho các ô có định dạng do hàm sinh, để gỡ định dạng thừa khi kết quả co lại.
+- `DVH.Table` dạng cũ có `range_result` (vùng do DVH quản lý), chép ô gộp/chiều cao hàng/hình tiêu đề.
+- `DVH.JoinFormat` (giới hạn rich text trong ô công thức, Phụ lục A.3).
+- Thống nhất cú pháp dạng tràn với add-in DVH-Excel.
+- Cập nhật `docs/dvh-function-status.md`.
 - **Nghiệm thu:** so kết quả với DVH-Excel trên bộ file mẫu; Undo chỉ chứa thao tác của người dùng;
   file xuất giống nhau ở giao diện sáng và tối; Excel mở không báo sửa file.
 - **Quan hệ với P2:** `DVH.Table` dạng hàm và đối tượng DVH.Table nên dùng chung phần lọc và phần sao
@@ -660,5 +664,7 @@ hẳn một kênh trả định dạng**. Những gì cần đều đã có:
 - Excel không có add-in DVH vẫn hiện `#NAME?` khi tự tính lại các hàm `DVH.*`. Định dạng đã nướng thì
   vẫn còn.
 - Ô công thức không mang được rich text trong XLSX (A.3).
-- Thiết kế này **chưa được làm**. Cần spike S5 (mục 5, P0) để xác nhận: hàm biết ô gọi, tràn mảng cộng
-  interceptor, nướng định dạng khi lưu (cả workbook nạp đủ lẫn stream), in/PDF đọc đúng kho định dạng.
+- **Spike S5 (01/10/2026) đã làm và kiểm thiết kế này trong app đóng gói** – xem
+  [docs/spikes/s5-format-functions.md](spikes/s5-format-functions.md). Định dạng: đạt mọi tiêu chí. Univer
+  bỏ qua tính lại khi chỉ đổi định dạng, nên kênh phát mutation riêng cho vùng nguồn được theo dõi.
+  Còn thiếu ở đường lưu giá trị (giá trị lưu sẵn của `DVH.*` và vùng tràn), ghi ở nhánh T1.

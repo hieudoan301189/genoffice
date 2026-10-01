@@ -287,6 +287,8 @@ import { installCachedValueFallbackInterceptor } from './formula-cached-fallback
 import { readLiveFunctionInfos } from './function-catalog'
 import { installSupportedFunctionProbe } from './function-registry-probe'
 import { installDvhPureFunctions } from './dvh-functions'
+import { installFormulaFormatChannel } from './dvh-format-channel'
+import { installDvhFormatFunctions } from './dvh-format-functions'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
 import { installErrorValueAlignment } from './error-value-align'
@@ -1728,6 +1730,10 @@ export function App({
     const functionProbeDisposable = installSupportedFunctionProbe(runtime)
     const dvhFunctionsDisposable = installDvhPureFunctions(runtime,
       () => lazyWorkbookRef.current?.flags.preloadComplete ?? true)
+    // DVH functions that return formats (DVH.Font, DVH.FillColor, DVH.Table...):
+    // an interceptor paints them, save bakes them into real cell styles.
+    const dvhFormatChannelDisposable = installFormulaFormatChannel(runtime)
+    const dvhFormatFunctionsDisposable = installDvhFormatFunctions(runtime)
     // Excel-parity number-format display: empty sections, text section,
     // _/* padding, General digit fitting, 1904 date-system serial shift.
     const numberFormatFixDisposable = installNumberFormatFix(
@@ -2951,6 +2957,8 @@ export function App({
       formulaNewlineDisposable.dispose()
       functionProbeDisposable.dispose()
       dvhFunctionsDisposable.dispose()
+      dvhFormatFunctionsDisposable.dispose()
+      dvhFormatChannelDisposable.dispose()
       numberFormatFixDisposable.dispose()
       errorAlignDisposable.dispose()
       cellFilenameDisposable.dispose()

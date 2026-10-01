@@ -24,6 +24,7 @@ import {
 import { activeCsvSheet, handleExportCsv, serializeActiveSheetCsv } from './csv-export'
 import type { CellState } from '@genoffice/xlsx-gateway/domain/workbook.types'
 import { verifiedFormulaValues } from './formula-values'
+import { formulaFormats, withBakedFormulaFormats } from './dvh-format-channel'
 import { t } from './i18n/locale'
 import { abortStagedEditsTransfer, stageEditsForSave, type StagedEdits } from './save-edits-staging'
 import { showToast } from './toast-bus'
@@ -131,7 +132,12 @@ export async function handleSave(
     if (mode !== 'recovery') ctx.setMessage(t('appDemoNoSave'))
     return { ok: false }
   }
-  const edits = toSaveEdits(state.editJournal)
+  // Formats DVH functions show on screen become real cell styles in the file.
+  const bakedUnitId = ctx.univerRef.current?.univerAPI.getActiveWorkbook()?.getId()
+  const edits = withBakedFormulaFormats(
+    toSaveEdits(state.editJournal),
+    bakedUnitId ? formulaFormats.bake(bakedUnitId) : [],
+  )
   const bulkConstantFills = toSaveBulkConstantFills(state.editJournal)
   const structuralOps = toSaveStructuralOps(state.editJournal)
   const chartEdits = toSaveChartEdits(state.editJournal)
