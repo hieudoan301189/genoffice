@@ -23,6 +23,8 @@
     "gate": "npm run typecheck && npm run fixtures && npm test && npm run compat"
   },
   "dependencies": {
+    "@genoffice/dvh-actions": "*",
+    "@genoffice/dvh-model": "*",
     "@fluentui/react-icons": "^2.0.333",
     "@genoffice/agent-core": "*",
     "@genoffice/ai-provider": "*",

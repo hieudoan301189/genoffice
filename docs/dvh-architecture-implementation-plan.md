@@ -195,7 +195,8 @@ thảo (cắt/dán không mang tên ẩn theo, xoá ô đang gắn làm lưu th�
 [báo cáo](spikes/s3-hidden-names.md); S4 đạt cho bảng 1.000 dòng (ghi một lô 0,35 giây, một Undo), cần
 tối ưu kênh định dạng cho bảng vài nghìn dòng – [báo cáo](spikes/s4-large-table.md); S2 đạt – Smart Field cấp dòng sống qua chỉnh sửa trong Docs,
 P1 còn phải ghi ngược chữ sửa trong trường vào `customXml` – [báo cáo](spikes/s2-docs-smart-field.md).
-**Cả 5 spike đã có kết luận.**
+**Cả 5 spike đã có kết luận.** ADR D1–D10: [docs/adr/](adr/README.md). Package `dvh-model` và
+`dvh-actions` đã có code và test, nối vào build. **P0 hoàn tất (02/10/2026).**
 
 **Nghiệm thu:** ADR đã duyệt; 5 spike có kết luận bằng văn bản; package rỗng chạy `npm test`;
 mọi thay đổi DVH đã commit trên `dvh/main`.
@@ -516,6 +517,21 @@ interface PreviewReport {
 - Ngữ cảnh gọi có `caller: 'ui' | 'ai' | 'workflow' | 'script' | 'extension'` và tập quyền.
 - AI và script mặc định chỉ có `read` và `write` trong tài liệu đang mở. `destructive` và `external`
   luôn phải xác nhận. Ghi ra file ngoài phải dùng `File.*` kèm danh sách thư mục được phép.
+
+### 6.7 Đã chốt sau P0 (02/10/2026)
+
+Đặc tả trên đã được hiện thực trong `packages/dvh-model` và `packages/dvh-actions`; ADR ở
+[docs/adr/](adr/README.md). Những điểm spike buộc phải chốt rõ:
+
+- Phần `customXml` luôn được **tìm theo namespace** (`findPartByNamespace`); Excel đánh số lại `itemN`.
+- XPath binding dùng dạng lọc theo id: `/dvh:model[1]/dvh:fields[1]/dvh:f[@id='…'][1]` (`fieldXPath`).
+- Sửa giá trị một Field trong phần đã có bằng `setFieldTextInXml`, giữ nguyên mọi byte khác, giống cách Word
+  ghi ngược.
+- Phần lịch sử ghi `modelHash` (FNV-1a 64 bit trên JSON chuẩn hoá) để phát hiện sửa bằng Word/Excel.
+- Run thuộc Smart Field mang `sdtFieldXml`; Docs dùng mark `dvhField`.
+- Tên `_dvh.*` là tên hệ thống (`isDvhDefinedName`): P1 nạp chúng vào Univer nhưng ẩn khỏi Name Manager.
+- `ActionRegistry.run`: kiểm input (zod), kiểm quyền theo mức tác động, chạy thử, hỏi xác nhận với
+  `destructive`/`external`/`bulk`, phát một ChangeSet cho mỗi transaction.
 
 ---
 

@@ -14,6 +14,8 @@ export default defineConfig({
           '@genoffice/agent-core',
           '@genoffice/ai-search',
           '@genoffice/docx-engine',
+          '@genoffice/dvh-actions',
+          '@genoffice/dvh-model',
           '@genoffice/file-parse',
           '@genoffice/electron-utils',
           '@genoffice/i18n',
