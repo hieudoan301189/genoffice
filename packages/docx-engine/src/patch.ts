@@ -45,6 +45,12 @@ import {
   findSourcesPart,
 } from './sources'
 import {
+  customXmlItemPropsXml,
+  findCustomXmlItemByNamespace,
+  itemPropsPathOf,
+  type CustomXmlPartWrite,
+} from './custom-parts'
+import {
   THEME_CONTENT_TYPE,
   THEME_PART_PATH,
   THEME_REL_TYPE,
@@ -260,6 +266,11 @@ export interface SaveOptions {
   inks?: NewInkImage[]
   /** full bibliography source list; regenerates the b:Sources customXml part */
   sources?: SourceInfo[]
+  /**
+   * customXml data parts by root namespace (the DVH model and history parts): a part with the
+   * namespace is rewritten in place, otherwise a new item with itemProps and relationships is added
+   */
+  customXmlParts?: CustomXmlPartWrite[]
   /** theme font pair; patches (or creates) word/theme/theme1.xml */
   themeFonts?: ThemeFonts
   /** theme color scheme; patches (or creates) word/theme/theme1.xml */
@@ -454,6 +465,7 @@ export async function saveDocx(
     options.watermark === undefined &&
     options.inks === undefined &&
     options.sources === undefined &&
+    (options.customXmlParts === undefined || options.customXmlParts.length === 0) &&
     options.themeFonts === undefined &&
     options.themeColors === undefined &&
     (options.partXml === undefined || Object.keys(options.partXml).length === 0) &&
@@ -1118,6 +1130,47 @@ export async function saveDocx(
     }
   }
 
+  // ---- namespaced customXml data parts (DVH model / history) ----
+  const customParts: {
+    path: string
+    xml: string
+    storeItemId: string
+    ns: string
+    isNew: boolean
+  }[] = []
+  for (const part of options.customXmlParts ?? []) {
+    const existing = await findCustomXmlItemByNamespace(zip, part.ns)
+    if (existing) {
+      customParts.push({
+        path: existing,
+        xml: part.xml,
+        storeItemId: part.storeItemId,
+        ns: part.ns,
+        isNew: false,
+      })
+      continue
+    }
+    let n = 1
+    const taken = (path: string) =>
+      zip.file(path) !== null ||
+      sourcesPart?.path === path ||
+      customParts.some((p) => p.path === path)
+    while (taken(`customXml/item${n}.xml`)) n++
+    customParts.push({
+      path: `customXml/item${n}.xml`,
+      xml: part.xml,
+      storeItemId: part.storeItemId,
+      ns: part.ns,
+      isNew: true,
+    })
+    newRels.push({
+      rId: `rId${nextRelNum++}`,
+      type: CUSTOM_XML_REL_TYPE,
+      target: `../customXml/item${n}.xml`,
+      external: false,
+    })
+  }
+
   // ---- theme fonts / colors: patch or create word/theme/theme1.xml ----
   let themePart: { xml: string; isNew: boolean } | null = null
   if (options.themeFonts || options.themeColors) {
@@ -1429,6 +1482,7 @@ export async function saveDocx(
     numberingIsNew ||
     notesParts.some((p) => p.isNew) ||
     sourcesPart?.isNew ||
+    customParts.some((p) => p.isNew) ||
     themePart?.isNew ||
     customPropertiesIsNew
   if (hasNewParts) {
@@ -1493,6 +1547,14 @@ export async function saveDocx(
           'application/vnd.openxmlformats-officedocument.customXmlProperties+xml',
         )
       }
+      for (const part of customParts) {
+        if (part.isNew) {
+          addOverride(
+            `/${itemPropsPathOf(part.path)}`,
+            'application/vnd.openxmlformats-officedocument.customXmlProperties+xml',
+          )
+        }
+      }
       if (themePart?.isNew) addOverride(`/${THEME_PART_PATH}`, THEME_CONTENT_TYPE)
       if (customPropertiesIsNew) {
         addOverride(`/${CUSTOM_PROPERTIES_PATH}`, CUSTOM_PROPERTIES_CONTENT_TYPE)
@@ -1540,6 +1602,8 @@ export async function saveDocx(
       out.file(name, notesParts.find((p) => p.path === name)!.xml, { date: entry.date })
     } else if (sourcesPart && name === sourcesPart.path) {
       out.file(name, sourcesPart.xml, { date: entry.date })
+    } else if (customParts.some((p) => !p.isNew && p.path === name)) {
+      out.file(name, customParts.find((p) => p.path === name)!.xml, { date: entry.date })
     } else if (themePart && name === THEME_PART_PATH) {
       out.file(name, themePart.xml, { date: entry.date })
     } else if (name === CUSTOM_PROPERTIES_PATH && customPropertiesXml !== null) {
@@ -1605,6 +1669,19 @@ export async function saveDocx(
       '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
         `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps" Target="${sourcesPart.propsPath.replace(/^customXml\//, '')}"/>` +
+        '</Relationships>',
+    )
+  }
+  for (const part of customParts) {
+    if (!part.isNew) continue
+    const propsPath = itemPropsPathOf(part.path)
+    out.file(part.path, part.xml)
+    out.file(propsPath, customXmlItemPropsXml(part.storeItemId, part.ns))
+    out.file(
+      part.path.replace(/^customXml\/(item\d+)\.xml$/, 'customXml/_rels/$1.xml.rels'),
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXmlProps" Target="${propsPath.replace(/^customXml\//, '')}"/>` +
         '</Relationships>',
     )
   }

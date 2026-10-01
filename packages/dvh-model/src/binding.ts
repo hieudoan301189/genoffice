@@ -3,6 +3,8 @@
  * docx, a hidden defined name in xlsx.
  */
 
+import { escapeXml, fieldXPath, MODEL_PREFIX_MAPPINGS } from './custom-xml'
+
 export const FIELD_SDT_TAG_PREFIX = 'dvh:f:'
 export const TABLE_SDT_TAG_PREFIX = 'dvh:t:'
 export const FIELD_NAME_PREFIX = '_dvh.f.'
@@ -32,4 +34,25 @@ export function parseDvhSdtTag(tag: string): { kind: 'field' | 'table'; id: stri
   if (tag.startsWith(TABLE_SDT_TAG_PREFIX))
     return { kind: 'table', id: tag.slice(TABLE_SDT_TAG_PREFIX.length) }
   return null
+}
+
+/**
+ * The w:sdtPr of a Smart Field content control: alias, tag, a document-unique
+ * numeric id, and the data binding Word resolves against the model part.
+ */
+export function fieldSdtPrXml(options: {
+  fieldId: string
+  alias: string
+  sdtId: number
+  storeItemId: string
+}): string {
+  return (
+    '<w:sdtPr>' +
+    `<w:alias w:val="${escapeXml(options.alias)}"/>` +
+    `<w:tag w:val="${fieldSdtTag(options.fieldId)}"/>` +
+    `<w:id w:val="${Math.trunc(options.sdtId)}"/>` +
+    `<w:dataBinding w:prefixMappings="${MODEL_PREFIX_MAPPINGS}" ` +
+    `w:xpath="${fieldXPath(options.fieldId)}" w:storeItemID="${options.storeItemId}"/>` +
+    '<w:text/></w:sdtPr>'
+  )
 }

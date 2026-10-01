@@ -10,6 +10,12 @@ export { decodeEntities } from './parse-xml-text'
 export { sdtCheckboxGlyphs, sdtCheckboxIsChecked } from './checkbox-control'
 export { DVH_FIELD_TAG_PREFIX, dvhFieldId } from './smart-field'
 export {
+  customXmlItemPropsXml,
+  readCustomXmlPart,
+  type CustomXmlPart,
+  type CustomXmlPartWrite,
+} from './custom-parts'
+export {
   parseDocx,
   reconcileGridColumns,
   styleRunFormat,

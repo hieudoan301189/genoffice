@@ -3,6 +3,7 @@ import {
   diffModels,
   emptyModel,
   fieldDefinedName,
+  fieldSdtPrXml,
   fieldSdtTag,
   fieldXPath,
   findPartByNamespace,
@@ -253,5 +254,19 @@ describe('binding conventions', () => {
     expect(isDvhDefinedName('_dvh.f.f_a')).toBe(true)
     expect(isDvhDefinedName('TenDuAn')).toBe(false)
     expect(parseDvhDefinedName('TenDuAn')).toBeNull()
+  })
+
+  it('builds the content-control properties Word binds (attribute values escaped)', () => {
+    const xml = fieldSdtPrXml({
+      fieldId: 'f_a',
+      alias: 'Tên "dự án"',
+      sdtId: 42.7,
+      storeItemId: '{ID}',
+    })
+    expect(xml).toBe(
+      '<w:sdtPr><w:alias w:val="Tên &quot;dự án&quot;"/><w:tag w:val="dvh:f:f_a"/><w:id w:val="42"/>' +
+        `<w:dataBinding w:prefixMappings="xmlns:dvh='urn:dvh-office:model:1'" w:xpath="/dvh:model[1]/dvh:fields[1]/dvh:f[@id='f_a'][1]" w:storeItemID="{ID}"/>` +
+        '<w:text/></w:sdtPr>',
+    )
   })
 })

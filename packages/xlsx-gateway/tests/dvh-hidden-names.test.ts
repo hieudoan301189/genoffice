@@ -8,6 +8,7 @@ import { applyDefinedNamesState } from '../src/gateway/xlsx-defined-names'
 import { applyCellEditsToXlsx } from '../src/gateway/xlsx-gateway'
 import type { SheetEditPlan } from '../src/gateway/xlsx-sheets'
 import type { StructuralOp } from '../src/gateway/xlsx-structure'
+import type { DvhWorkbookState } from '../src/gateway/xlsx-dvh'
 
 const FIELD = '_dvh.f.f_projectname0001'
 const TABLE = '_dvh.t.t_workitems000001'
@@ -54,9 +55,26 @@ async function workbook(): Promise<Buffer> {
 async function namesAfter(
   ops: readonly StructuralOp[],
   sheetPlan?: SheetEditPlan,
+  dvhState: DvhWorkbookState | null = null,
 ): Promise<{ names: Map<string, { formula: string; hidden: boolean }>; zip: JSZip }> {
   const structural = ops.length > 0 ? [{ sheetName: 'Data', ops }] : []
-  const mutation = await applyCellEditsToXlsx(await workbook(), [], structural, [], sheetPlan)
+  const mutation = await applyCellEditsToXlsx(
+    await workbook(),
+    [],
+    structural,
+    [],
+    sheetPlan,
+    [],
+    [],
+    [],
+    [],
+    [],
+    null,
+    [],
+    [],
+    [],
+    dvhState,
+  )
   const zip = await JSZip.loadAsync(mutation.buffer)
   const xml = await zip.file('xl/workbook.xml')!.async('string')
   const names = new Map<string, { formula: string; hidden: boolean }>()
@@ -148,5 +166,82 @@ describe('hidden DVH names across structural saves', () => {
     })
     expect(saved).toContain(`<definedName name="${FIELD}" hidden="1">Data!$B$5</definedName>`)
     expect(saved).toContain('<definedName name="TenDuAn">Data!$B$5</definedName>')
+  })
+
+  // P1: the editor models the binding names (system names) and sends them on save
+  describe('with the editor-modeled names (P1)', () => {
+    const state = (field: string, table = 'Data!$A$8:$C$11'): DvhWorkbookState => ({
+      names: [
+        { name: FIELD, formula: field },
+        { name: TABLE, formula: table },
+      ],
+      customXmlParts: [],
+    })
+
+    it("deleting the bound row saves, writing the editor's #REF! name", async () => {
+      const { names } = await namesAfter(
+        [{ kind: 'remove-rows', index: 4, count: 1 }],
+        undefined,
+        state('Data!#REF!', 'Data!$A$7:$C$10'),
+      )
+      expect(names.get(FIELD)).toEqual({ formula: 'Data!#REF!', hidden: true })
+      expect(names.get(TABLE)).toEqual({ formula: 'Data!$A$7:$C$10', hidden: true })
+    })
+
+    it('a cut/paste move is written where the editor tracked it', async () => {
+      const { names } = await namesAfter([], undefined, state('Data!$E$6'))
+      expect(names.get(FIELD)).toEqual({ formula: 'Data!$E$6', hidden: true })
+    })
+
+    it('the editor names are not shifted a second time by structural ops', async () => {
+      const { names } = await namesAfter(
+        [{ kind: 'insert-rows', index: 2, count: 1 }],
+        undefined,
+        state('Data!$B$6', 'Data!$A$9:$C$12'),
+      )
+      expect(names.get(FIELD)).toEqual({ formula: 'Data!$B$6', hidden: true })
+    })
+
+    it('a bound sheet can be deleted once the editor dropped its bindings', async () => {
+      const { names } = await namesAfter(
+        [],
+        { renames: [], additions: [], removals: ['Data'], order: ['Other'] },
+        { names: [], customXmlParts: [] },
+      )
+      expect(names.has(FIELD)).toBe(false)
+    })
+
+    it('writes the model part in place or adds it with relationships', async () => {
+      const model = (v: string) =>
+        `<dvh:model xmlns:dvh="urn:dvh-office:model:1" docId="doc_test"><dvh:fields><dvh:f id="f_a">${v}</dvh:f></dvh:fields></dvh:model>`
+      const replaced = await namesAfter([], undefined, {
+        names: [],
+        customXmlParts: [{ ns: 'urn:dvh-office:model:1', xml: model('A'), storeItemId: '{X}' }],
+      })
+      expect(await replaced.zip.file('customXml/item1.xml')!.async('string')).toContain('>A<')
+      const added = await namesAfter([], undefined, {
+        names: [],
+        customXmlParts: [
+          {
+            ns: 'urn:dvh-office:history:1',
+            xml: '<dvh:history xmlns:dvh="urn:dvh-office:history:1"/>',
+            storeItemId: '{H}',
+          },
+        ],
+      })
+      const zip = added.zip
+      expect(await zip.file('customXml/item2.xml')!.async('string')).toContain(
+        'urn:dvh-office:history:1',
+      )
+      expect(await zip.file('customXml/itemProps2.xml')!.async('string')).toContain(
+        'ds:itemID="{H}"',
+      )
+      expect(await zip.file('xl/_rels/workbook.xml.rels')!.async('string')).toContain(
+        'Target="../customXml/item2.xml"',
+      )
+      expect(await zip.file('[Content_Types].xml')!.async('string')).toContain(
+        'PartName="/customXml/itemProps2.xml"',
+      )
+    })
   })
 })

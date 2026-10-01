@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { applyDvhCustomXmlParts, applyDvhDefinedNames, type DvhWorkbookState } from './xlsx-dvh'
 import { closeSync, fsyncSync, openSync, readFileSync, writeFileSync } from 'node:fs'
 import { rename, rm } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -587,6 +588,7 @@ export async function applyCellEditsToXlsx(
   pageSetupStates: readonly SheetPageSetupState[] = [],
   noteStates: readonly SheetNoteState[] = [],
   formulaValues: readonly SheetFormulaValues[] = [],
+  dvhState: DvhWorkbookState | null = null,
 ): Promise<XlsxMutation> {
   const plan = await planCellEditsToXlsx(
     await createBufferEntrySource(source),
@@ -610,6 +612,11 @@ export async function applyCellEditsToXlsx(
     [],
     [],
     formulaValues,
+    null,
+    null,
+    [],
+    [],
+    dvhState,
   )
   return assembleWithJsZip(source, plan)
 }
@@ -709,6 +716,7 @@ export async function planCellEditsToXlsx(
   workbookProtectionState: { readonly lockStructure: boolean } | null = null,
   protectedRangeStates: readonly SheetProtectedRangesState[] = [],
   bulkConstantFills: readonly BulkConstantFill[] = [],
+  dvhState: DvhWorkbookState | null = null,
 ): Promise<MutationPlan> {
   // A pending pivot pins final coordinates for its source and output; shifts
   // on either sheet, and sheet renames (worksheetSource@sheet), would desync
@@ -873,7 +881,10 @@ export async function planCellEditsToXlsx(
   // sheets, defined names, and chart series shift along with the edited sheet.
   const workbookPath = 'xl/workbook.xml'
   const originalWorkbookXml = await pkg.readText(workbookPath)
-  let workbookXml = originalWorkbookXml
+  // The editor's DVH binding names replace the file's: strip them before any
+  // shift or removal guard sees them, write the editor's copy at the end.
+  let workbookXml =
+    dvhState === null ? originalWorkbookXml : applyDvhDefinedNames(originalWorkbookXml, [])
   const pendingTableColumnSyncs: Array<{
     sheetName: string
     partPath: string
@@ -1313,6 +1324,11 @@ export async function planCellEditsToXlsx(
 
   if (definedNamesState !== null) {
     workbookXml = applyDefinedNamesState(workbookXml, definedNamesState)
+  }
+
+  if (dvhState !== null) {
+    workbookXml = applyDvhDefinedNames(workbookXml, dvhState.names)
+    await applyDvhCustomXmlParts(pkg, dvhState.customXmlParts, touchedEntries)
   }
 
   if (workbookProtectionState !== null) {
