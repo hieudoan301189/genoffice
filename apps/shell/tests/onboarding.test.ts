@@ -44,12 +44,12 @@ async function click(selector: string): Promise<void> {
   })
 }
 
-describe('analytics consent in onboarding', () => {
-  it('explains default-on analytics without an onboarding control', () => {
+describe('DVH Office onboarding', () => {
+  it('introduces DVH Office without service login or credit promotions', () => {
     renderOnboarding(vi.fn(async () => true))
     expect(host.querySelector('[role="switch"]')).toBeNull()
-    expect(host.textContent).toContain('Enabled by default')
-    expect(host.textContent).toContain('Settings → General')
+    expect(host.textContent).toContain('DVH Office')
+    expect(host.textContent).not.toMatch(/Genspark|GenTeam|credits/i)
   })
 
   it('lets Skip and Escape finish without changing analytics', async () => {

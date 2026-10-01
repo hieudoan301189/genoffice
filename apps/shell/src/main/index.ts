@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui/product-features'
 import { execSync, spawn } from 'node:child_process'
 import {
   copyFileSync,
@@ -93,22 +94,8 @@ import {
   withResolved,
   withShown,
 } from './star-prompt'
-import {
-  clearCloudProjectsStore,
-  cloudProjectExternalUrl,
-  readCloudProjectsStore,
-  syncCloudProjects,
-} from './cloud-projects'
 import { handleDroppedFiles } from './dropped-files'
 import { collectLaunchPaths } from './launch-paths'
-import {
-  genofficeLogout,
-  gskLoginInfo,
-  loadGenofficeAuth,
-  setGskProxyUrl,
-  startGenofficeLogin,
-  watchGskApiKey,
-} from '@genoffice/ai-search'
 
 import {
   buildDocsMenu,
@@ -248,7 +235,6 @@ import {
   setHtmlProvisionalTitleHook,
 } from '../../../html/src/main/html-main'
 import type {
-  AccountLoginEvent,
   AutoSaveDefault,
   FolderListing,
   FolderRoot,
@@ -348,7 +334,7 @@ import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
 if (!app.isPackaged)
   app.setPath(
     'userData',
-    process.env.GENOFFICE_USER_DATA ?? join(app.getPath('appData'), 'GenOffice Dev'),
+    process.env.GENOFFICE_USER_DATA ?? join(app.getPath('appData'), 'DVH Office Dev'),
   )
 
 /**
@@ -449,7 +435,6 @@ const APP_SETTINGS_PATH = () => join(app.getPath('userData'), 'app-settings.json
 const OPEN_DOCUMENTS_PATH = () => join(app.getPath('userData'), OPEN_DOCUMENTS_FILE)
 /** only the instance holding the single-instance lock may write or remove the registry */
 let ownsOpenDocumentsRegistry = false
-let stopAuthWatch: (() => void) | null = null
 const publishOpenDocumentsIfOwner = (paths: readonly string[]) => {
   if (ownsOpenDocumentsRegistry) publishOpenDocuments(OPEN_DOCUMENTS_PATH(), paths)
 }
@@ -491,13 +476,8 @@ function currentUpdateChannel(): UpdateChannel {
   return cachedUpdateChannel
 }
 
-let cachedTheme: UiTheme | null = null
-
 function currentTheme(): UiTheme {
-  if (cachedTheme) return cachedTheme
-  const saved = readAppSettings(APP_SETTINGS_PATH()).theme
-  cachedTheme = saved === 'light' || saved === 'dark' ? saved : 'system'
-  return cachedTheme
+  return 'light'
 }
 
 let cachedAutoSaveDefault: AutoSaveDefault | null = null
@@ -607,16 +587,6 @@ function initAnalytics(): void {
     // analytics must never block startup
   }
 }
-
-// ---- first-run onboarding ----
-// The GenTeam community page opened from the onboarding's second slide.
-// Stable short link served by the genoffice.ai site; it 302s to the tokened
-// invite link, which stays out of this repo and rotates server-side.
-const GENTEAM_URL = 'https://genoffice.ai/join'
-
-// Genspark credit-usage page opened from the account menu's credits row.
-// Kept main-side so the renderer never supplies the URL.
-const CREDIT_USAGE_URL = 'https://www.genspark.ai/credit-usage'
 
 // ---- "star us on GitHub" prompt (see star-prompt.ts for the rules) ----
 
@@ -2768,7 +2738,7 @@ function createShellWindow(): void {
     height: 900,
     minWidth: 720,
     minHeight: 550,
-    title: 'GenOffice',
+    title: 'DVH Office',
     // vibrancy: editor modules punch translucent regions (e.g. the slides
     // thumbnail pane) through to the desktop
     ...(process.platform === 'darwin'
@@ -3410,54 +3380,11 @@ function statEntries(paths: string[]): RecentEntry[] {
 }
 
 function registerHomeIpc(): void {
-  // signed-in means GenOffice's own device-code login; the shared gsk CLI key
-  // is only a silent fallback, deliberately not shown here to nudge users onto our key
-  ipcMain.handle(HOME_CHANNELS.accountStatus, async () => {
-    if (!loadGenofficeAuth()) return { loggedIn: false }
-    await proxyBootstrap
-    const info = await gskLoginInfo()
-    return info
-      ? { loggedIn: true, email: info.email, creditBalance: info.creditBalance }
-      : { loggedIn: true }
-  })
-
-  // login progress is streamed to the requesting renderer; the auth URL is
-  // kept main-side so the "open manually" rescue never opens a renderer-supplied URL
-  let pendingLoginUrl = ''
-  ipcMain.handle(HOME_CHANNELS.accountLogin, async (event) => {
-    analytics.track('login_click')
-    const sender = event.sender
-    pendingLoginUrl = ''
-    await proxyBootstrap
-    const send = (payload: AccountLoginEvent) => {
-      if (!sender.isDestroyed()) sender.send(HOME_CHANNELS.accountLoginEvent, payload)
-    }
-    // open the browser on the first url event only; later events refresh the rescue URL
-    let opened = false
-    const launched = startGenofficeLogin((progress) => {
-      if (progress.url) {
-        pendingLoginUrl = progress.url
-        if (!opened) {
-          opened = true
-          void shell.openExternal(progress.url)
-        }
-      }
-      if (progress.phase === 'success') analytics.track('login_success')
-      send(progress)
-    })
-    if (launched) send({ phase: 'launched' })
-    return launched
-  })
-
-  ipcMain.handle(HOME_CHANNELS.accountLoginOpenUrl, () => {
-    if (pendingLoginUrl) void shell.openExternal(pendingLoginUrl)
-  })
-
-  ipcMain.handle(HOME_CHANNELS.accountLogout, async () => {
-    await genofficeLogout()
-    // the cloud projects cache belongs to the account that just signed out
-    clearCloudProjectsStore(cloudProjectsStorePath())
-  })
+  // Legacy IPC replies do not access any account or cloud service.
+  ipcMain.handle(HOME_CHANNELS.accountStatus, () => ({ loggedIn: false }))
+  ipcMain.handle(HOME_CHANNELS.accountLogin, () => false)
+  ipcMain.handle(HOME_CHANNELS.accountLoginOpenUrl, () => false)
+  ipcMain.handle(HOME_CHANNELS.accountLogout, () => undefined)
 
   ipcMain.handle(HOME_CHANNELS.getAppVersion, (): string => app.getVersion())
 
@@ -3491,7 +3418,7 @@ function registerHomeIpc(): void {
     HOME_CHANNELS.rerankSearch,
     async (_event, raw: unknown): Promise<FileSearchRerank | null> => {
       const settings = readFileSearchSettings()
-      if (!settings.rerank) return null
+      if (!AI_ENABLED || !settings.rerank) return null
       const query = (raw && typeof raw === 'object' ? raw : {}) as { q?: unknown; paths?: unknown }
       const q = typeof query.q === 'string' ? query.q.trim().slice(0, 200) : ''
       const paths = Array.isArray(query.paths)
@@ -3726,10 +3653,9 @@ function registerHomeIpc(): void {
 
   ipcMain.handle(HOME_CHANNELS.setTheme, (_event, theme: unknown) => {
     if (theme !== 'light' && theme !== 'dark' && theme !== 'system') return
-    if (theme === currentTheme()) return
-    cachedTheme = theme
+    theme = 'light'
     writeAppSetting(APP_SETTINGS_PATH(), 'theme', theme)
-    nativeTheme.themeSource = theme
+    nativeTheme.themeSource = 'light'
     refreshTitleBarOverlay()
     for (const wc of webContents.getAllWebContents()) wc.send('app:theme-changed', theme)
   })
@@ -4025,17 +3951,9 @@ function registerHomeIpc(): void {
     return picked
   })
 
-  ipcMain.handle(HOME_CHANNELS.openGenTeam, () => {
-    shell.openExternal(GENTEAM_URL).catch(() => {
-      // no browser handler available; nothing actionable for the user here
-    })
-  })
+  ipcMain.handle(HOME_CHANNELS.openGenTeam, () => false)
 
-  ipcMain.handle(HOME_CHANNELS.openCreditUsage, () => {
-    shell.openExternal(CREDIT_USAGE_URL).catch(() => {
-      // no browser handler available; nothing actionable for the user here
-    })
-  })
+  ipcMain.handle(HOME_CHANNELS.openCreditUsage, () => false)
 
   ipcMain.handle(HOME_CHANNELS.openGitHubRepo, () => {
     shell.openExternal(GITHUB_REPO_URL).catch(() => {
@@ -4079,18 +3997,11 @@ function registerHomeIpc(): void {
     if (action === 'starred') writeStarPrompt(withResolved(readStarPrompt()))
   })
 
-  const cloudProjectsStorePath = () => join(app.getPath('userData'), 'cloud-projects.json')
-
-  ipcMain.handle(HOME_CHANNELS.cloudProjectsCached, () =>
-    readCloudProjectsStore(cloudProjectsStorePath()),
-  )
-
-  ipcMain.handle(HOME_CHANNELS.cloudProjects, () => syncCloudProjects(cloudProjectsStorePath()))
-
-  ipcMain.handle(HOME_CHANNELS.openCloudProject, (_event, projectUrl: unknown) => {
-    const url = cloudProjectExternalUrl(projectUrl)
-    if (url) void shell.openExternal(url)
+  ipcMain.handle(HOME_CHANNELS.cloudProjectsCached, () => null)
+  ipcMain.handle(HOME_CHANNELS.cloudProjects, () => {
+    throw new Error('Cloud projects are not available in DVH Office.')
   })
+  ipcMain.handle(HOME_CHANNELS.openCloudProject, () => false)
 }
 
 function stringPaths(value: unknown): string[] {
@@ -5086,7 +4997,6 @@ function installDockMenu(): void {
 // env vars, so fall back to the system HTTP proxy. The renderer uses Chromium's system proxy and
 // is unaffected. Same bootstrap as slides-main startSlidesStandalone.
 // awaited by login IPC so the first status probe / login click cannot race the proxy resolution
-let proxyBootstrap: Promise<void> = Promise.resolve()
 
 async function installMainProcessProxy(): Promise<void> {
   let proxyUrl = [
@@ -5101,7 +5011,7 @@ async function installMainProcessProxy(): Promise<void> {
     try {
       // PAC/rule proxies answer per-host: probe the host the login flow, the
       // Genspark LLM proxy and the gsk CLI actually target
-      const resolved = await session.defaultSession.resolveProxy('https://www.genspark.ai/')
+      const resolved = await session.defaultSession.resolveProxy('https://api.openai.com/')
       const m = /PROXY\s+([^;\s]+)/.exec(resolved)
       if (m) proxyUrl = `http://${m[1]}`
     } catch {
@@ -5111,7 +5021,6 @@ async function installMainProcessProxy(): Promise<void> {
   if (!proxyUrl) return
   // spawned gsk CLI children (login/search/…) do their own fetch and never see
   // the dispatcher below — forward the proxy to them via env
-  setGskProxyUrl(proxyUrl)
   try {
     const { ProxyAgent, setGlobalDispatcher } = await import('undici')
     setGlobalDispatcher(new ProxyAgent(proxyUrl))
@@ -5276,14 +5185,6 @@ app.whenReady().then(async () => {
     app.quit()
     return
   }
-  // another GenOffice-family app re-logging in rotates the shared key; the
-  // home page re-reads its account status. A logout that leaves only the
-  // gsk CLI fallback key is not a login
-  stopAuthWatch = watchGskApiKey(() => {
-    if (!loadGenofficeAuth()) return
-    for (const w of BrowserWindow.getAllWindows())
-      w.webContents.send(HOME_CHANNELS.accountLoginEvent, { phase: 'success' })
-  })
   // a registry left by a crashed instance must not block genoffice writes
   ownsOpenDocumentsRegistry = true
   publishOpenDocuments(OPEN_DOCUMENTS_PATH(), [])
@@ -5295,7 +5196,7 @@ app.whenReady().then(async () => {
     }
   }
 
-  proxyBootstrap = installMainProcessProxy()
+  await installMainProcessProxy()
   app.setAccessibilitySupportEnabled(true)
   // Settle the shared uiLang from saved settings BEFORE any tab renderer can
   // ask 'app:get-language': the editor handlers return the i18n module's
@@ -5476,7 +5377,6 @@ app.on('before-quit', () => {
 app.on('will-quit', () => {
   fileIndexer?.stop()
   fileIndexStore?.close()
-  stopAuthWatch?.()
   for (const watcher of folderWatchers.values()) watcher.close()
   controlServer?.close()
   // a second instance that lost the lock quits too; it must not delete the running editor's list

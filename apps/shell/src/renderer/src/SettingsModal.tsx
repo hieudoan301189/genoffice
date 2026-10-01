@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
@@ -26,7 +27,7 @@ import type {
 } from '@genoffice/ai-provider'
 import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
-import type { AccountStatus, AiCatalogEntry, UiTheme } from '../../shared/home-api'
+import type { AiCatalogEntry, UiTheme } from '../../shared/home-api'
 import { ProviderLogo } from './provider-logos'
 import { IntegrationsPane, skillUpdateDue } from './IntegrationsPane'
 import './settings.css'
@@ -61,11 +62,10 @@ const LANG_OPTIONS = [
 ] as const
 
 // GenMail's option order: follow-system first, then the manual picks
-const THEME_OPTIONS = [
-  { value: 'system', labelKey: 'themeSystem' },
-  { value: 'light', labelKey: 'themeLight' },
-  { value: 'dark', labelKey: 'themeDark' },
-] as const satisfies readonly { value: UiTheme; labelKey: StringKey }[]
+const THEME_OPTIONS = [{ value: 'light', labelKey: 'themeLight' }] as const satisfies readonly {
+  value: UiTheme
+  labelKey: StringKey
+}[]
 
 const AI_FONT_SIZE_OPTIONS = [
   { value: 'default', labelKey: 'aiFontSizeDefault' },
@@ -142,11 +142,8 @@ function CustomFontSizeInput({
 export type SectionId = 'account' | 'aiModel' | 'aiMedia' | 'general' | 'integrations' | 'about'
 
 const SECTIONS: readonly { id: SectionId; labelKey: StringKey }[] = [
-  { id: 'account', labelKey: 'setSecAccount' },
   { id: 'aiModel', labelKey: 'setSecAiModel' },
-  { id: 'aiMedia', labelKey: 'setSecAiMedia' },
   { id: 'general', labelKey: 'setSecGeneral' },
-  { id: 'integrations', labelKey: 'setSecIntegrations' },
   { id: 'about', labelKey: 'setSecAbout' },
 ]
 
@@ -272,7 +269,7 @@ function foldModels(providerId: string, models: string[]) {
     )
 }
 
-/** AI model pane: provider / model / key / base URL, saved to userData/ai-settings.json */
+/** Gemini model and API key settings; the main process stores the key encrypted. */
 function AiModelPane({ t }: { t: TFunc }) {
   const [catalog, setCatalog] = useState<AiCatalogEntry[]>(
     () => window.aiOffice.getAiProviders?.() ?? [],
@@ -304,14 +301,6 @@ function AiModelPane({ t }: { t: TFunc }) {
     let alive = true
     void window.aiOffice.getAiSettings?.().then((s) => {
       if (!alive || !s) return
-      // The switch is disabled with genspark, so never present it stranded
-      // off. Display-only: s.provider may be the activeProvider fallback for
-      // a half-configured BYOK selection, so writing anything back here would
-      // clobber the stored choice — the main process heals a genuine legacy
-      // genspark+off file itself, judged on the raw stored provider.
-      if (s.provider === 'genspark' && s.gskToolsEnabled === false) {
-        s = { ...s, gskToolsEnabled: true }
-      }
       setSettings(s)
       const codex = s.providers.codex
       if (codex) {
@@ -572,7 +561,7 @@ function AiModelPane({ t }: { t: TFunc }) {
               onChange={(e) => updateConfig({ apiKey: e.target.value.trim() })}
             />
           </div>
-          <div className="set-field">
+          {provider !== 'gemini' && <div className="set-field">
             <div className="set-field-text">
               <div className="set-field-stack">
                 <label className="set-field-label" htmlFor="set-ai-base-url">
@@ -592,7 +581,7 @@ function AiModelPane({ t }: { t: TFunc }) {
               spellCheck={false}
               onChange={(e) => updateConfig({ baseUrl: e.target.value.trim() })}
             />
-          </div>
+          </div>}
         </>
       ) : null}
       <div className="set-field">
@@ -614,26 +603,6 @@ function AiModelPane({ t }: { t: TFunc }) {
           value={maxTokensDraft ?? String(settings.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS)}
           onChange={(e) => setMaxTokensDraft(e.target.value)}
           onBlur={commitMaxTokens}
-        />
-      </div>
-      <div className="set-field">
-        <div className="set-field-text">
-          <div className="set-field-stack">
-            <div className="set-field-label">{t('setAiGskTools')}</div>
-            <div className="set-field-desc">{t('setAiGskToolsDesc')}</div>
-          </div>
-        </div>
-        {/* locked on with the genspark provider — chat runs through gsk anyway */}
-        <button
-          className="set-switch"
-          role="switch"
-          aria-checked={settings.gskToolsEnabled !== false}
-          aria-label={t('setAiGskTools')}
-          disabled={isGenspark}
-          onClick={() => {
-            setSettings({ ...settings, gskToolsEnabled: settings.gskToolsEnabled === false })
-            touch()
-          }}
         />
       </div>
     </>
@@ -1206,21 +1175,9 @@ function AiStatusPill({ status }: { status: AiStatus | null }) {
 }
 
 export interface SettingsModalProps {
-  status: AccountStatus | null
-  loggingOut: boolean
-  /** browser sign-in in progress (spinner shows on the account entry) */
-  loginWaiting: boolean
-  /** device auth URL while waiting — rescue actions when the browser did not auto-open */
-  loginUrl: string | null
-  urlCopied: boolean
-  onOpenLoginUrl: () => void
-  onCopyLoginUrl: () => void
   onClose: () => void
   /** the Jev search settings were saved; the home search re-judges or drops its current order */
   onFileSearchChange?: () => void
-  /** closes the modal and launches the Genspark login flow (progress shows on the account entry) */
-  onLogin: () => void
-  onLogout: () => void
   /** an installed skill is older than the bundled one: dot on the Integrations entry */
   skillUpdateDue?: boolean
   onSkillUpdateDue?: (due: boolean) => void
@@ -1229,24 +1186,17 @@ export interface SettingsModalProps {
 }
 
 export function SettingsModal({
-  status,
-  loggingOut,
-  loginWaiting,
-  loginUrl,
-  urlCopied,
-  onOpenLoginUrl,
-  onCopyLoginUrl,
   onClose,
   onFileSearchChange,
-  onLogin,
-  onLogout,
   skillUpdateDue: updateDue = false,
   onSkillUpdateDue,
   target,
 }: SettingsModalProps) {
   const { lang, setLang, t } = useI18n()
-  const [section, setSection] = useState<SectionId>(target?.section ?? 'account')
-  const [theme, setTheme] = useState<UiTheme>('system')
+  const [section, setSection] = useState<SectionId>(
+    target?.section === 'about' ? 'about' : 'general',
+  )
+  const [theme, setTheme] = useState<UiTheme>('light')
   const [saveDir, setSaveDir] = useState('')
   const [analyticsOn, setAnalyticsOn] = useState(true)
   const [analyticsSaving, setAnalyticsSaving] = useState(false)
@@ -1351,9 +1301,6 @@ export function SettingsModal({
     return t('setDefaultAppDesc')
   })()
 
-  const loggedIn = status?.loggedIn ?? false
-  const email = status?.email ?? ''
-
   return (
     <div
       className="set-overlay"
@@ -1393,56 +1340,8 @@ export function SettingsModal({
             ))}
           </nav>
           <div className="set-pane">
-            {section === 'account' && (
-              <>
-                <h3 className="set-pane-title">{t('setSecAccount')}</h3>
-                <Field label={t('setEmail')} value={loggedIn ? email : t('setNotLoggedIn')} />
-                {loggedIn && (
-                  <Field
-                    label={t('credits')}
-                    value={
-                      status?.creditBalance === undefined
-                        ? '—'
-                        : Math.floor(status.creditBalance).toLocaleString('en-US')
-                    }
-                    action={
-                      <button
-                        className="set-btn"
-                        data-tip={t('creditsTip')}
-                        onClick={() => void window.aiOffice.openCreditUsage?.()}
-                      >
-                        {t('setViewUsage')}
-                      </button>
-                    }
-                  />
-                )}
-                <div className="set-pane-footer">
-                  {loggedIn ? (
-                    <button className="set-btn danger" disabled={loggingOut} onClick={onLogout}>
-                      {loggingOut ? t('loggingOut') : t('logout')}
-                    </button>
-                  ) : (
-                    <>
-                      {loginWaiting && loginUrl && (
-                        <>
-                          <button className="set-btn" onClick={onOpenLoginUrl}>
-                            {t('loginOpenManually')}
-                          </button>
-                          <button className="set-btn" onClick={onCopyLoginUrl}>
-                            {urlCopied ? t('loginCopied') : t('loginCopyUrl')}
-                          </button>
-                        </>
-                      )}
-                      <button className="set-btn primary" onClick={onLogin}>
-                        {loginWaiting ? t('waitingShort') : t('loginGenspark')}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-            {section === 'aiModel' && <AiModelPane t={t} />}
-            {section === 'aiMedia' && (
+            {AI_ENABLED && section === 'aiModel' && <AiModelPane t={t} />}
+            {AI_ENABLED && section === 'aiMedia' && (
               <AiMediaPane
                 t={t}
                 onFileSearchChange={onFileSearchChange}
@@ -1479,66 +1378,72 @@ export function SettingsModal({
                     onPick={(v) => applyTheme(v as UiTheme)}
                   />
                 </div>
-                <div className="set-field">
-                  <div className="set-field-text">
-                    <label className="set-field-label">{t('setAiPanelSide')}</label>
-                  </div>
-                  <Dropdown
-                    className="set-dd"
-                    value={aiPrefs.side}
-                    ariaLabel={t('setAiPanelSide')}
-                    options={[
-                      { value: 'left', label: t('aiPanelSideLeft') },
-                      { value: 'right', label: t('aiPanelSideRight') },
-                    ]}
-                    onPick={(side) => updateAiPrefs({ side: side as AiPanelSide })}
-                  />
-                </div>
-                <div className="set-field">
-                  <div className="set-field-text">
-                    <label className="set-field-label">{t('setAiFontSize')}</label>
-                  </div>
-                  {aiPrefs.fontSize === 'custom' && (
-                    <CustomFontSizeInput
-                      value={aiPrefs.customFontSize}
-                      label={t('aiFontSizeCustom')}
-                      onCommit={(px) => updateAiPrefs({ customFontSize: px })}
-                    />
-                  )}
-                  <Dropdown
-                    className="set-dd"
-                    value={aiPrefs.fontSize}
-                    ariaLabel={t('setAiFontSize')}
-                    options={AI_FONT_SIZE_OPTIONS.map((opt) => ({
-                      value: opt.value,
-                      label: t(opt.labelKey),
-                    }))}
-                    onPick={(v) => {
-                      const fontSize = v as AiFontSize
-                      // start the custom size from the preset being left so nothing jumps
-                      updateAiPrefs(
-                        fontSize === 'custom' && aiPrefs.fontSize !== 'custom'
-                          ? { fontSize, customFontSize: aiPanelFontPx(aiPrefs) }
-                          : { fontSize },
-                      )
-                    }}
-                  />
-                </div>
-                <div className="set-field">
-                  <div className="set-field-text">
-                    <div className="set-field-stack">
-                      <div className="set-field-label">{t('setAiSpellcheck')}</div>
-                      <div className="set-field-desc">{t('setAiSpellcheckDesc')}</div>
+                {AI_ENABLED && (
+                  <div className="set-field">
+                    <div className="set-field-text">
+                      <label className="set-field-label">{t('setAiPanelSide')}</label>
                     </div>
+                    <Dropdown
+                      className="set-dd"
+                      value={aiPrefs.side}
+                      ariaLabel={t('setAiPanelSide')}
+                      options={[
+                        { value: 'left', label: t('aiPanelSideLeft') },
+                        { value: 'right', label: t('aiPanelSideRight') },
+                      ]}
+                      onPick={(side) => updateAiPrefs({ side: side as AiPanelSide })}
+                    />
                   </div>
-                  <button
-                    className="set-switch"
-                    role="switch"
-                    aria-checked={aiPrefs.spellcheck}
-                    aria-label={t('setAiSpellcheck')}
-                    onClick={() => updateAiPrefs({ spellcheck: !aiPrefs.spellcheck })}
-                  />
-                </div>
+                )}
+                {AI_ENABLED && (
+                  <div className="set-field">
+                    <div className="set-field-text">
+                      <label className="set-field-label">{t('setAiFontSize')}</label>
+                    </div>
+                    {aiPrefs.fontSize === 'custom' && (
+                      <CustomFontSizeInput
+                        value={aiPrefs.customFontSize}
+                        label={t('aiFontSizeCustom')}
+                        onCommit={(px) => updateAiPrefs({ customFontSize: px })}
+                      />
+                    )}
+                    <Dropdown
+                      className="set-dd"
+                      value={aiPrefs.fontSize}
+                      ariaLabel={t('setAiFontSize')}
+                      options={AI_FONT_SIZE_OPTIONS.map((opt) => ({
+                        value: opt.value,
+                        label: t(opt.labelKey),
+                      }))}
+                      onPick={(v) => {
+                        const fontSize = v as AiFontSize
+                        // start the custom size from the preset being left so nothing jumps
+                        updateAiPrefs(
+                          fontSize === 'custom' && aiPrefs.fontSize !== 'custom'
+                            ? { fontSize, customFontSize: aiPanelFontPx(aiPrefs) }
+                            : { fontSize },
+                        )
+                      }}
+                    />
+                  </div>
+                )}
+                {AI_ENABLED && (
+                  <div className="set-field">
+                    <div className="set-field-text">
+                      <div className="set-field-stack">
+                        <div className="set-field-label">{t('setAiSpellcheck')}</div>
+                        <div className="set-field-desc">{t('setAiSpellcheckDesc')}</div>
+                      </div>
+                    </div>
+                    <button
+                      className="set-switch"
+                      role="switch"
+                      aria-checked={aiPrefs.spellcheck}
+                      aria-label={t('setAiSpellcheck')}
+                      onClick={() => updateAiPrefs({ spellcheck: !aiPrefs.spellcheck })}
+                    />
+                  </div>
+                )}
                 {defaultApp && defaultApp.state !== 'unsupported' && (
                   <div className="set-field">
                     <div className="set-field-text">

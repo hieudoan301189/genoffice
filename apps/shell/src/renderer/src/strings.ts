@@ -310,7 +310,7 @@ export const strings = {
     setAiCodexHint:
       '自动查找并使用当前 Codex CLI，更新后无需重新选择；也可填写自定义路径。无需 API Key。',
     setAiByokNote:
-      '对话使用你自己的 key；生图与媒体解析按「生图与媒体」设置；网页搜索仍走 Genspark 登录或免费来源。',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: '保存',
     setAiSaved: '已保存',
     setAiTest: '测试连接',
@@ -363,9 +363,9 @@ export const strings = {
     appMenu: '菜单',
     newTab: '新建标签页',
     // First-run onboarding
-    onbTitle1: '欢迎使用 GenOffice',
+    onbTitle1: '欢迎使用 DVH Office',
     onbSubtitle1: '第一个开源的 AI 原生 Office 套件',
-    onbBody1: '创建文档、制作表格、生成演示、审阅 PDF。AI 深度融入每个环节。',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: '这只是一个开始',
     onbBody2: 'GenOffice 目前处于 alpha 阶段。欢迎加入 GenTeam 群聊，分享反馈，一起塑造它的未来。',
     onbCredits: '活跃贡献者可获得 **1,000+ Genspark 积分**',
@@ -684,7 +684,7 @@ export const strings = {
     setAiProvider: 'Provider',
     setAiModelId: 'Model',
     setAiApiKey: 'API Key',
-    setAiKeyHint: 'Stored only on this device.',
+    setAiKeyHint: 'Encrypted for your Windows account; existing DVH-Tool Gemini key is loaded automatically.',
     setAiBaseUrl: 'Base URL',
     setAiBaseUrlHint: 'Leave empty for the official endpoint.',
     setAiGensparkHint: 'Uses your Genspark sign-in; no API key needed.',
@@ -694,7 +694,7 @@ export const strings = {
     setAiCodexHint:
       'Automatically finds the current signed-in Codex CLI after updates; a custom path is optional. No API key is needed.',
     setAiByokNote:
-      'Chats use your own key. Image generation and media analysis follow the AI Media section; web search still uses the Genspark sign-in or free sources.',
+      'DVH Office uses your Gemini API key for AI chat and translation.',
     setAiSave: 'Save',
     setAiSaved: 'Saved',
     setAiTest: 'Test connection',
@@ -748,10 +748,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'New tab',
     // First-run onboarding
-    onbTitle1: 'Welcome to GenOffice',
+    onbTitle1: 'Welcome to DVH Office',
     onbSubtitle1: 'The first open-source, AI-native office suite',
-    onbBody1:
-      'Create docs, build sheets, make slides, and review PDFs. AI is built into every step.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'This is just the beginning',
     onbBody2:
       'GenOffice is still in alpha. Join the group chat on GenTeam to share feedback and help shape what comes next.',
@@ -1094,7 +1093,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: '自動検出（推奨）',
     setAiCodexHint: 'ローカルでサインイン済みの Codex CLI を使用します。API キーは不要です。',
     setAiByokNote:
-      'チャットは自分のキーを使用します。画像生成とメディア解析は「AI メディア」の設定に従い、Web 検索は引き続き Genspark のサインインまたは無料ソースを使用します。',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: '保存',
     setAiSaved: '保存しました',
     setAiTest: '接続テスト',
@@ -1150,10 +1149,9 @@ export const strings = {
     appMenu: 'メニュー',
     newTab: '新しいタブ',
     // First-run onboarding
-    onbTitle1: 'GenOffice へようこそ',
+    onbTitle1: 'DVH Office へようこそ',
     onbSubtitle1: '初のオープンソース AI ネイティブ Office スイート',
-    onbBody1:
-      '文書の作成、表計算、プレゼン作成、PDF のレビュー。あらゆるステップに AI が組み込まれています。',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'これはまだ始まりにすぎません',
     onbBody2:
       'GenOffice はまだアルファ版です。GenTeam のグループチャットに参加して、フィードバックを共有し、今後の開発を一緒に形作りましょう。',
@@ -1486,7 +1484,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: '자동 감지(권장)',
     setAiCodexHint: '로컬에서 로그인된 Codex CLI를 사용하므로 API 키가 필요 없습니다.',
     setAiByokNote:
-      '채팅은 내 키를 사용합니다. 이미지 생성과 미디어 분석은 「AI 미디어」 설정을 따르며, 웹 검색은 여전히 Genspark 로그인 또는 무료 소스를 사용합니다.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: '저장',
     setAiSaved: '저장됨',
     setAiTest: '연결 테스트',
@@ -1542,10 +1540,9 @@ export const strings = {
     appMenu: '메뉴',
     newTab: '새 탭',
     // First-run onboarding
-    onbTitle1: 'GenOffice에 오신 것을 환영합니다',
+    onbTitle1: 'DVH Office에 오신 것을 환영합니다',
     onbSubtitle1: '최초의 오픈소스 AI 네이티브 오피스 제품군',
-    onbBody1:
-      '문서 작성, 스프레드시트 제작, 프레젠테이션 생성, PDF 검토. 모든 단계에 AI가 녹아 있습니다.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: '이제 시작일 뿐입니다',
     onbBody2:
       'GenOffice는 아직 알파 단계입니다. GenTeam 그룹 채팅에 참여해 피드백을 공유하고 앞으로의 방향을 함께 만들어 가세요.',
@@ -1891,7 +1888,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Détection auto (recommandé)',
     setAiCodexHint: 'Utilise le CLI Codex connecté localement ; aucune clé API requise.',
     setAiByokNote:
-      "Les conversations utilisent votre propre clé. La génération d'images et l'analyse de médias suivent la section « Médias IA » ; la recherche web utilise toujours la connexion Genspark ou des sources gratuites.",
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Enregistrer',
     setAiSaved: 'Enregistré',
     setAiTest: 'Tester la connexion',
@@ -1949,10 +1946,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Nouvel onglet',
     // First-run onboarding
-    onbTitle1: 'Bienvenue dans GenOffice',
+    onbTitle1: 'Bienvenue dans DVH Office',
     onbSubtitle1: 'La première suite bureautique open source et native IA',
-    onbBody1:
-      'Créez des documents, des feuilles de calcul et des présentations, et relisez des PDF. L’IA est intégrée à chaque étape.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Ce n’est qu’un début',
     onbBody2:
       'GenOffice est encore en alpha. Rejoignez la discussion de groupe sur GenTeam pour partager vos retours et façonner la suite.',
@@ -2302,7 +2298,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Automatisch erkennen (empfohlen)',
     setAiCodexHint: 'Verwendet die lokal angemeldete Codex CLI; kein API-Schlüssel nötig.',
     setAiByokNote:
-      'Chats nutzen deinen eigenen Schlüssel. Bildgenerierung und Medienanalyse folgen dem Abschnitt „KI-Medien“; die Websuche nutzt weiterhin die Genspark-Anmeldung oder kostenlose Quellen.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Speichern',
     setAiSaved: 'Gespeichert',
     setAiTest: 'Verbindung testen',
@@ -2359,10 +2355,9 @@ export const strings = {
     appMenu: 'Menü',
     newTab: 'Neuer Tab',
     // First-run onboarding
-    onbTitle1: 'Willkommen bei GenOffice',
+    onbTitle1: 'Willkommen bei DVH Office',
     onbSubtitle1: 'Die erste quelloffene, KI-native Office-Suite',
-    onbBody1:
-      'Dokumente erstellen, Tabellen bauen, Präsentationen gestalten und PDFs prüfen. KI ist in jedem Schritt integriert.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Das ist erst der Anfang',
     onbBody2:
       'GenOffice ist noch in der Alpha-Phase. Treten Sie dem Gruppenchat auf GenTeam bei, um Feedback zu teilen und die Zukunft mitzugestalten.',
@@ -2708,7 +2703,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Detección automática (recomendado)',
     setAiCodexHint: 'Usa la CLI de Codex con sesión local; no se necesita clave de API.',
     setAiByokNote:
-      'Los chats usan tu propia clave. La generación de imágenes y el análisis de medios siguen la sección «Medios de IA»; la búsqueda web sigue usando el inicio de sesión de Genspark o fuentes gratuitas.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Guardar',
     setAiSaved: 'Guardado',
     setAiTest: 'Probar conexión',
@@ -2765,10 +2760,9 @@ export const strings = {
     appMenu: 'Menú',
     newTab: 'Nueva pestaña',
     // First-run onboarding
-    onbTitle1: 'Bienvenido a GenOffice',
+    onbTitle1: 'Bienvenido a DVH Office',
     onbSubtitle1: 'La primera suite ofimática de código abierto y nativa de IA',
-    onbBody1:
-      'Crea documentos, hojas de cálculo y presentaciones, y revisa PDF. La IA está integrada en cada paso.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Esto es solo el comienzo',
     onbBody2:
       'GenOffice aún está en alfa. Únete al chat grupal en GenTeam para compartir comentarios y ayudar a dar forma a lo que viene.',
@@ -3098,7 +3092,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'ค้นหาอัตโนมัติ (แนะนำ)',
     setAiCodexHint: 'ใช้ Codex CLI ที่เข้าสู่ระบบไว้ในเครื่อง โดยไม่ต้องใช้คีย์ API',
     setAiByokNote:
-      'การแชทใช้คีย์ของคุณเอง การสร้างภาพและการวิเคราะห์สื่อเป็นไปตามส่วน "สื่อ AI" ส่วนการค้นหาเว็บยังใช้การลงชื่อเข้าใช้ Genspark หรือแหล่งข้อมูลฟรี',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'บันทึก',
     setAiSaved: 'บันทึกแล้ว',
     setAiTest: 'ทดสอบการเชื่อมต่อ',
@@ -3155,9 +3149,9 @@ export const strings = {
     appMenu: 'เมนู',
     newTab: 'แท็บใหม่',
     // First-run onboarding
-    onbTitle1: 'ยินดีต้อนรับสู่ GenOffice',
+    onbTitle1: 'ยินดีต้อนรับสู่ DVH Office',
     onbSubtitle1: 'ชุดโปรแกรมออฟฟิศ AI-native โอเพนซอร์สตัวแรก',
-    onbBody1: 'สร้างเอกสาร ทำสเปรดชีต สร้างงานนำเสนอ และตรวจทาน PDF ทุกขั้นตอนมี AI ในตัว',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'นี่เป็นเพียงจุดเริ่มต้น',
     onbBody2:
       'GenOffice ยังอยู่ในช่วงอัลฟ่า เข้าร่วมแชทกลุ่มบน GenTeam เพื่อแบ่งปันความคิดเห็นและร่วมกำหนดทิศทางต่อไป',
@@ -3497,7 +3491,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Deteksi otomatis (disarankan)',
     setAiCodexHint: 'Menggunakan Codex CLI yang sudah login secara lokal; tanpa kunci API.',
     setAiByokNote:
-      'Chat memakai kunci Anda sendiri. Pembuatan gambar dan analisis media mengikuti bagian "Media AI"; pencarian web tetap memakai login Genspark atau sumber gratis.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Simpan',
     setAiSaved: 'Tersimpan',
     setAiTest: 'Uji koneksi',
@@ -3554,10 +3548,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Tab baru',
     // First-run onboarding
-    onbTitle1: 'Selamat datang di GenOffice',
+    onbTitle1: 'Selamat datang di DVH Office',
     onbSubtitle1: 'Suite office open source AI-native pertama',
-    onbBody1:
-      'Buat dokumen, susun spreadsheet, rancang presentasi, dan tinjau PDF. AI hadir di setiap langkah.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Ini baru permulaan',
     onbBody2:
       'GenOffice masih dalam tahap alpha. Gabung obrolan grup di GenTeam untuk berbagi masukan dan ikut menentukan arah ke depan.',
@@ -3895,7 +3888,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Автоопределение (рекомендуется)',
     setAiCodexHint: 'Использует локально авторизованный Codex CLI; ключ API не нужен.',
     setAiByokNote:
-      'Чаты используют ваш собственный ключ. Генерация изображений и анализ медиа настраиваются в разделе «Медиа ИИ»; веб-поиск по-прежнему использует вход в Genspark или бесплатные источники.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Сохранить',
     setAiSaved: 'Сохранено',
     setAiTest: 'Проверить подключение',
@@ -3952,10 +3945,9 @@ export const strings = {
     appMenu: 'Меню',
     newTab: 'Новая вкладка',
     // First-run onboarding
-    onbTitle1: 'Добро пожаловать в GenOffice',
+    onbTitle1: 'Добро пожаловать в DVH Office',
     onbSubtitle1: 'Первый открытый AI-нативный офисный пакет',
-    onbBody1:
-      'Создавайте документы, таблицы и презентации, работайте с PDF. ИИ встроен в каждый шаг.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Это только начало',
     onbBody2:
       'GenOffice пока в альфа-версии. Присоединяйтесь к групповому чату в GenTeam, чтобы делиться отзывами и влиять на дальнейшее развитие.',
@@ -4287,7 +4279,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'اكتشاف تلقائي (موصى به)',
     setAiCodexHint: 'يستخدم Codex CLI المسجل محليًا؛ لا حاجة إلى مفتاح API.',
     setAiByokNote:
-      'تستخدم المحادثات مفتاحك الخاص. يتبع توليد الصور وتحليل الوسائط قسم «وسائط الذكاء الاصطناعي»؛ ولا يزال البحث في الويب يستخدم تسجيل دخول Genspark أو مصادر مجانية.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'حفظ',
     setAiSaved: 'تم الحفظ',
     setAiTest: 'اختبار الاتصال',
@@ -4342,10 +4334,9 @@ export const strings = {
     appMenu: 'القائمة',
     newTab: 'علامة تبويب جديدة',
     // First-run onboarding
-    onbTitle1: 'مرحبًا بك في GenOffice',
+    onbTitle1: 'مرحبًا بك في DVH Office',
     onbSubtitle1: 'أول حزمة مكتبية مفتوحة المصدر وأصيلة في الذكاء الاصطناعي',
-    onbBody1:
-      'أنشئ المستندات وجداول البيانات والعروض التقديمية وراجع ملفات PDF. الذكاء الاصطناعي مدمج في كل خطوة.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'هذه مجرد البداية',
     onbBody2:
       'لا يزال GenOffice في مرحلة ألفا. انضم إلى الدردشة الجماعية على GenTeam لمشاركة ملاحظاتك والمساهمة في تشكيل المستقبل.',
@@ -4682,7 +4673,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Detectar automaticamente (recomendado)',
     setAiCodexHint: 'Usa o Codex CLI conectado localmente; nenhuma chave de API é necessária.',
     setAiByokNote:
-      'Os chats usam a sua própria chave. A geração de imagens e a análise de mídia seguem a seção «Mídia de IA»; a busca na web continua usando o login do Genspark ou fontes gratuitas.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Salvar',
     setAiSaved: 'Salvo',
     setAiTest: 'Testar conexão',
@@ -4737,10 +4728,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Nova guia',
     // First-run onboarding
-    onbTitle1: 'Bem-vindo ao GenOffice',
+    onbTitle1: 'Bem-vindo ao DVH Office',
     onbSubtitle1: 'A primeira suíte de escritório open source e nativa de IA',
-    onbBody1:
-      'Crie documentos, planilhas e apresentações e revise PDFs. A IA está integrada em cada etapa.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Isto é só o começo',
     onbBody2:
       'O GenOffice ainda está em alfa. Entre no chat em grupo no GenTeam para compartilhar feedback e ajudar a moldar o que vem a seguir.',
@@ -5076,7 +5066,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Rilevamento automatico (consigliato)',
     setAiCodexHint: 'Usa Codex CLI con accesso locale; non è richiesta alcuna chiave API.',
     setAiByokNote:
-      "Le chat usano la tua chiave. La generazione di immagini e l'analisi dei media seguono la sezione «Media IA»; la ricerca web usa ancora l'accesso Genspark o fonti gratuite.",
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Salva',
     setAiSaved: 'Salvato',
     setAiTest: 'Prova connessione',
@@ -5131,10 +5121,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Nuova scheda',
     // First-run onboarding
-    onbTitle1: 'Benvenuto in GenOffice',
+    onbTitle1: 'Benvenuto in DVH Office',
     onbSubtitle1: 'La prima suite per ufficio open source e nativa per l’IA',
-    onbBody1:
-      'Crea documenti, fogli di calcolo e presentazioni e rivedi i PDF. L’IA è integrata in ogni passaggio.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Questo è solo l’inizio',
     onbBody2:
       'GenOffice è ancora in alpha. Unisciti alla chat di gruppo su GenTeam per condividere feedback e contribuire a plasmare il futuro.',
@@ -5465,7 +5454,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Wykryj automatycznie (zalecane)',
     setAiCodexHint: 'Używa lokalnie zalogowanego Codex CLI; klucz API nie jest potrzebny.',
     setAiByokNote:
-      'Czaty używają Twojego klucza. Generowanie obrazów i analiza mediów zależą od sekcji „Media AI”; wyszukiwanie w sieci nadal korzysta z logowania Genspark lub darmowych źródeł.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Zapisz',
     setAiSaved: 'Zapisano',
     setAiTest: 'Testuj połączenie',
@@ -5520,10 +5509,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Nowa karta',
     // First-run onboarding
-    onbTitle1: 'Witamy w GenOffice',
+    onbTitle1: 'Witamy w DVH Office',
     onbSubtitle1: 'Pierwszy otwartoźródłowy, natywnie oparty na AI pakiet biurowy',
-    onbBody1:
-      'Twórz dokumenty, arkusze i prezentacje oraz przeglądaj pliki PDF. AI jest wbudowana w każdy etap.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'To dopiero początek',
     onbBody2:
       'GenOffice jest wciąż w fazie alfa. Dołącz do czatu grupowego na GenTeam, aby dzielić się opiniami i współtworzyć jego przyszłość.',
@@ -5828,7 +5816,7 @@ export const strings = {
     setAiCodexHint:
       'Automaticky najde a použije aktuální Codex CLI, po aktualizaci není třeba nic měnit; lze zadat i vlastní cestu. API klíč není potřeba.',
     setAiByokNote:
-      'Chaty používají váš vlastní klíč. Generování obrázků a analýza médií se řídí sekcí AI média; webové vyhledávání dál používá přihlášení ke Genspark nebo bezplatné zdroje.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Uložit',
     setAiSaved: 'Uloženo',
     setAiTest: 'Otestovat připojení',
@@ -5883,10 +5871,9 @@ export const strings = {
     appMenu: 'Nabídka',
     newTab: 'Nová karta',
     // First-run onboarding
-    onbTitle1: 'Vítejte v GenOffice',
+    onbTitle1: 'Vítejte v DVH Office',
     onbSubtitle1: 'První open-source kancelářský balík s nativní AI',
-    onbBody1:
-      'Vytvářejte dokumenty, tabulky a prezentace a kontrolujte PDF. AI je součástí každého kroku.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Toto je jen začátek',
     onbBody2:
       'GenOffice je stále ve fázi alfa. Připojte se ke skupinovému chatu na GenTeam, sdílejte zpětnou vazbu a pomozte utvářet, co přijde dál.',
@@ -6246,7 +6233,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Automatisch detecteren (aanbevolen)',
     setAiCodexHint: 'Gebruikt de lokaal aangemelde Codex CLI; geen API-sleutel nodig.',
     setAiByokNote:
-      'Chats gebruiken je eigen sleutel. Afbeeldingen genereren en media-analyse volgen de sectie "AI-media"; zoeken op het web gebruikt nog steeds de Genspark-aanmelding of gratis bronnen.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Opslaan',
     setAiSaved: 'Opgeslagen',
     setAiTest: 'Verbinding testen',
@@ -6301,10 +6288,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Nieuw tabblad',
     // First-run onboarding
-    onbTitle1: 'Welkom bij GenOffice',
+    onbTitle1: 'Welkom bij DVH Office',
     onbSubtitle1: 'De eerste open source, AI-native officesuite',
-    onbBody1:
-      'Maak documenten, bouw spreadsheets, maak presentaties en beoordeel PDF-bestanden. AI zit in elke stap ingebouwd.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Dit is nog maar het begin',
     onbBody2:
       'GenOffice is nog in alfa. Doe mee aan de groepschat op GenTeam om feedback te delen en mee te bepalen wat er komt.',
@@ -6641,7 +6627,7 @@ export const strings = {
     setAiCodexHint:
       'Menggunakan Codex CLI yang telah log masuk secara setempat; tiada kunci API diperlukan.',
     setAiByokNote:
-      'Sembang menggunakan kunci anda sendiri. Penjanaan imej dan analisis media mengikut bahagian "Media AI"; carian web masih menggunakan log masuk Genspark atau sumber percuma.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'Simpan',
     setAiSaved: 'Disimpan',
     setAiTest: 'Uji sambungan',
@@ -6696,10 +6682,9 @@ export const strings = {
     appMenu: 'Menu',
     newTab: 'Tab baharu',
     // First-run onboarding
-    onbTitle1: 'Selamat datang ke GenOffice',
+    onbTitle1: 'Selamat datang ke DVH Office',
     onbSubtitle1: 'Suite pejabat sumber terbuka natif AI yang pertama',
-    onbBody1:
-      'Cipta dokumen, bina hamparan, hasilkan persembahan dan semak PDF. AI tersedia pada setiap langkah.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'Ini baru permulaan',
     onbBody2:
       'GenOffice masih dalam peringkat alfa. Sertai sembang kumpulan di GenTeam untuk berkongsi maklum balas dan membentuk masa depannya.',
@@ -7021,7 +7006,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'זיהוי אוטומטי (מומלץ)',
     setAiCodexHint: 'משתמש ב-Codex CLI המחובר מקומית; אין צורך במפתח API.',
     setAiByokNote:
-      'הצ׳אטים משתמשים במפתח שלך. יצירת תמונות וניתוח מדיה נקבעים בקטע "מדיה AI"; חיפוש באינטרנט עדיין משתמש בהתחברות Genspark או במקורות חינמיים.',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'שמירה',
     setAiSaved: 'נשמר',
     setAiTest: 'בדיקת חיבור',
@@ -7074,9 +7059,9 @@ export const strings = {
     appMenu: 'תפריט',
     newTab: 'כרטיסייה חדשה',
     // First-run onboarding
-    onbTitle1: 'ברוכים הבאים ל-GenOffice',
+    onbTitle1: 'ברוכים הבאים ל-DVH Office',
     onbSubtitle1: 'חבילת המשרד הראשונה בקוד פתוח שהיא AI-נייטיב',
-    onbBody1: 'צרו מסמכים, בנו גיליונות, הכינו מצגות ובדקו קובצי PDF. ה-AI מובנה בכל שלב.',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'זו רק ההתחלה',
     onbBody2:
       'GenOffice עדיין בגרסת אלפא. הצטרפו לצ׳אט הקבוצתי ב-GenTeam כדי לשתף משוב ולעזור לעצב את ההמשך.',
@@ -7407,7 +7392,7 @@ export const strings = {
     setAiCodexHint:
       'स्थानीय रूप से साइन-इन किए गए Codex CLI का उपयोग करता है; API कुंजी की आवश्यकता नहीं।',
     setAiByokNote:
-      'चैट आपकी अपनी कुंजी का उपयोग करती हैं। इमेज जनरेशन और मीडिया विश्लेषण "AI मीडिया" अनुभाग के अनुसार होते हैं; वेब खोज अभी भी Genspark साइन-इन या मुफ़्त स्रोतों का उपयोग करती है।',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: 'सहेजें',
     setAiSaved: 'सहेजा गया',
     setAiTest: 'कनेक्शन परखें',
@@ -7462,10 +7447,9 @@ export const strings = {
     appMenu: 'मेनू',
     newTab: 'नया टैब',
     // First-run onboarding
-    onbTitle1: 'GenOffice में आपका स्वागत है',
+    onbTitle1: 'DVH Office में आपका स्वागत है',
     onbSubtitle1: 'पहला ओपन-सोर्स, AI-नेटिव ऑफ़िस सुइट',
-    onbBody1:
-      'दस्तावेज़ बनाएँ, स्प्रेडशीट तैयार करें, प्रस्तुतियाँ बनाएँ और PDF की समीक्षा करें। AI हर चरण में शामिल है।',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: 'यह तो बस शुरुआत है',
     onbBody2:
       'GenOffice अभी अल्फ़ा में है। GenTeam पर ग्रुप चैट से जुड़ें, फ़ीडबैक साझा करें और आगे की दिशा तय करने में मदद करें।',
@@ -7784,7 +7768,7 @@ export const strings = {
     setAiCodexHint:
       '自動尋找目前的 Codex CLI，更新後無需重新選擇；也可填寫自訂路徑。無需 API Key。',
     setAiByokNote:
-      '對話使用你自己的 key；生圖與媒體解析依「生圖與媒體」設定；網頁搜尋仍走 Genspark 登入或免費來源。',
+      'Configure your own AI provider in Settings. Chat, media and search use the providers you select.',
     setAiSave: '儲存',
     setAiSaved: '已儲存',
     setAiTest: '測試連線',
@@ -7835,9 +7819,9 @@ export const strings = {
     appMenu: '選單',
     newTab: '新分頁',
     // First-run onboarding
-    onbTitle1: '歡迎使用 GenOffice',
+    onbTitle1: '歡迎使用 DVH Office',
     onbSubtitle1: '第一個開源的 AI 原生 Office 套件',
-    onbBody1: '建立文件、製作試算表、產生簡報、審閱 PDF。AI 深度融入每個環節。',
+    onbBody1: 'Create documents, spreadsheets and presentations. Read and edit PDFs.',
     onbTitle2: '這只是一個開始',
     onbBody2: 'GenOffice 目前仍在 alpha 階段。歡迎加入 GenTeam 群聊，分享回饋，一起打造它的未來。',
     onbCredits: '活躍貢獻者可獲得 **1,000+ Genspark 點數**',
