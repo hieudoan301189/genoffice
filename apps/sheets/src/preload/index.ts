@@ -28,6 +28,7 @@ import type {
   WorkbookMediaRequest,
   WorkbookMediaResult,
   WorkbookPagePrintSettings,
+  WorkbookDvhParts,
   WorkbookPivotDefinition,
   WorkbookPivotRequest,
   WorkbookRangeRequest,
@@ -196,6 +197,19 @@ const desktopApi: DesktopApi = {
       validatedRequest,
     )
     return parsePivotDefinitionResult(result)
+  },
+  async readDvhParts(request) {
+    if (!isRecord(request) || !isUuid(request.sessionId)) {
+      throw new Error('Invalid DVH parts request.')
+    }
+    const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.readDvhParts, {
+      sessionId: request.sessionId,
+    })
+    // Structural check only — the main process zod-validates the full shape.
+    if (!isRecord(result) || !Array.isArray(result.names)) {
+      throw new Error('Invalid DVH parts response.')
+    }
+    return result as WorkbookDvhParts
   },
   async saveWorkbookEdits(request) {
     const validatedRequest = parseSaveRequest(request)

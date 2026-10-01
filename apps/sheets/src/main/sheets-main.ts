@@ -98,8 +98,10 @@ import { parseFileToText } from '@genoffice/file-parse'
 import type { CellEdit, SheetStructuralOps } from '@genoffice/xlsx-gateway/gateway/xlsx-gateway'
 import {
   readArchiveEntryText,
+  readDvhParts,
   saveWorkbookViaSidecar,
 } from '@genoffice/xlsx-gateway/gateway/xlsx-package-io'
+import { HISTORY_NS, MODEL_NS } from '@genoffice/dvh-model'
 import { parsePivotDefinition } from '@genoffice/xlsx-gateway/gateway/xlsx-pivot'
 import type { SheetEditPlan } from '@genoffice/xlsx-gateway/gateway/xlsx-sheets'
 import type {
@@ -122,6 +124,8 @@ import {
   workbookMediaRequestSchema,
   workbookMediaResultSchema,
   workbookPivotRequestSchema,
+  workbookDvhRequestSchema,
+  workbookDvhPartsSchema,
   localImageRequestSchema,
   localImageResultSchema,
   screenCaptureRequestSchema,
@@ -2775,6 +2779,21 @@ export function registerSheetsIpc(): void {
     return workbookPivotDefinitionSchema.parse(parsePivotDefinition(pivotXml, cacheXml))
   })
 
+  // DVH Smart Data of the session's file: hidden _dvh.* binding names and the
+  // model/history customXml parts (read from the snapshot, like the pivots).
+  ipcMain.handle(IPC_CHANNELS.readDvhParts, async (event, input: unknown) => {
+    const entry = sessionFor(event)
+    const request = workbookDvhRequestSchema.parse(input)
+    const session = entry.sessions.get(request.sessionId)
+    if (!session) throw new Error('Unknown workbook session.')
+    return workbookDvhPartsSchema.parse(
+      await readDvhParts(entry.client, session.snapshotPath, {
+        model: MODEL_NS,
+        history: HISTORY_NS,
+      }),
+    )
+  })
+
   ipcMain.handle(IPC_CHANNELS.exportPdf, async (event, input: unknown) => {
     sessionFor(event)
     const request = workbookExportPdfRequestSchema.parse(input)
@@ -3860,6 +3879,7 @@ async function writeWorkbookTo(
     dvStates,
     sheetProtections,
     definedNamesState: request.definedNamesState,
+    dvhState: request.dvhState,
     themeState: request.themeState,
     workbookProtectionState: request.workbookProtectionState,
     protectedRangeStates,

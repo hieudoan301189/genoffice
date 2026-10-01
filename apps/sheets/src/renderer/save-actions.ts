@@ -25,6 +25,7 @@ import { activeCsvSheet, handleExportCsv, serializeActiveSheetCsv } from './csv-
 import type { CellState } from '@genoffice/xlsx-gateway/domain/workbook.types'
 import { verifiedFormulaValues } from './formula-values'
 import { formulaFormats, withBakedFormulaFormats } from './dvh-format-channel'
+import { collectDvhState } from './dvh-smart-data'
 import { t } from './i18n/locale'
 import { abortStagedEditsTransfer, stageEditsForSave, type StagedEdits } from './save-edits-staging'
 import { showToast } from './toast-bus'
@@ -176,6 +177,8 @@ export async function handleSave(
     }),
   )
   const definedNamesState = collectDefinedNamesState(ctx.univerRef.current, state)
+  // DVH binding names + model/history parts (null for workbooks without DVH content)
+  const dvhState = collectDvhState(ctx.univerRef.current, state)
   const workbookProtectionState =
     state.editJournal.workbookProtection.desired === null
       ? null
@@ -263,6 +266,7 @@ export async function handleSave(
     pivotCacheRefreshPaths.length +
     sheetProtections.length +
     (definedNamesState === null ? 0 : 1) +
+    (dvhState !== null && dvhState.customXmlParts.length > 0 ? 1 : 0) +
     (workbookProtectionState === null ? 0 : 1) +
     (themeState === null ? 0 : 1) +
     protectedRangeStates.length +
@@ -377,6 +381,7 @@ export async function handleSave(
     sparklineAdditions,
     formulaValues,
     definedNamesState,
+    dvhState,
     themeState,
     workbookProtectionState,
     protectedRangeStates,
@@ -428,6 +433,7 @@ export async function handleSave(
       sparklineAdditions,
       formulaValues,
       definedNamesState: splitSave ? null : definedNamesState,
+      dvhState,
       themeState,
       workbookProtectionState,
       protectedRangeStates,
@@ -503,6 +509,7 @@ export async function handleSave(
         // The first phase already refreshed the cached values
         formulaValues: [],
         definedNamesState: heldNames,
+        dvhState: null,
         themeState: null,
         workbookProtectionState: null,
         protectedRangeStates: [],

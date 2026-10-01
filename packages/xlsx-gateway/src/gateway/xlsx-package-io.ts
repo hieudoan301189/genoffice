@@ -10,6 +10,7 @@ import { MAX_PATCH_ENTRY_BYTES } from '../shared/edit-schemas'
 import type { WorkbookChartEdit, WorkbookVisualEdit } from '../shared/edit-schemas'
 import type { SheetFilterState } from './xlsx-filter'
 import type { DefinedNamesState } from './xlsx-defined-names'
+import { DVH_NAME_PREFIX, type DvhWorkbookState } from './xlsx-dvh'
 import type { SheetPageSetupState } from './xlsx-page-setup'
 import type {
   CellEdit,
@@ -106,6 +107,8 @@ export interface StreamingSaveRequest {
   readonly themeState?: WorkbookThemeState | null | undefined
   readonly workbookProtectionState?: { readonly lockStructure: boolean } | null | undefined
   readonly protectedRangeStates?: readonly SheetProtectedRangesState[] | undefined
+  /// DVH binding names and customXml parts (null = the workbook has none)
+  readonly dvhState?: DvhWorkbookState | null | undefined
 }
 
 export interface StreamingSaveResult {
@@ -132,6 +135,69 @@ export async function readArchiveEntryText(
   } finally {
     await rm(workDir, { recursive: true, force: true })
   }
+}
+
+export interface DvhPackagePart {
+  readonly path: string
+  readonly xml: string
+  readonly storeItemId: string | null
+}
+
+export interface DvhPackageParts {
+  readonly names: readonly { readonly name: string; readonly formula: string }[]
+  readonly model: DvhPackagePart | null
+  readonly history: DvhPackagePart | null
+}
+
+const decodeXmlText = (text: string) =>
+  text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+
+/// DVH content of a workbook (ADR D1, D3): the hidden `_dvh.*` binding names
+/// and the model/history customXml parts, found by namespace because writers
+/// renumber `customXml/itemN.xml`.
+export async function readDvhParts(
+  client: ArchiveClient,
+  sourcePath: string,
+  namespaces: { readonly model: string; readonly history: string },
+): Promise<DvhPackageParts> {
+  const entries = manifestResultSchema.parse(await client.archiveManifest(sourcePath)).entries
+  const names: { name: string; formula: string }[] = []
+  const workbookXml = await readArchiveEntryText(client, sourcePath, 'xl/workbook.xml')
+  for (const m of workbookXml.matchAll(/<definedName\b([^>]*)>([\s\S]*?)<\/definedName>/g)) {
+    const name = decodeXmlText(/\bname="([^"]*)"/.exec(m[1] ?? '')?.[1] ?? '')
+    if (name.startsWith(DVH_NAME_PREFIX)) names.push({ name, formula: decodeXmlText(m[2] ?? '') })
+  }
+  let model: DvhPackagePart | null = null
+  let history: DvhPackagePart | null = null
+  for (const entry of entries) {
+    if (!/^customXml\/item\d+\.xml$/.test(entry.name)) continue
+    const xml = await readArchiveEntryText(client, sourcePath, entry.name)
+    const root =
+      /<(?:[\w-]+:)?[\w-]+\b[^>]*>/.exec(xml.replace(/^\uFEFF?<\?xml[^>]*\?>\s*/, ''))?.[0] ?? ''
+    const kind = root.includes(`"${namespaces.model}"`)
+      ? 'model'
+      : root.includes(`"${namespaces.history}"`)
+        ? 'history'
+        : null
+    if (!kind) continue
+    const propsName = entry.name.replace(/item(\d+)\.xml$/, 'itemProps$1.xml')
+    const props = entries.some((e) => e.name === propsName)
+      ? await readArchiveEntryText(client, sourcePath, propsName)
+      : ''
+    const part = {
+      path: entry.name,
+      xml,
+      storeItemId: /itemID="(\{[0-9A-Fa-f-]+\})"/.exec(props)?.[1] ?? null,
+    }
+    if (kind === 'model') model ??= part
+    else history ??= part
+  }
+  return { names, model, history }
 }
 
 /// Streaming save channel: the gateway plans patched entry contents in
@@ -173,6 +239,7 @@ export async function saveWorkbookViaSidecar(
       request.workbookProtectionState ?? null,
       request.protectedRangeStates ?? [],
       request.bulkConstantFills ?? [],
+      request.dvhState ?? null,
     )
 
     const replacements = await writePlanContents(workDir, 'replace', plan.replaced)

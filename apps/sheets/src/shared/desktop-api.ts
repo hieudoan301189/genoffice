@@ -698,6 +698,34 @@ const visualObjectSchema = z
   })
   .strict()
 
+
+/// DVH Smart Data written on save (ADR D1, D3).
+export const workbookDvhStateSchema = z
+  .object({
+    names: z
+      .array(
+        z
+          .object({
+            name: z.string().regex(/^_dvh\./).max(255),
+            formula: z.string().min(1).max(8_192),
+          })
+          .strict(),
+      )
+      .max(10_000),
+    customXmlParts: z
+      .array(
+        z
+          .object({
+            ns: z.string().min(1).max(256),
+            xml: z.string().max(64 * 1024 * 1024),
+            storeItemId: z.string().regex(/^\{[0-9A-Fa-f-]{36}\}$/),
+          })
+          .strict(),
+      )
+      .max(8),
+  })
+  .strict()
+
 export const workbookFileSchema = z
   .object({
     sessionId: z.string().uuid(),
@@ -1851,6 +1879,10 @@ export const workbookSaveRequestSchema = z
       })
       .strict()
       .nullable(),
+    /// DVH Smart Data (null = the workbook has none): the editor's `_dvh.*`
+    /// binding names, which replace the file's, and the model/history
+    /// customXml parts to write (ADR D1, D3).
+    dvhState: workbookDvhStateSchema.nullable().default(null),
     /// Document theme change (null = untouched): rewrites theme1.xml's
     /// clrScheme and/or fontScheme. Colors are #RRGGBB in theme index order.
     themeState: z
@@ -1926,6 +1958,7 @@ export const workbookSaveRequestSchema = z
       request.pivotRefreshUpdates.length > 0 ||
       request.sheetProtections.length > 0 ||
       request.definedNamesState !== null ||
+      request.dvhState !== null ||
       request.themeState !== null ||
       request.workbookProtectionState !== null ||
       request.protectedRangeStates.length > 0 ||
@@ -2014,6 +2047,28 @@ export const screenCaptureResultSchema = z
     base64: z.string().min(1).max(28_000_000),
     width: z.number().int().positive(),
     height: z.number().int().positive(),
+  })
+  .strict()
+
+export const workbookDvhRequestSchema = z.object({ sessionId: z.string().uuid() }).strict()
+
+const dvhCustomXmlPartSchema = z
+  .object({
+    path: z.string().regex(/^customXml\/item\d+\.xml$/),
+    xml: z.string().max(64 * 1024 * 1024),
+    storeItemId: z.string().nullable(),
+  })
+  .strict()
+
+/// The DVH content of the session's file: hidden `_dvh.*` names and the
+/// model/history parts found by namespace.
+export const workbookDvhPartsSchema = z
+  .object({
+    names: z
+      .array(z.object({ name: z.string().min(1).max(255), formula: z.string().max(8_192) }).strict())
+      .max(10_000),
+    model: dvhCustomXmlPartSchema.nullable(),
+    history: dvhCustomXmlPartSchema.nullable(),
   })
   .strict()
 
@@ -2187,6 +2242,9 @@ export type WorkbookRecalcResult = z.infer<typeof workbookRecalcResultSchema>
 export type WorkbookMediaRequest = z.infer<typeof workbookMediaRequestSchema>
 export type WorkbookMediaResult = z.infer<typeof workbookMediaResultSchema>
 export type WorkbookPivotRequest = z.infer<typeof workbookPivotRequestSchema>
+export type WorkbookDvhRequest = z.infer<typeof workbookDvhRequestSchema>
+export type WorkbookDvhParts = z.infer<typeof workbookDvhPartsSchema>
+export type WorkbookDvhState = z.infer<typeof workbookDvhStateSchema>
 export type WorkbookPivotDefinition = z.infer<typeof workbookPivotDefinitionSchema>
 export type LocalImageRequest = z.infer<typeof localImageRequestSchema>
 export type LocalImageResult = z.infer<typeof localImageResultSchema>
@@ -2591,6 +2649,8 @@ export interface DesktopApi {
   recalcWorkbook(request: WorkbookRecalcRequest): Promise<WorkbookRecalcResult>
   readWorkbookMedia(request: WorkbookMediaRequest): Promise<WorkbookMediaResult>
   readPivotDefinition(request: WorkbookPivotRequest): Promise<WorkbookPivotDefinition>
+  /// DVH Smart Data parts and binding names of the session's file
+  readDvhParts(request: WorkbookDvhRequest): Promise<WorkbookDvhParts>
   readLocalImage(request: LocalImageRequest): Promise<LocalImageResult>
   captureScreenSources(): Promise<ScreenSourcesResult>
   /// null when the source vanished between listing and capture.

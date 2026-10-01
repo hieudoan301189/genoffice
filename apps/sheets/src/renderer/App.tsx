@@ -289,6 +289,13 @@ import { installSupportedFunctionProbe } from './function-registry-probe'
 import { installDvhPureFunctions } from './dvh-functions'
 import { installFormulaFormatChannel } from './dvh-format-channel'
 import { installDvhFormatFunctions } from './dvh-format-functions'
+import { showToast } from './toast-bus'
+import {
+  installDvhBindingWatch,
+  loadDvhSmartData,
+  registerDvhSheetsContext,
+} from './dvh-smart-data'
+import { isDvhDefinedName } from '@genoffice/dvh-model'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
 import { installErrorValueAlignment } from './error-value-align'
@@ -1734,6 +1741,15 @@ export function App({
     // an interceptor paints them, save bakes them into real cell styles.
     const dvhFormatChannelDisposable = installFormulaFormatChannel(runtime)
     const dvhFormatFunctionsDisposable = installDvhFormatFunctions(runtime)
+    // DVH Smart Data: the field panel reaches the workbook through this
+    // context; the watch warns as soon as an edit deletes a bound cell.
+    const dvhContextDisposable = registerDvhSheetsContext({
+      getRuntime: () => univerRef.current,
+      getState: () => lazyWorkbookRef.current,
+      markPending: () => setPendingEdits((count) => count + 1),
+      notify: (message) => showToast(message, 'error'),
+    })
+    const dvhBindingWatchDisposable = installDvhBindingWatch(runtime)
     // Excel-parity number-format display: empty sections, text section,
     // _/* padding, General digit fitting, 1904 date-system serial shift.
     const numberFormatFixDisposable = installNumberFormatFix(
@@ -2959,6 +2975,8 @@ export function App({
       dvhFunctionsDisposable.dispose()
       dvhFormatFunctionsDisposable.dispose()
       dvhFormatChannelDisposable.dispose()
+      dvhContextDisposable.dispose()
+      dvhBindingWatchDisposable.dispose()
       numberFormatFixDisposable.dispose()
       errorAlignDisposable.dispose()
       cellFilenameDisposable.dispose()
@@ -3987,6 +4005,12 @@ export function App({
     loadWorkbookSkeleton(univerRef.current, selected)
     applyWorkbookNotes(univerRef.current, selected)
     applyDefinedNames(univerRef.current, selected, state)
+    // DVH Smart Data: model/history parts and the hidden binding names
+    if (univerRef.current) {
+      void loadDvhSmartData(univerRef.current, state, (sessionId) =>
+        window.desktopApi.readDvhParts({ sessionId }),
+      ).catch((error: unknown) => console.warn('DVH Smart Data not loaded:', error))
+    }
     const runtime = univerRef.current
     if (runtime) {
       requestAnimationFrame(() => {
@@ -4738,7 +4762,10 @@ export function App({
         name: sheet.getSheetName(),
       })) ?? []
     const sheetNames = new Map(sheets.map((sheet) => [sheet.id, sheet.name]))
-    const names = univerDefinedNames(univerRef.current).map((defined) => {
+    // DVH binding names are system names: never listed for the user
+    const names = univerDefinedNames(univerRef.current)
+      .filter((defined) => !isDvhDefinedName(defined.getName()))
+      .map((defined) => {
       const localSheetId = defined.getLocalSheetId()
       const scoped = localSheetId !== undefined && localSheetId !== 'AllDefaultWorkbook'
       return {

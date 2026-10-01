@@ -54,6 +54,8 @@ export const dvhLinkSchema = z
       .object({
         docId: z.string().min(1),
         relPath: z.string().optional(),
+        /** last known absolute path, the fallback when relPath no longer resolves */
+        path: z.string().optional(),
         objectId: z.string().min(1),
       })
       .strict(),

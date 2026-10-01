@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { DEFAULT_DVH_HOME, DVH_HOME_KEY, loadDvhHome } from './dvh-home-presets'
+import { DvhSmartDataPanel } from './DvhSmartDataPanel'
+import { useI18n } from './i18n/locale'
 import './dvh-home.css'
 
 const EDGE_NAMES = [
@@ -30,6 +32,8 @@ export function DvhHomeTools({ onCommand }: { onCommand: (command: string) => vo
   const [settings, setSettings] = useState(loadDvhHome)
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
+  const [smartDataOpen, setSmartDataOpen] = useState(false)
+  const { t } = useI18n()
   const indent = settings.indent[settings.indentIndex]!
   const border = settings.border[settings.borderIndex]!
   const command = (action: string, payload?: unknown) =>
@@ -42,6 +46,9 @@ export function DvhHomeTools({ onCommand }: { onCommand: (command: string) => vo
         <button onClick={() => command('shrink')}>Thu chữ vừa ô</button>
         <button onClick={() => command('fit')}>Giãn dòng ô gộp</button>
         <button onClick={() => command('border', border)}>Đường viền đẹp</button>
+        <button aria-pressed={smartDataOpen} onClick={() => setSmartDataOpen((value) => !value)}>
+          {t('dvhSmartData')}
+        </button>
         <button
           onClick={() => {
             setSettings(loadDvhHome())
@@ -260,6 +267,7 @@ export function DvhHomeTools({ onCommand }: { onCommand: (command: string) => vo
           </section>
         </div>
       )}
+      {smartDataOpen && <DvhSmartDataPanel onClose={() => setSmartDataOpen(false)} />}
     </div>
   )
 }

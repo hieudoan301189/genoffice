@@ -1,4 +1,5 @@
 import { keepActiveSheet } from './sheet-focus'
+import { isDvhDefinedName } from '@genoffice/dvh-model'
 /**
  * Univer runtime synchronization helpers for the sheets renderer.
  *
@@ -5816,6 +5817,8 @@ export function collectDefinedNamesState(
   if (!state.editJournal.definedNames.dirty) return null
   const names: { name: string; formula: string; sheetIndex?: number }[] = []
   for (const defined of univerDefinedNames(runtime)) {
+    // DVH binding names travel in dvhState (dvh-smart-data.ts), never here
+    if (isDvhDefinedName(defined.getName())) continue
     const localSheetId = defined.getLocalSheetId()
     // Univer reports workbook scope as the literal string 'AllDefaultWorkbook'.
     const scoped = localSheetId !== undefined && localSheetId !== 'AllDefaultWorkbook'

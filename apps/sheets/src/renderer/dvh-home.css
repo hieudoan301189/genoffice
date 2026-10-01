@@ -114,3 +114,78 @@
   background: #f5f7fa;
   color: #222;
 }
+
+/* DVH Smart Data panel (P1) */
+.dvh-smart-data {
+  position: fixed;
+  top: 120px;
+  right: 16px;
+  z-index: 40;
+  width: min(440px, calc(100vw - 32px));
+  max-height: 60vh;
+  overflow: auto;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-modal-strong);
+  font-size: 12px;
+}
+
+.dvh-smart-data-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.dvh-smart-data-head button {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.dvh-smart-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dvh-smart-data-table th,
+.dvh-smart-data-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+}
+
+.dvh-smart-data-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.dvh-smart-data-broken,
+.dvh-smart-data-error {
+  color: var(--danger);
+}
+
+.dvh-smart-data-empty {
+  color: var(--text-muted);
+}
+
+.dvh-smart-data-new {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.dvh-smart-data-new input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
