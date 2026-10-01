@@ -18,7 +18,7 @@ export const id = {
   aiQcStopped: 'Pemeriksaan tata letak dihentikan',
   aiQcCapped: '{count} halaman lagi tidak diperiksa (batas per proses)',
   aiGskLoginBtn: 'Masuk ke Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'Buka asisten AI',
   aiFactCheckBtn: 'Cek Fakta AI',
   aiFactCheckPrompt:
@@ -115,7 +115,7 @@ export const id = {
   aiErrNetwork:
     'Masalah jaringan: tidak dapat terhubung ke layanan AI. Periksa koneksi Anda lalu coba lagi',
   aiCreditsExhausted:
-    'Kredit Genspark Anda telah habis. Isi ulang di genspark.ai/pricing lalu coba lagi',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'Gagal mengirim permintaan: {msg}',
   aiErrGenerateFailed: 'Pembuatan gagal',
   aiErrRegenFailed: 'Gagal membuat ulang halaman',

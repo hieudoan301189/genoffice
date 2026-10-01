@@ -16,7 +16,7 @@ import type { AiProviderId } from '../src/types'
 describe('defaultAiSettings', () => {
   it('gives every provider its default model and an empty key by default', () => {
     const settings = defaultAiSettings()
-    expect(settings.provider).toBe('genspark')
+    expect(settings.provider).toBe('custom')
     for (const meta of AI_PROVIDERS) {
       expect(settings.providers[meta.id].apiKey).toBe('')
       expect(settings.providers[meta.id].model).toBe(meta.defaultModel)
@@ -36,21 +36,16 @@ describe('defaultAiSettings', () => {
 
 describe('provider model catalog', () => {
   it('offers DeepSeek V4.1 Flash directly under the same versioned name as the pool', () => {
-    const genspark = AI_PROVIDERS.find((provider) => provider.id === 'genspark')!
     const deepseek = AI_PROVIDERS.find((provider) => provider.id === 'deepseek')!
 
     expect(deepseek.models).toContain('deep-seek-v4.1-flash')
     expect(deepseek.models).not.toContain('deepseek-flash')
     expect(deepseek.models).not.toContain('deepseek-v4-flash')
     expect(deepseek.models).not.toContain('deepseek-v4-flash-vision-exp')
-    expect(genspark.models).not.toContain('deep-seek-v4-flash')
-    expect(genspark.models).not.toContain('deep-seek-v4-flash-vision-exp-openrouter')
   })
 
-  it('serves DeepSeek V4.1 Flash through the Genspark proxy under its hyphenated pool id', () => {
-    const genspark = AI_PROVIDERS.find((provider) => provider.id === 'genspark')!
-    expect(genspark.models).toContain('deep-seek-v4.1-flash')
-    expect(genspark.models).not.toContain('deep-seek-v4-pro')
+  it('does not offer Genspark in the provider catalog', () => {
+    expect(AI_PROVIDERS.some((m) => m.id === 'genspark')).toBe(false)
   })
 
   it('keeps Responses-only models out of the OpenCode tiers (no such protocol yet)', () => {
@@ -111,7 +106,7 @@ describe('resolveAiSettings', () => {
         defaults,
       )
       expect(resolved.providers.anthropic).toEqual(defaults.providers.anthropic)
-      expect(activeProvider(resolved)).toBe('genspark')
+      expect(activeProvider(resolved)).toBe('anthropic')
     }
   })
 
@@ -180,26 +175,22 @@ describe('resolveAiSettings', () => {
     }
   })
 
-  it('rewrites genspark model ids the proxy no longer serves', () => {
-    const resolved = resolveAiSettings(
+  it('migrates old Genspark selections without keeping their keys', () => {
+    const s = resolveAiSettings(
       {
+        provider: 'genspark',
+        gskToolsEnabled: true,
         providers: {
-          genspark: { apiKey: '', model: 'gemini-3.7-flash' },
-        } as never,
+          genspark: { apiKey: 'old-key', model: 'old-model' },
+          anthropic: { apiKey: 'own-key', model: 'claude' },
+        },
       },
       defaultAiSettings(),
     )
-    expect(resolved.providers.genspark.model).toBe('claude-opus-4-7')
-
-    const gpt = resolveAiSettings(
-      {
-        providers: {
-          genspark: { apiKey: '', model: 'gpt-5.6' },
-        } as never,
-      },
-      defaultAiSettings(),
-    )
-    expect(gpt.providers.genspark.model).toBe('gpt-5.6-terra')
+    expect(s.provider).toBe('custom')
+    expect(s.providers.genspark).toBeUndefined()
+    expect(s.providers.anthropic.apiKey).toBe('own-key')
+    expect(s.gskToolsEnabled).toBe(false)
   })
 
   it('leaves a still-supported model id alone', () => {
@@ -303,25 +294,22 @@ describe('clampMaxOutputTokens', () => {
 })
 
 describe('activeProvider', () => {
-  it('honors a configured BYOK provider and falls back to genspark otherwise', () => {
-    const settings = defaultAiSettings()
-    expect(activeProvider(settings)).toBe('genspark')
-
-    settings.provider = 'kimi'
-    expect(activeProvider(settings)).toBe('genspark') // no key yet
-    settings.providers.kimi.apiKey = 'sk-user'
-    expect(activeProvider(settings)).toBe('kimi')
+  it('keeps the chosen BYOK provider even before its key is configured', () => {
+    const s = defaultAiSettings()
+    expect(activeProvider(s)).toBe('custom')
+    s.provider = 'kimi'
+    expect(activeProvider(s)).toBe('kimi')
+    s.providers.kimi.apiKey = 'own-key'
+    expect(activeProvider(s)).toBe('kimi')
   })
 
-  it('requires a base URL for providers that declare needsBaseUrl', () => {
-    const settings = defaultAiSettings()
-    settings.provider = 'custom'
-    settings.providers.custom.apiKey = 'k'
-    expect(activeProvider(settings)).toBe('genspark')
-    settings.providers.custom.baseUrl = 'http://localhost:1234/v1'
-    expect(activeProvider(settings)).toBe('genspark') // custom's default model is empty
-    settings.providers.custom.model = 'my-model'
-    expect(activeProvider(settings)).toBe('custom')
+  it('leaves custom configuration to the endpoint validator instead of switching providers', () => {
+    const s = defaultAiSettings()
+    s.provider = 'custom'
+    expect(activeProvider(s)).toBe('custom')
+    s.providers.custom.baseUrl = 'http://localhost:1234/v1'
+    s.providers.custom.model = 'local'
+    expect(activeProvider(s)).toBe('custom')
   })
 
   it('allows keyless custom endpoints for local servers', () => {
@@ -348,48 +336,60 @@ describe('activeProvider', () => {
     expect(resolved.providers.codex.apiKey).toBe('')
   })
 
-  it('treats whitespace-only keys, URLs, and models as unconfigured', () => {
-    const settings = defaultAiSettings()
-    settings.provider = 'kimi'
-    settings.providers.kimi.apiKey = '   '
-    expect(activeProvider(settings)).toBe('genspark')
-    settings.providers.kimi.apiKey = 'sk-user'
-    settings.providers.kimi.model = '  '
-    expect(activeProvider(settings)).toBe('genspark')
-    settings.providers.kimi.model = 'kimi-k2'
-    expect(activeProvider(settings)).toBe('kimi')
-
-    const custom = defaultAiSettings()
-    custom.provider = 'custom'
-    custom.providers.custom.baseUrl = '   '
-    custom.providers.custom.model = 'my-model'
-    expect(activeProvider(custom)).toBe('genspark')
+  it('never switches an incomplete BYOK configuration to a cloud login', () => {
+    const s = defaultAiSettings()
+    s.provider = 'kimi'
+    s.providers.kimi.apiKey = '   '
+    s.providers.kimi.model = ' '
+    expect(activeProvider(s)).toBe('kimi')
   })
 
-  it('falls back to genspark for unknown ids from a hand-edited settings file', () => {
+  it('requires custom setup for unknown ids from a hand-edited settings file', () => {
     const settings = defaultAiSettings()
     settings.provider = 'nonsense' as AiProviderId
-    expect(activeProvider(settings)).toBe('genspark')
+    expect(activeProvider(settings)).toBe('custom')
   })
 
-  it('genspark never requires a key (injected from the gsk login at request time)', () => {
+  it('maps a removed Genspark selection to custom setup', () => {
     const settings = defaultAiSettings()
     settings.provider = 'genspark'
-    expect(activeProvider(settings)).toBe('genspark')
+    expect(activeProvider(settings)).toBe('custom')
   })
 })
 
-describe('gskToolsEnabled', () => {
-  it('defaults on, survives resolveAiSettings, and only an explicit false turns it off', () => {
-    expect(cloudToolsEnabled(defaultAiSettings())).toBe(true)
-    // pre-toggle settings file (field absent) stays on
-    const legacy = resolveAiSettings({ providers: {} as never }, defaultAiSettings())
-    expect(cloudToolsEnabled(legacy)).toBe(true)
-    const off = resolveAiSettings(
-      { providers: {} as never, gskToolsEnabled: false },
-      defaultAiSettings(),
-    )
-    expect(off.gskToolsEnabled).toBe(false)
-    expect(cloudToolsEnabled(off)).toBe(false)
+describe('removed cloud tools', () => {
+  it('cannot be re-enabled by saved settings', () => {
+    for (const enabled of [true, false, undefined]) {
+      const s = resolveAiSettings({ providers: {}, gskToolsEnabled: enabled }, defaultAiSettings())
+      expect(s.gskToolsEnabled).toBe(false)
+      expect(cloudToolsEnabled(s)).toBe(false)
+    }
+    expect(cloudToolsEnabled({ gskToolsEnabled: true })).toBe(false)
   })
+})
+
+it('migrates all removed provider selections without retaining their credentials', () => {
+  const settings = resolveAiSettings(
+    {
+      provider: 'genspark',
+      gskToolsEnabled: true,
+      providers: { genspark: { apiKey: 'old-key', model: 'old-model' } },
+      media: {
+        imageProvider: 'genspark',
+        analysisProvider: 'genspark',
+        videoAnalysisProvider: 'genspark',
+        providers: { genspark: { apiKey: 'old-key' } },
+      },
+      search: { provider: 'genspark', providers: {} },
+    },
+    defaultAiSettings(),
+  )
+  expect(settings.provider).toBe('custom')
+  expect(settings.providers.genspark).toBeUndefined()
+  expect(settings.media?.providers.genspark).toBeUndefined()
+  expect(settings.media?.imageProvider).toBe('custom')
+  expect(settings.media?.analysisProvider).toBe('custom')
+  expect(settings.media?.videoAnalysisProvider).toBe('custom')
+  expect(settings.search?.provider).toBe('parallel')
+  expect(cloudToolsEnabled(settings)).toBe(false)
 })

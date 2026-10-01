@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 /**
  * Ribbon: tab bar + grouped buttons. Same mechanism as the apps/docs Ribbon
  * (local state switches tabs, .ribbon-body dispatches); content is trimmed to slide capabilities,
@@ -2485,55 +2486,61 @@ export function Ribbon({
         ) : tab === 'review' ? (
           <>
             <Group label={t('ribbonGroupProofing')}>
-              <button
-                className="rb-big"
-                disabled={!hasDoc}
-                data-tip={`${t('ribbonSpellCheckTip')} — ${t('ribbonAiCreditNote')}`}
-                onClick={() => {
-                  if (confirmAiRewrite()) onAiPreset(t('ribbonSpellCheckPrompt'))
-                }}
-              >
-                <span className="rb-big-icon">
-                  <span className="ai-feature-icon" aria-hidden="true">
-                    <img src={iconSpelling} width={22} height={22} alt="" />
-                  </span>
-                </span>
-                <span>{t('ribbonSpellCheck')}</span>
-              </button>
-              <div className="rb-drop-wrap">
+              {AI_ENABLED && (
                 <button
-                  className={`rb-big ${translateOpen ? 'active' : ''}`}
+                  className="rb-big"
                   disabled={!hasDoc}
-                  data-tip={`${t('ribbonTranslateTip')} — ${t('ribbonAiCreditNote')}`}
-                  onMouseDown={(e) => {
-                    e.stopPropagation()
-                    closeSiblingPanels(e, closePanels, 'translate')
+                  data-tip={`${t('ribbonSpellCheckTip')} — ${t('ribbonAiCreditNote')}`}
+                  onClick={() => {
+                    if (confirmAiRewrite()) onAiPreset(t('ribbonSpellCheckPrompt'))
                   }}
-                  onClick={() => setTranslateOpen((v) => !v)}
                 >
                   <span className="rb-big-icon">
                     <span className="ai-feature-icon" aria-hidden="true">
-                      <img src={iconTranslate} width={22} height={22} alt="" />
+                      <img src={iconSpelling} width={22} height={22} alt="" />
                     </span>
-                    <RbCaret />
                   </span>
-                  <span>{t('ribbonTranslate')}</span>
+                  <span>{t('ribbonSpellCheck')}</span>
                 </button>
+              )}
+              <div className="rb-drop-wrap">
+                {AI_ENABLED && (
+                  <button
+                    className={`rb-big ${translateOpen ? 'active' : ''}`}
+                    disabled={!hasDoc}
+                    data-tip={`${t('ribbonTranslateTip')} — ${t('ribbonAiCreditNote')}`}
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                      closeSiblingPanels(e, closePanels, 'translate')
+                    }}
+                    onClick={() => setTranslateOpen((v) => !v)}
+                  >
+                    <span className="rb-big-icon">
+                      <span className="ai-feature-icon" aria-hidden="true">
+                        <img src={iconTranslate} width={22} height={22} alt="" />
+                      </span>
+                      <RbCaret />
+                    </span>
+                    <span>{t('ribbonTranslate')}</span>
+                  </button>
+                )}
                 {translateOpen && (
                   <div className="rb-drop rb-menu" onMouseDown={(e) => e.stopPropagation()}>
-                    {TRANSLATE_TARGETS.map((lang) => (
-                      <button
-                        key={lang}
-                        onClick={() => {
-                          setTranslateOpen(false)
-                          if (confirmAiRewrite()) {
-                            onAiPreset(t('ribbonTranslatePrompt', { lang: t(lang) }))
-                          }
-                        }}
-                      >
-                        {t(lang)}
-                      </button>
-                    ))}
+                    {TRANSLATE_TARGETS.map((lang) =>
+                      AI_ENABLED ? (
+                        <button
+                          key={lang}
+                          onClick={() => {
+                            setTranslateOpen(false)
+                            if (confirmAiRewrite()) {
+                              onAiPreset(t('ribbonTranslatePrompt', { lang: t(lang) }))
+                            }
+                          }}
+                        >
+                          {t(lang)}
+                        </button>
+                      ) : null,
+                    )}
                   </div>
                 )}
               </div>

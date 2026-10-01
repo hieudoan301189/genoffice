@@ -38,7 +38,7 @@ export async function testSearchProvider(
   provider: AiSearchProviderId,
   apiKey: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  if (provider === 'genspark') return { ok: true }
+  if (provider === 'genspark') return { ok: false, error: 'This provider was removed.' }
   apiKey = apiKey.trim()
   if (!apiKey && provider !== 'parallel') return { ok: false, error: 'API key is empty' }
   const options: SearchOptions = {

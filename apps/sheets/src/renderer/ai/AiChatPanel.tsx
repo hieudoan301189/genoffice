@@ -515,7 +515,7 @@ export function AiChatPanel({
       <header className="ai-panel-header">
         <span className="ai-panel-title">
           <GensparkMark size={22} />
-          Genspark
+          DVH AI
         </span>
         <div className="ai-panel-header-actions">
           <AiPanelSideButton
@@ -634,14 +634,6 @@ export function AiChatPanel({
                       </button>
                     )}
                   </div>
-                )}
-                {entry.loginRequired && (
-                  <button
-                    className="ai-login-btn"
-                    onClick={() => void window.desktopApi.aiGskLogin()}
-                  >
-                    {t('aiGskLoginBtn')}
-                  </button>
                 )}
               </>
             )}

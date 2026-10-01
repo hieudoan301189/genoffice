@@ -18,7 +18,7 @@ export const ar = {
   aiQcStopped: 'تم إيقاف فحص التخطيط',
   aiQcCapped: '{count} صفحة أخرى لم تُفحص (حد لكل تشغيل)',
   aiGskLoginBtn: 'تسجيل الدخول إلى Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'فتح مساعد الذكاء الاصطناعي',
   aiFactCheckBtn: 'تدقيق حقائق AI',
   aiFactCheckPrompt:
@@ -112,7 +112,7 @@ export const ar = {
   aiErrNetwork:
     'مشكلة في الشبكة: تعذّر الوصول إلى خدمة الذكاء الاصطناعي. تحقق من الاتصال وحاول مجددًا',
   aiCreditsExhausted:
-    'نفدت أرصدة Genspark لديك. يرجى إعادة الشحن عبر genspark.ai/pricing ثم المحاولة مجددًا',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'فشل إرسال الطلب: {msg}',
   aiErrGenerateFailed: 'فشل الإنشاء',
   aiErrRegenFailed: 'فشلت إعادة إنشاء الصفحة',

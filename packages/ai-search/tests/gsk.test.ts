@@ -1,7 +1,6 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   gskChildEnv,
-  setGskProxyUrl,
   parseGskOutput,
   parseGskWebSearch,
   parseGskImageSearch,
@@ -48,53 +47,10 @@ describe('parseGskOutput', () => {
 })
 
 describe('gskChildEnv', () => {
-  afterEach(() => setGskProxyUrl(''))
-
-  it('sets ELECTRON_RUN_AS_NODE and no proxy vars when no proxy is known', () => {
-    const env = gskChildEnv({ PATH: '/bin' })
-    expect(env.ELECTRON_RUN_AS_NODE).toBe('1')
-    expect(env.NODE_USE_ENV_PROXY).toBeUndefined()
-    expect(env.HTTPS_PROXY).toBeUndefined()
-  })
-
-  it('forwards the proxy registered by the main-process bootstrap', () => {
-    setGskProxyUrl('http://127.0.0.1:7890')
-    const env = gskChildEnv({ PATH: '/bin' })
-    expect(env.NODE_USE_ENV_PROXY).toBe('1')
-    expect(env.HTTPS_PROXY).toBe('http://127.0.0.1:7890')
-    expect(env.HTTP_PROXY).toBe('http://127.0.0.1:7890')
-  })
-
-  it('falls back to inherited proxy env vars (terminal launch)', () => {
-    const env = gskChildEnv({ https_proxy: 'http://10.0.0.1:8080' })
-    expect(env.NODE_USE_ENV_PROXY).toBe('1')
-    expect(env.HTTPS_PROXY).toBe('http://10.0.0.1:8080')
-  })
-
-  it('prefers the registered proxy over env vars', () => {
-    setGskProxyUrl('http://127.0.0.1:7890')
-    const env = gskChildEnv({ HTTPS_PROXY: 'http://10.0.0.1:8080' })
-    expect(env.HTTPS_PROXY).toBe('http://127.0.0.1:7890')
-  })
-
-  it('scrubs lowercase/ALL_PROXY variants so they cannot override the selection', () => {
-    setGskProxyUrl('http://127.0.0.1:7890')
-    const env = gskChildEnv({
-      https_proxy: 'socks5://127.0.0.1:1080',
-      http_proxy: 'http://10.0.0.1:8080',
-      all_proxy: 'socks5://127.0.0.1:1080',
-    })
-    expect(env.HTTPS_PROXY).toBe('http://127.0.0.1:7890')
-    expect(env.https_proxy).toBeUndefined()
-    expect(env.http_proxy).toBeUndefined()
-    expect(env.all_proxy).toBeUndefined()
-  })
-
-  it('ignores SOCKS proxies (undici env proxy is http(s)-only)', () => {
-    setGskProxyUrl('socks5://127.0.0.1:1080')
-    const env = gskChildEnv({ ALL_PROXY: 'socks5://127.0.0.1:1080' })
-    expect(env.NODE_USE_ENV_PROXY).toBeUndefined()
-    expect(env.HTTPS_PROXY).toBeUndefined()
+  it('preserves the supplied environment without activating a CLI', () => {
+    const base = { PATH: '/bin' }
+    expect(gskChildEnv(base)).toEqual(base)
+    expect(gskChildEnv(base)).not.toBe(base)
   })
 })
 

@@ -46,7 +46,7 @@ export const zh = {
   aiInstructionAria: 'AI 指令',
   aiFileTooltip: 'SHA-256 {sha}\n保存只重写被编辑的条目，其余内容原样保留。',
   aiFileMeta: '{sheets} 个工作表 · {entries} 个条目',
-  aiGensparkAccount: 'Genspark 账号',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: '检测中…',
   aiLoggedIn: '已登录',
   aiLoggedInAs: '已登录：{email}',
@@ -60,7 +60,8 @@ export const zh = {
   aiTimeoutError: 'AI 请求超时：网络长时间无响应，已停止。请检查网络后重试',
   aiOverloadedError: 'AI 服务当前繁忙，请稍后重试',
   aiNetworkError: '网络有问题，无法连接 AI 服务。请检查网络后重试',
-  aiCreditsExhausted: 'Genspark 积分已用完，请前往 genspark.ai/pricing 充值后重试',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: '读取工作表信息',
   aiToolReadRange: '读取范围',
   aiToolReadRangeOf: '读取范围 {range}',

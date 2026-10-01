@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 /** Home tab of the slides ribbon. Extracted from Ribbon.tsx. */
 import { useState } from 'react'
 import { platformShortcuts } from '@genoffice/i18n'
@@ -216,57 +217,61 @@ export function RibbonHomeTab({ rb }: { rb: RibbonTabCtx }) {
   }
   return (
     <>
-      <Group label="Genspark AI">
-        <button
-          className={`rb-big ai-entry${aiOpen ? ' active' : ''}`}
-          data-tip={t('aiOpenAssistant')}
-          onClick={onToggleAi}
-        >
-          <span className="rb-big-icon">
-            <GensparkMark size={26} />
-          </span>
-          <span>Genspark AI</span>
-        </button>
-        <button
-          className="rb-big ai-entry"
-          disabled={!hasDoc || deckEmpty}
-          data-tip={t('aiBeautifyBtn')}
-          onClick={() => onAiPreset(t('aiBeautifyPrompt'), { slideShot: true })}
-        >
-          <span className="rb-big-icon">
-            <span className="ai-feature-icon" aria-hidden="true">
-              <IconAiBeautify />
+      {AI_ENABLED && (
+        <Group label="DVH AI">
+          {AI_ENABLED && (
+            <button
+              className={`rb-big ai-entry${aiOpen ? ' active' : ''}`}
+              data-tip={t('aiOpenAssistant')}
+              onClick={onToggleAi}
+            >
+              <span className="rb-big-icon">
+                <GensparkMark size={26} />
+              </span>
+              <span>DVH AI</span>
+            </button>
+          )}
+          <button
+            className="rb-big ai-entry"
+            disabled={!hasDoc || deckEmpty}
+            data-tip={t('aiBeautifyBtn')}
+            onClick={() => onAiPreset(t('aiBeautifyPrompt'), { slideShot: true })}
+          >
+            <span className="rb-big-icon">
+              <span className="ai-feature-icon" aria-hidden="true">
+                <IconAiBeautify />
+              </span>
             </span>
-          </span>
-          <span>{t('aiBeautifyBtn')}</span>
-        </button>
-        <button
-          className="rb-big ai-entry"
-          disabled={!hasDoc || deckEmpty}
-          data-tip={t('aiFactCheckBtn')}
-          onClick={() => onAiPreset(t('aiFactCheckPrompt'))}
-        >
-          <span className="rb-big-icon">
-            <span className="ai-feature-icon" aria-hidden="true">
-              <IconAiFactCheck />
+            <span>{t('aiBeautifyBtn')}</span>
+          </button>
+          <button
+            className="rb-big ai-entry"
+            disabled={!hasDoc || deckEmpty}
+            data-tip={t('aiFactCheckBtn')}
+            onClick={() => onAiPreset(t('aiFactCheckPrompt'))}
+          >
+            <span className="rb-big-icon">
+              <span className="ai-feature-icon" aria-hidden="true">
+                <IconAiFactCheck />
+              </span>
             </span>
-          </span>
-          <span>{t('aiFactCheckBtn')}</span>
-        </button>
-        <button
-          className="rb-big ai-entry"
-          disabled={!hasDoc || deckEmpty}
-          data-tip={t('aiImageBtn')}
-          onClick={() => onAiPreset(t('aiImagePrompt'))}
-        >
-          <span className="rb-big-icon">
-            <span className="ai-feature-icon" aria-hidden="true">
-              <IconAiImage />
+            <span>{t('aiFactCheckBtn')}</span>
+          </button>
+          <button
+            className="rb-big ai-entry"
+            disabled={!hasDoc || deckEmpty}
+            data-tip={t('aiImageBtn')}
+            onClick={() => onAiPreset(t('aiImagePrompt'))}
+          >
+            <span className="rb-big-icon">
+              <span className="ai-feature-icon" aria-hidden="true">
+                <IconAiImage />
+              </span>
             </span>
-          </span>
-          <span>{t('aiImageBtn')}</span>
-        </button>
-      </Group>
+            <span>{t('aiImageBtn')}</span>
+          </button>
+        </Group>
+      )}
       <div className="ribbon-sep" />
       <Group label={t('ribbonGroupClipboard')}>
         <button

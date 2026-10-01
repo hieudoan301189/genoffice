@@ -19,7 +19,7 @@ export const de = {
   aiQcStopped: 'Layoutprüfung gestoppt',
   aiQcCapped: '{count} weitere Seite(n) nicht geprüft (Limit pro Lauf)',
   aiGskLoginBtn: 'Bei Genspark anmelden',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'KI-Assistenten öffnen',
   aiFactCheckBtn: 'KI-Faktencheck',
   aiFactCheckPrompt:
@@ -118,7 +118,7 @@ export const de = {
   aiErrNetwork:
     'Netzwerkproblem: Der KI-Dienst ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut',
   aiCreditsExhausted:
-    'Deine Genspark-Credits sind aufgebraucht. Lade unter genspark.ai/pricing auf und versuche es erneut',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'Senden der Anfrage fehlgeschlagen: {msg}',
   aiErrGenerateFailed: 'Generierung fehlgeschlagen',
   aiErrRegenFailed: 'Neuerstellung der Folie fehlgeschlagen',

@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 /**
  * Floating "Ask AI" entry on a text selection, plus the anchored popover that
  * captures one instruction — sent immediately (a normal selection-scoped run)
@@ -269,7 +270,7 @@ export function AiAskPopover({
       Math.max(EDGE, (rect.left + rect.right) / 2 - WIDTH / 2),
       Math.max(EDGE, window.innerWidth - WIDTH - EDGE),
     )
-    box = (
+    box = AI_ENABLED ? (
       <div
         ref={boxRef}
         className="ai-ask-pop"
@@ -391,28 +392,30 @@ export function AiAskPopover({
           )}
         </div>
       </div>
-    )
+    ) : null
   }
 
   return (
     <>
-      {trigger && !open && (
-        <button
-          className="ai-ask-trigger"
-          style={{ left: trigger.left, top: trigger.top }}
-          // keep the editor focused and the selection alive
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={openFromSelection}
-        >
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden>
-            <path
-              d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7L12 3zM19 15l.85 2.3L22 18.15l-2.15.85L19 21.3l-.85-2.3-2.15-.85 2.15-.85L19 15z"
-              fill="currentColor"
-            />
-          </svg>
-          {t('aiAskBtn')}
-        </button>
-      )}
+      {trigger &&
+        !open &&
+        (AI_ENABLED ? (
+          <button
+            className="ai-ask-trigger"
+            style={{ left: trigger.left, top: trigger.top }}
+            // keep the editor focused and the selection alive
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={openFromSelection}
+          >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden>
+              <path
+                d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 15.6l-1.7-4.6L6 9.3l4.3-1.7L12 3zM19 15l.85 2.3L22 18.15l-2.15.85L19 21.3l-.85-2.3-2.15-.85 2.15-.85L19 15z"
+                fill="currentColor"
+              />
+            </svg>
+            {t('aiAskBtn')}
+          </button>
+        ) : null)}
       {box}
     </>
   )

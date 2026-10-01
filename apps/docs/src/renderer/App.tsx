@@ -1,3 +1,4 @@
+import { AI_ENABLED, LIGHT_ONLY } from '@genoffice/ui'
 import { scriptFontHtml } from './editor/script-fonts'
 import { DOC_CSS_COMMITTED_EVENT } from './editor/cjk-punct-shrink'
 import { justifyShrinkPluginKey } from './editor/justify-shrink'
@@ -766,7 +767,9 @@ export function App() {
   } | null>(null)
   const [_recent, setRecent] = useState<string[]>([])
   const [settings, setSettings] = useState<AiSettings>(DEFAULT_SETTINGS)
-  const [showAi, setShowAi] = useState(() => localStorage.getItem('aidocs.showAi') !== '0')
+  const [requestedAiVisibility, setShowAi] = useState(
+    () => localStorage.getItem('aidocs.showAi') !== '0',
+  )
   const [spellcheck, setSpellcheck] = useState(spellcheckEnabled)
   const [largeDocSpellOff, setLargeDocSpellOff] = useState(false)
   const spellcheckActive = spellcheck && !largeDocSpellOff
@@ -777,6 +780,7 @@ export function App() {
   const [ribbonTabRequest, setRibbonTabRequest] = useState<{ tab: string; nonce: number } | null>(
     null,
   )
+  const showAi = AI_ENABLED && requestedAiVisibility
   const [status, setStatus] = useState('')
   const [zoom, setZoom] = useState(100)
   const scrollContainerRef = useRef<HTMLElement>(null)
@@ -784,7 +788,8 @@ export function App() {
   // View ▸ Dark Mode flips it for the session (Word's Switch Modes); a theme
   // switch drops the override and follows the new theme again
   const themeDark = useUiThemeIsDark()
-  const [darkPage, setDarkPage] = useState(themeDark)
+  const [requestedDarkPage, setDarkPage] = useState(themeDark)
+  const darkPage = !LIGHT_ONLY && requestedDarkPage
   useEffect(() => setDarkPage(themeDark), [themeDark])
   const [section, setSection] = useState<SectionSettings | null>(null)
   /** All sections (readSections): pagination/preview use per-section geometry; layout edits apply to the cursor's section */
@@ -6872,37 +6877,40 @@ export function App() {
       />
 
       <div className="app-main">
-        {doc && (
-          <div className={`ai-dock${showAi ? '' : ' collapsed'}`}>
-            {/* always mounted: collapse must not drop state or in-flight runs */}
-            <AiPanel
-              key={aiPanelKey}
-              editor={editor}
-              blocks={doc.parsed.blocks}
-              settings={settings}
-              docEmpty={wordCount === 0}
-              numIdFallback={
-                doc.isBlank ? { bullet: BLANK_BULLET_NUM_ID, ordered: BLANK_ORDERED_NUM_ID } : null
-              }
-              preset={aiPreset}
-              open={showAi}
-              onExpand={() => setShowAi(true)}
-              onCollapse={() => setShowAi(false)}
-              filePath={doc?.filePath ?? null}
-              editQueue={editQueue}
-              onQueueEditInstruction={queueUpdate}
-              onQueueRemove={queueRemove}
-              onQueueClear={queueClear}
-              onQueueFocus={queueFocus}
-              onQueueConsume={queueConsume}
-              commentsAccess={aiCommentsAccess}
-              hfAccess={aiHfAccess}
-              pageSetupAccess={aiPageSetupAccess}
-              docExtras={aiDocExtras}
-              notesAccess={aiNotesAccess}
-            />
-          </div>
-        )}
+        {doc &&
+          (AI_ENABLED ? (
+            <div className={`ai-dock${showAi ? '' : ' collapsed'}`}>
+              {/* always mounted: collapse must not drop state or in-flight runs */}
+              <AiPanel
+                key={aiPanelKey}
+                editor={editor}
+                blocks={doc.parsed.blocks}
+                settings={settings}
+                docEmpty={wordCount === 0}
+                numIdFallback={
+                  doc.isBlank
+                    ? { bullet: BLANK_BULLET_NUM_ID, ordered: BLANK_ORDERED_NUM_ID }
+                    : null
+                }
+                preset={aiPreset}
+                open={showAi}
+                onExpand={() => setShowAi(true)}
+                onCollapse={() => setShowAi(false)}
+                filePath={doc?.filePath ?? null}
+                editQueue={editQueue}
+                onQueueEditInstruction={queueUpdate}
+                onQueueRemove={queueRemove}
+                onQueueClear={queueClear}
+                onQueueFocus={queueFocus}
+                onQueueConsume={queueConsume}
+                commentsAccess={aiCommentsAccess}
+                hfAccess={aiHfAccess}
+                pageSetupAccess={aiPageSetupAccess}
+                docExtras={aiDocExtras}
+                notesAccess={aiNotesAccess}
+              />
+            </div>
+          ) : null)}
         <div className="app-content">
           <div className={workspaceClass}>
             {doc && showFind && (
@@ -6930,17 +6938,18 @@ export function App() {
                 onClose={closeNav}
               />
             )}
-            {doc && (
-              <AiAskPopover
-                editor={editor}
-                queueFull={editQueue.length >= EDIT_QUEUE_MAX}
-                getItem={getQueueItem}
-                onSendNow={askSendNow}
-                onQueueAdd={queueAdd}
-                onQueueUpdate={queueUpdate}
-                onQueueRemove={queueRemove}
-              />
-            )}
+            {doc &&
+              (AI_ENABLED ? (
+                <AiAskPopover
+                  editor={editor}
+                  queueFull={editQueue.length >= EDIT_QUEUE_MAX}
+                  getItem={getQueueItem}
+                  onSendNow={askSendNow}
+                  onQueueAdd={queueAdd}
+                  onQueueUpdate={queueUpdate}
+                  onQueueRemove={queueRemove}
+                />
+              ) : null)}
             {doc && <PasteOptionsChip editor={editor} />}
             <div className="editor-area">
               <main

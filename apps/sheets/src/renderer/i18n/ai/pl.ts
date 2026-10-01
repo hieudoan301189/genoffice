@@ -48,7 +48,7 @@ export const pl = {
   aiFileTooltip:
     'SHA-256 {sha}\nZapis nadpisuje tylko edytowane wpisy; cała reszta pozostaje bez zmian.',
   aiFileMeta: 'Arkusze: {sheets} · wpisy: {entries}',
-  aiGensparkAccount: 'Konto Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Sprawdzanie…',
   aiLoggedIn: 'Zalogowano',
   aiLoggedInAs: 'Zalogowano: {email}',
@@ -65,7 +65,7 @@ export const pl = {
   aiNetworkError:
     'Problem z siecią: nie można połączyć się z usługą AI. Sprawdź połączenie i spróbuj ponownie',
   aiCreditsExhausted:
-    'Twoje kredyty Genspark wyczerpały się. Doładuj konto na genspark.ai/pricing i spróbuj ponownie',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Odczyt informacji o skoroszycie',
   aiToolReadRange: 'Odczyt zakresu',
   aiToolReadRangeOf: 'Odczyt zakresu {range}',

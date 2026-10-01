@@ -9,7 +9,7 @@ export const ar = {
   aiStarterContinue: 'تابع الكتابة من حيث انتهى المستند',
   aiStarterFillTemplate: 'اعثر على العناصر النائبة في المستند واملأها',
   aiGskLoginBtn: 'تسجيل الدخول إلى Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'فتح مساعد الذكاء الاصطناعي',
   aiSummarizeBtn: 'تلخيص AI',
   aiSummarizePrompt: 'لخّص المحتوى الرئيسي والنقاط الأساسية لهذا المستند',
@@ -113,7 +113,7 @@ export const ar = {
   aiNetworkError:
     'مشكلة في الشبكة: تعذّر الوصول إلى خدمة الذكاء الاصطناعي. تحقق من الاتصال وحاول مجددًا',
   aiCreditsExhausted:
-    'نفدت أرصدة Genspark لديك. يرجى إعادة الشحن عبر genspark.ai/pricing ثم المحاولة مجددًا',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiSumReadAttachment: 'قراءة المرفق',
   aiSumImageAttachment: 'مرفق صورة {name}',
   aiSumRead: 'قراءة {name}',

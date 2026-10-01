@@ -47,7 +47,7 @@ export const he = {
   aiInstructionAria: 'הוראה ל-AI',
   aiFileTooltip: 'SHA-256 {sha}\nבשמירה נכתבים מחדש רק הפריטים שנערכו; כל השאר נשמר כפי שהוא.',
   aiFileMeta: '{sheets} גיליונות · {entries} פריטים',
-  aiGensparkAccount: 'חשבון Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'בודק…',
   aiLoggedIn: 'מחובר',
   aiLoggedInAs: 'מחובר: {email}',
@@ -61,7 +61,8 @@ export const he = {
   aiTimeoutError: 'תם הזמן לבקשת ה-AI: אין תגובה מהרשת וההרצה הופסקה. בדוק את החיבור ונסה שוב',
   aiOverloadedError: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
   aiNetworkError: 'בעיית רשת: לא ניתן להתחבר לשירות ה-AI. בדוק את החיבור ונסה שוב',
-  aiCreditsExhausted: 'קרדיטי Genspark שלך אזלו. טען מחדש ב-genspark.ai/pricing ונסה שוב',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'קריאת פרטי חוברת העבודה',
   aiToolReadRange: 'קריאת טווח',
   aiToolReadRangeOf: 'קריאת הטווח {range}',

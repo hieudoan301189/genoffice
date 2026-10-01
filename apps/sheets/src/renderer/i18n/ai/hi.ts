@@ -49,7 +49,7 @@ export const hi = {
   aiFileTooltip:
     'SHA-256 {sha}\nसहेजते समय केवल संपादित प्रविष्टियां फिर से लिखी जाती हैं; बाकी सब जस का तस रहता है।',
   aiFileMeta: '{sheets} शीट · {entries} प्रविष्टियां',
-  aiGensparkAccount: 'Genspark खाता',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'जांच हो रही है…',
   aiLoggedIn: 'साइन इन किया गया',
   aiLoggedInAs: 'साइन इन: {email}',
@@ -66,7 +66,7 @@ export const hi = {
   aiNetworkError:
     'नेटवर्क समस्या: AI सेवा से कनेक्ट नहीं हो सका। कनेक्शन जांचें और फिर से प्रयास करें',
   aiCreditsExhausted:
-    'आपके Genspark क्रेडिट समाप्त हो गए हैं। genspark.ai/pricing पर रिचार्ज करें और फिर से प्रयास करें',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'कार्यपुस्तिका की जानकारी पढ़ें',
   aiToolReadRange: 'श्रेणी पढ़ें',
   aiToolReadRangeOf: 'श्रेणी {range} पढ़ें',

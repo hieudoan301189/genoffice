@@ -9,7 +9,7 @@ export const hi = {
   aiStarterContinue: 'दस्तावेज़ जहाँ रुका है वहाँ से आगे लिखें',
   aiStarterFillTemplate: 'दस्तावेज़ के प्लेसहोल्डर ढूँढ़कर भरें',
   aiGskLoginBtn: 'Genspark में साइन इन करें',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'AI सहायक खोलें',
   aiSummarizeBtn: 'AI सारांश',
   aiSummarizePrompt: 'इस दस्तावेज़ की मुख्य सामग्री और प्रमुख बिंदुओं का सारांश दें',
@@ -115,7 +115,7 @@ export const hi = {
   aiNetworkError:
     'नेटवर्क समस्या: AI सेवा से कनेक्ट नहीं हो सका। कनेक्शन जांचें और फिर से प्रयास करें',
   aiCreditsExhausted:
-    'आपके Genspark क्रेडिट समाप्त हो गए हैं। genspark.ai/pricing पर रिचार्ज करें और फिर से प्रयास करें',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiSumReadAttachment: 'अनुलग्नक पढ़ें',
   aiSumImageAttachment: 'चित्र अनुलग्नक {name}',
   aiSumRead: '{name} पढ़ें',

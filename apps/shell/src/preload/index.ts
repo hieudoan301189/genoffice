@@ -450,7 +450,7 @@ const homeApi: HomeApi = {
     await ipcRenderer.invoke('ai:set-settings', settings)
   },
   getAiProviders() {
-    return AI_PROVIDERS.map((meta) => {
+    return AI_PROVIDERS.filter((meta) => meta.id === 'gemini').map((meta) => {
       let defaultBaseUrl = ''
       // genspark routes by model and custom has no default — both stay ''
       if (meta.id !== 'genspark' && !meta.needsBaseUrl && !meta.needsCliPath) {

@@ -31,9 +31,8 @@ import { fetchWithSsrfGuard } from '@genoffice/electron-utils/safe-remote-url'
 import { gskAnalyzeMedia, gskGenerateImage, hasGskAuth, type GskGenerateImageOptions } from './gsk'
 
 export const GSK_NOT_LOGGED_IN_ERROR =
-  'Genspark account is not logged in on this machine; ask the user to log in first'
-export const GSK_TOOLS_OFF_ERROR =
-  'Genspark cloud tools are turned off in Settings (AI Model); enable them or configure an image provider under Settings (AI Media) to use this tool'
+  'Configure an image or media provider in Settings before using this tool.'
+export const GSK_TOOLS_OFF_ERROR = 'Configure your own image or media provider in Settings.'
 
 /** 200 MB: enough for a long clip through the Gemini Files API, small enough to hold in memory */
 const MAX_MEDIA_BYTES = 200 * 1024 * 1024

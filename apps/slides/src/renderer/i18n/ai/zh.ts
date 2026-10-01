@@ -17,7 +17,7 @@ export const zh = {
   aiQcStopped: '版式检查已停止',
   aiQcCapped: '其余 {count} 页未检查(单次上限)',
   aiGskLoginBtn: '登录 Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: '打开 AI 助手',
   aiFactCheckBtn: 'AI 事实核查',
   aiFactCheckPrompt: '核查这份幻灯片的内容:检查数据、日期、名称和论断是否属实,指出并纠正错误',
@@ -106,7 +106,8 @@ export const zh = {
   aiErrStreamTimeout: 'AI 请求超时：网络长时间无响应，已停止。请检查网络后重试',
   aiErrOverloaded: 'AI 服务当前繁忙，请稍后重试',
   aiErrNetwork: '网络有问题，无法连接 AI 服务。请检查网络后重试',
-  aiCreditsExhausted: 'Genspark 积分已用完，请前往 genspark.ai/pricing 充值后重试',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: '请求发送失败: {msg}',
   aiErrGenerateFailed: '生成失败',
   aiErrRegenFailed: '重做页面失败',

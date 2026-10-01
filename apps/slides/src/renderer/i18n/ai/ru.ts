@@ -18,7 +18,7 @@ export const ru = {
   aiQcStopped: 'Проверка макета остановлена',
   aiQcCapped: 'Ещё {count} стр. не проверено (лимит за один запуск)',
   aiGskLoginBtn: 'Войти в Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'Открыть ИИ-помощника',
   aiFactCheckBtn: 'ИИ-фактчекинг',
   aiFactCheckPrompt:
@@ -115,7 +115,7 @@ export const ru = {
   aiErrNetwork:
     'Проблема с сетью: не удалось подключиться к сервису ИИ. Проверьте подключение и повторите попытку',
   aiCreditsExhausted:
-    'Кредиты Genspark исчерпаны. Пополните баланс на genspark.ai/pricing и повторите попытку',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'Не удалось отправить запрос: {msg}',
   aiErrGenerateFailed: 'Сбой генерации',
   aiErrRegenFailed: 'Не удалось переделать слайд',

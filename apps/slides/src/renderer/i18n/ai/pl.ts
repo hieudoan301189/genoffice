@@ -18,7 +18,7 @@ export const pl = {
   aiQcStopped: 'Sprawdzanie układu zatrzymane',
   aiQcCapped: 'Pozostałe {count} stron(y) nie sprawdzono (limit na uruchomienie)',
   aiGskLoginBtn: 'Zaloguj się do Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'Otwórz asystenta AI',
   aiFactCheckBtn: 'Weryfikacja AI',
   aiFactCheckPrompt:
@@ -114,7 +114,7 @@ export const pl = {
   aiErrNetwork:
     'Problem z siecią: nie można połączyć się z usługą AI. Sprawdź połączenie i spróbuj ponownie',
   aiCreditsExhausted:
-    'Twoje kredyty Genspark wyczerpały się. Doładuj konto na genspark.ai/pricing i spróbuj ponownie',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'Wysłanie żądania nie powiodło się: {msg}',
   aiErrGenerateFailed: 'Generowanie nie powiodło się',
   aiErrRegenFailed: 'Ponowne wygenerowanie slajdu nie powiodło się',

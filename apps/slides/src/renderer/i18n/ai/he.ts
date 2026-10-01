@@ -18,7 +18,7 @@ export const he = {
   aiQcStopped: 'בדיקת הפריסה הופסקה',
   aiQcCapped: 'עוד {count} עמודים לא נבדקו (מגבלה לכל הרצה)',
   aiGskLoginBtn: 'התחבר ל-Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'פתיחת עוזר ה-AI',
   aiFactCheckBtn: 'בדיקת עובדות AI',
   aiFactCheckPrompt:
@@ -109,7 +109,8 @@ export const he = {
   aiErrStreamTimeout: 'תם הזמן לבקשת ה-AI: אין תגובה מהרשת וההרצה הופסקה. בדוק את החיבור ונסה שוב',
   aiErrOverloaded: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
   aiErrNetwork: 'בעיית רשת: לא ניתן להתחבר לשירות ה-AI. בדוק את החיבור ונסה שוב',
-  aiCreditsExhausted: 'קרדיטי Genspark שלך אזלו. טען מחדש ב-genspark.ai/pricing ונסה שוב',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'שליחת הבקשה נכשלה: {msg}',
   aiErrGenerateFailed: 'היצירה נכשלה',
   aiErrRegenFailed: 'יצירת השקופית מחדש נכשלה',

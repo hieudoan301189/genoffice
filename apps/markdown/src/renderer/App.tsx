@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 import {
   captureMarkdownSource,
   roundTripMarkdownEnabled,
@@ -132,7 +133,9 @@ export default function App() {
   const [fmOpen, setFmOpen] = useState(false)
   const [fmText, setFmText] = useState('')
   // Persisted so a closed AI panel stays closed on next launch (docs/slides parity)
-  const [aiOpen, setAiOpen] = useState(() => localStorage.getItem('mdapp.showAi') !== '0')
+  const [requestedAiVisibility, setAiOpen] = useState(
+    () => localStorage.getItem('mdapp.showAi') !== '0',
+  )
   const [aiPreset, setAiPreset] = useState<AiPreset | null>(null)
   const [editQueue, setEditQueue] = useState<EditQueueItem[]>([])
   const editQueueRef = useRef(editQueue)
@@ -145,6 +148,7 @@ export default function App() {
   const [outlineWidth, setOutlineWidth] = useState(
     () => Number(localStorage.getItem('mdapp.outlineWidth')) || undefined,
   )
+  const aiOpen = AI_ENABLED && requestedAiVisibility
   const [spellcheck, setSpellcheck] = useState(
     () => localStorage.getItem('mdapp.spellcheck') !== '0',
   )
@@ -837,33 +841,35 @@ export default function App() {
       />
       {status === 'loading' && <div className="center-note">{t('loading')}</div>}
       <div className="app-main" style={status === 'ready' ? undefined : { display: 'none' }}>
-        <div className={`ai-dock${aiOpen ? '' : ' collapsed'}`}>
-          {!aiOpen && (
-            <button
-              className="ai-rail"
-              data-tip={t('aiOpenAssistant')}
-              aria-label={t('aiOpenAssistant')}
-              onClick={() => setAiOpen(true)}
-            >
-              <GensparkMark size={22} />
-            </button>
-          )}
-          {/* mounted only after the file is loaded so chat history resolves against the real path */}
-          {status === 'ready' && (
-            <AiPanel
-              deps={aiDeps}
-              filePath={filePath}
-              preset={aiPreset}
-              onCollapse={() => setAiOpen(false)}
-              editQueue={editQueue}
-              onQueueEditInstruction={queueUpdate}
-              onQueueRemove={queueRemove}
-              onQueueClear={queueClear}
-              onQueueFocus={queueFocus}
-              onQueueConsume={queueConsume}
-            />
-          )}
-        </div>
+        {AI_ENABLED && (
+          <div className={`ai-dock${aiOpen ? '' : ' collapsed'}`}>
+            {!aiOpen && (
+              <button
+                className="ai-rail"
+                data-tip={t('aiOpenAssistant')}
+                aria-label={t('aiOpenAssistant')}
+                onClick={() => setAiOpen(true)}
+              >
+                <GensparkMark size={22} />
+              </button>
+            )}
+            {/* mounted only after the file is loaded so chat history resolves against the real path */}
+            {status === 'ready' && (
+              <AiPanel
+                deps={aiDeps}
+                filePath={filePath}
+                preset={aiPreset}
+                onCollapse={() => setAiOpen(false)}
+                editQueue={editQueue}
+                onQueueEditInstruction={queueUpdate}
+                onQueueRemove={queueRemove}
+                onQueueClear={queueClear}
+                onQueueFocus={queueFocus}
+                onQueueConsume={queueConsume}
+              />
+            )}
+          </div>
+        )}
         {outlineOpen && (
           <OutlinePane
             items={outlineItems}
@@ -952,17 +958,19 @@ export default function App() {
         />
       )}
       <TableMenu editor={editor} scrollRef={scrollRef} zoom={zoom} />
-      {editor && status === 'ready' && (
-        <AiAskPopover
-          editor={editor}
-          queueFull={editQueue.length >= EDIT_QUEUE_MAX}
-          getItem={getQueueItem}
-          onSendNow={askSendNow}
-          onQueueAdd={queueAdd}
-          onQueueUpdate={queueUpdate}
-          onQueueRemove={queueRemove}
-        />
-      )}
+      {editor &&
+        status === 'ready' &&
+        (AI_ENABLED ? (
+          <AiAskPopover
+            editor={editor}
+            queueFull={editQueue.length >= EDIT_QUEUE_MAX}
+            getItem={getQueueItem}
+            onSendNow={askSendNow}
+            onQueueAdd={queueAdd}
+            onQueueUpdate={queueUpdate}
+            onQueueRemove={queueRemove}
+          />
+        ) : null)}
     </div>
   )
 }

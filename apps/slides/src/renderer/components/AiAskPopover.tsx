@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 /**
  * Anchored input for annotating the selected element(s) with one AI edit.
  *
@@ -110,7 +111,7 @@ export function AiAskTrigger({ getAnchorRect, onOpen }: TriggerProps): React.JSX
   }, [getAnchorRect])
 
   if (!pos) return null
-  return (
+  return AI_ENABLED ? (
     <button
       ref={btnRef}
       className="ai-ask-trigger"
@@ -126,7 +127,7 @@ export function AiAskTrigger({ getAnchorRect, onOpen }: TriggerProps): React.JSX
       </svg>
       {t('aiAskBtn')}
     </button>
-  )
+  ) : null
 }
 
 /** At most four suggestions, keyed by what is selected; each fills the input rather than submitting */
@@ -229,7 +230,7 @@ export function AiAskPopover({
   const preview = targets.length === 1 ? targets[0]!.desc.text : undefined
   const canSubmit = text.trim().length > 0
 
-  return (
+  return AI_ENABLED ? (
     <div
       ref={boxRef}
       className="ai-ask-pop"
@@ -338,5 +339,5 @@ export function AiAskPopover({
         )}
       </div>
     </div>
-  )
+  ) : null
 }

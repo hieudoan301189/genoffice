@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   Dropdown,
@@ -133,7 +134,9 @@ export default function App() {
   const [previewNonce, setPreviewNonce] = useState(0)
   const [draftHtml, setDraftHtml] = useState<string | null>(null)
   const [historyState, setHistoryState] = useState({ undo: false, redo: false })
-  const [aiOpen, setAiOpen] = useState(() => localStorage.getItem('htmlapp.showAi') !== '0')
+  const [requestedAiVisibility, setAiOpen] = useState(
+    () => localStorage.getItem('htmlapp.showAi') !== '0',
+  )
   const [aiPreset, setAiPreset] = useState<AiPreset | null>(null)
   const [editQueue, setEditQueue] = useState<EditQueueItem[]>([])
   const [askMode, setAskMode] = useState<AskMode | null>(null)
@@ -165,6 +168,7 @@ export default function App() {
   const [panelOpen, setPanelOpen] = useState(
     () => localStorage.getItem('htmlapp.stylePanel') !== '0',
   )
+  const aiOpen = AI_ENABLED && requestedAiVisibility
   const [panelDismissedSid, setPanelDismissedSid] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   /** a resize / reorder drag is in progress inside the frame: the floating chrome would only get in the way */
@@ -1467,31 +1471,33 @@ export default function App() {
       />
 
       <div className="app-main">
-        <div className={`ai-dock${aiOpen ? '' : ' collapsed'}`}>
-          {!aiOpen && (
-            <button
-              className="ai-rail"
-              data-tip={t('aiOpenAssistant')}
-              aria-label={t('aiOpenAssistant')}
-              onClick={() => setAiOpen(true)}
-            >
-              <GensparkMark size={18} />
-            </button>
-          )}
-          {/* stays mounted while collapsed: an in-flight run, its snapshots and the loop context survive */}
-          <AiPanel
-            deps={aiDeps}
-            filePath={path}
-            preset={aiPreset}
-            editQueue={editQueue}
-            onQueueEditInstruction={queueUpdate}
-            onQueueRemove={queueRemove}
-            onQueueClear={() => setEditQueue([])}
-            onQueueFocus={queueFocus}
-            onQueueConsume={queueConsume}
-            onCollapse={() => setAiOpen(false)}
-          />
-        </div>
+        {AI_ENABLED && (
+          <div className={`ai-dock${aiOpen ? '' : ' collapsed'}`}>
+            {!aiOpen && (
+              <button
+                className="ai-rail"
+                data-tip={t('aiOpenAssistant')}
+                aria-label={t('aiOpenAssistant')}
+                onClick={() => setAiOpen(true)}
+              >
+                <GensparkMark size={18} />
+              </button>
+            )}
+            {/* stays mounted while collapsed: an in-flight run, its snapshots and the loop context survive */}
+            <AiPanel
+              deps={aiDeps}
+              filePath={path}
+              preset={aiPreset}
+              editQueue={editQueue}
+              onQueueEditInstruction={queueUpdate}
+              onQueueRemove={queueRemove}
+              onQueueClear={() => setEditQueue([])}
+              onQueueFocus={queueFocus}
+              onQueueConsume={queueConsume}
+              onCollapse={() => setAiOpen(false)}
+            />
+          </div>
+        )}
         <div className="app-content">
           {findTarget && (
             <FindPanel
@@ -1679,26 +1685,31 @@ export default function App() {
           </footer>
         </div>
       </div>
-      {askTarget && askMode && canvasMode !== 'present' && (
-        <AiAskPopover
-          key={askMode.kind === 'edit' ? askMode.qid : 'new'}
-          target={askTarget}
-          mode={askMode}
-          initialText={
-            askMode.kind === 'edit'
-              ? editQueue.find((q) => q.qid === askMode.qid)?.instruction
-              : undefined
-          }
-          getAnchorRect={getAskAnchorRect}
-          onSubmit={(instruction) =>
-            askMode.kind === 'edit' ? queueUpdate(askMode.qid, instruction) : queueAdd(instruction)
-          }
-          onCancel={() => setAskMode(null)}
-          onSendNow={askSendNow}
-          onRemove={() => askMode.kind === 'edit' && queueRemove(askMode.qid)}
-          queueFull={editQueue.length >= EDIT_QUEUE_MAX}
-        />
-      )}
+      {askTarget &&
+        askMode &&
+        canvasMode !== 'present' &&
+        (AI_ENABLED ? (
+          <AiAskPopover
+            key={askMode.kind === 'edit' ? askMode.qid : 'new'}
+            target={askTarget}
+            mode={askMode}
+            initialText={
+              askMode.kind === 'edit'
+                ? editQueue.find((q) => q.qid === askMode.qid)?.instruction
+                : undefined
+            }
+            getAnchorRect={getAskAnchorRect}
+            onSubmit={(instruction) =>
+              askMode.kind === 'edit'
+                ? queueUpdate(askMode.qid, instruction)
+                : queueAdd(instruction)
+            }
+            onCancel={() => setAskMode(null)}
+            onSendNow={askSendNow}
+            onRemove={() => askMode.kind === 'edit' && queueRemove(askMode.qid)}
+            queueFull={editQueue.length >= EDIT_QUEUE_MAX}
+          />
+        ) : null)}
       {pictureDialog?.kind === 'cutout' && (
         <CutoutDialog
           labels={imageDialogLabels}

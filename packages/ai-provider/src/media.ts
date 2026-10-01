@@ -21,20 +21,6 @@ export const DEEPSEEK_MEDIA_BASE_URL = 'https://api.deepseek.com/v1'
 // models in step with the chat catalog in providers.ts.
 export const AI_MEDIA_PROVIDERS: AiMediaProviderMeta[] = [
   {
-    id: 'genspark',
-    label: 'Genspark',
-    description: 'Image generation, media analysis and search through your Genspark sign-in',
-    keyPlaceholder: 'Not required - sign in to Genspark',
-    defaultBaseUrl: '',
-    imageProtocol: 'openai-images',
-    imageModels: [],
-    defaultImageModel: '',
-    analysisProtocol: 'openai-chat',
-    analysisModels: [],
-    defaultAnalysisModel: '',
-    videoAnalysis: true,
-  },
-  {
     id: 'openai',
     label: 'OpenAI',
     description: 'GPT Image for generation and editing; GPT chat models for image analysis',
@@ -224,9 +210,9 @@ export function defaultAiMediaSettings(): AiMediaSettings {
     }
   }
   return {
-    imageProvider: 'genspark',
-    analysisProvider: 'genspark',
-    videoAnalysisProvider: 'genspark',
+    imageProvider: 'custom',
+    analysisProvider: 'custom',
+    videoAnalysisProvider: 'custom',
     providers,
   }
 }
@@ -243,7 +229,7 @@ export function resolveAiMediaSettings(
   if (!stored) return defaults
   const providers = { ...defaults.providers }
   for (const [id, config] of Object.entries(stored.providers ?? {})) {
-    if (!config || typeof config !== 'object') continue
+    if (id === 'genspark' || !config || typeof config !== 'object') continue
     // Hand-edited settings files can carry non-string values: trim only
     // strings (like the search-settings guard) instead of crashing.
     const str = (v: unknown, fallback: string): string =>
@@ -260,13 +246,15 @@ export function resolveAiMediaSettings(
           : {}),
     }
   }
-  const legacy = stored.provider
-  const analysisProvider = stored.analysisProvider ?? legacy ?? defaults.analysisProvider
+  const supported = (id: AiMediaProviderId | undefined): AiMediaProviderId | undefined =>
+    id && AI_MEDIA_PROVIDERS.some((meta) => meta.id === id) ? id : undefined
+  const legacy = supported(stored.provider)
+  const analysisProvider = supported(stored.analysisProvider) ?? legacy ?? defaults.analysisProvider
   return {
-    imageProvider: stored.imageProvider ?? legacy ?? defaults.imageProvider,
+    imageProvider: supported(stored.imageProvider) ?? legacy ?? defaults.imageProvider,
     analysisProvider,
     // a pre-split file used one vendor for all media analysis
-    videoAnalysisProvider: stored.videoAnalysisProvider ?? analysisProvider,
+    videoAnalysisProvider: supported(stored.videoAnalysisProvider) ?? analysisProvider,
     providers,
   }
 }
@@ -331,13 +319,13 @@ function byokModel(
 
 function capabilityAvailable(
   settings: Pick<AiSettings, 'media' | 'gskToolsEnabled'> | null | undefined,
-  gskLoggedIn: boolean,
+  _gskLoggedIn: boolean,
   capability: MediaCapability,
 ): boolean {
-  if (!settings) return gskLoggedIn
+  if (!settings) return false
   const model = byokModel(settings, capability)
   if (model !== null) return model !== ''
-  return gskLoggedIn && settings.gskToolsEnabled !== false
+  return false
 }
 
 /** live predicate for the generate_image tool: BYOK image model configured, or gsk login + cloud tools on */

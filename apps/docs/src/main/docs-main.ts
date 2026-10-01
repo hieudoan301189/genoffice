@@ -1,3 +1,5 @@
+import { AI_ENABLED } from '@genoffice/ui/product-features'
+import { loadDvhGeminiKey, saveDvhGeminiKey } from './dvh-gemini-key'
 import { createHash, randomUUID } from 'node:crypto'
 import { handOffBytes } from './byte-handoff'
 import {
@@ -87,7 +89,6 @@ import {
   isAiOverloadedError,
   chatForProvider,
   defaultAiSettings,
-  activeProvider,
   testMediaProvider,
   type AiMediaProviderConfig,
   type AiMediaProviderId,
@@ -107,12 +108,8 @@ import {
 import { listCodexModels, shutdownCodexAppServers } from '@genoffice/ai-provider/codex-app-server'
 import { listCustomModelsForIpc } from '@genoffice/ai-provider/custom-models'
 import {
-  ensureGenofficeLogin,
-  gskApiKey,
   generateImageTool,
   testSearchProvider,
-  gskLoginInfo,
-  hasGskAuth,
   webSearchTool,
   imageSearchTool,
   analyzeMediaTool,
@@ -3618,68 +3615,70 @@ export function registerAiIpc(): void {
   app.once('before-quit', shutdownCodexAppServers)
   ipcMain.handle('ai:get-settings', async (): Promise<AiSettings> => {
     const stored = readJson<Partial<AiSettings> & LegacyAiSettings>(SETTINGS_PATH(), {})
-    // pre-lock legacy file: genspark selected with cloud tools opted out. The
-    // settings UI locks the tools switch on with genspark and apps read this
-    // file live, so heal the stored flag once. Judged on the *stored* provider
-    // — never the activeProvider fallback below, which must not leak into the
-    // file and clobber a saved (half-configured) BYOK selection.
-    if ((stored.provider ?? 'genspark') === 'genspark' && stored.gskToolsEnabled === false) {
-      stored.gskToolsEnabled = true
+    const oldKey = stored.providers?.gemini?.apiKey
+    if (oldKey) {
+      saveDvhGeminiKey(oldKey)
+      stored.providers!.gemini!.apiKey = ''
       writeJsonAtomic(SETTINGS_PATH(), stored)
     }
     const settings = resolveAiSettings(stored, defaultAiSettings())
-    // a stored BYOK provider is honored when usable; half-filled configs fall back to genspark
-    settings.provider = activeProvider(settings)
+    settings.provider = 'gemini'
+    settings.gskToolsEnabled = false
+    settings.providers.gemini.apiKey = await loadDvhGeminiKey()
+    settings.providers.gemini.baseUrl = undefined
     return settings
   })
 
-  // Genspark account (gsk login state): auth source for AI features; the frontend uses it to prompt login when logged out
+  // Legacy channel retained for old renderer bundles; DVH Office has no Genspark sign-in.
   ipcMain.handle(
     'ai:gsk-status',
-    async (_event, withEmail?: boolean): Promise<GenSparkAccountStatus> => {
-      if (!hasGskAuth()) return { loggedIn: false }
-      if (!withEmail) return { loggedIn: true }
-      const info = await gskLoginInfo()
-      return info?.email ? { loggedIn: true, email: info.email } : { loggedIn: true }
-    },
+    (): GenSparkAccountStatus => ({ loggedIn: false }),
   )
 
   ipcMain.handle('ai:gsk-login', () => {
-    ensureGenofficeLogin((url) => void shell.openExternal(url))
+    throw new Error('DVH Office uses Gemini API key, not Genspark sign-in.')
   })
 
   ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
-    writeJsonAtomic(SETTINGS_PATH(), settings)
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+    if (settings.provider !== 'gemini') throw new Error('DVH Office supports Gemini only.')
+    saveDvhGeminiKey(settings.providers.gemini.apiKey)
+    const stored = structuredClone(settings)
+    stored.providers.gemini.apiKey = ''
+    stored.providers.gemini.baseUrl = undefined
+    stored.gskToolsEnabled = false
+    writeJsonAtomic(SETTINGS_PATH(), stored)
   })
 
   ipcMain.handle('ai:codex-models', async (_event, cliPath: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     return listCodexModels(typeof cliPath === 'string' ? cliPath : undefined)
   })
 
   ipcMain.handle('ai:custom-models', (_event, input: unknown) => listCustomModelsForIpc(input))
 
   ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     const { requestId, settings, system, messages } = request
     const tools = request.tools ?? []
     const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
     const provider = settings.provider
-    let config = settings.providers?.[provider]
-    // the genspark key never enters the settings file; requests take it from the gsk login state
-    if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
-    }
+    if (provider !== 'gemini') throw new Error('DVH Office supports Gemini only.')
+    const config = { ...settings.providers.gemini, baseUrl: undefined }
     const send = (chunk: AiStreamChunk) => {
       if (!event.sender.isDestroyed()) event.sender.send('ai:stream-chunk', chunk)
     }
-    if (!config || (provider !== 'codex' && !config.apiKey)) {
+    if (!config.apiKey) {
       send({
         requestId,
         type: 'error',
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
+        error: tm('errNoApiKey', { provider }),
       })
       return
     }
-    if (provider !== 'codex' && !config.model) {
+    if (!config.model) {
       send({ requestId, type: 'error', error: tm('errNoModel') })
       return
     }
@@ -3737,6 +3736,8 @@ export function registerAiIpc(): void {
 
   // shared search tools (content + images): Serper with DuckDuckGo fallback (same source as slides/sheets)
   ipcMain.handle('ai:web-search', async (_event, query: string, maxResults?: number) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     try {
       return await webSearchTool(
         SETTINGS_PATH(),
@@ -3748,6 +3749,8 @@ export function registerAiIpc(): void {
     }
   })
   ipcMain.handle('ai:image-search', async (_event, query: string, maxResults?: number) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     try {
       return await imageSearchTool(
         SETTINGS_PATH(),
@@ -3784,6 +3787,8 @@ export function registerAiIpc(): void {
   ipcMain.handle(
     'ai:fetch-image',
     async (_event, url: string): Promise<{ base64: string; mime: string } | null> => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       try {
         // the URL originates from AI tool calls (prompt-injectable via web search
         // results), so refuse non-http schemes and private/link-local targets;
@@ -3817,40 +3822,44 @@ export function registerAiIpc(): void {
   )
 
   ipcMain.handle('ai:search-test', (_event, input: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     const { provider, apiKey } = (input ?? {}) as { provider?: AiSearchProviderId; apiKey?: string }
     if (!provider || provider === 'genspark') {
-      return hasGskAuth() ? { ok: true } : { ok: false, error: tm('errGskNotLoggedIn') }
+      return { ok: false, error: 'Genspark is unavailable in DVH Office.' }
     }
     return testSearchProvider(provider, String(apiKey ?? ''))
   })
 
   // settings-UI connection test for the media provider (genspark = the gsk login state)
   ipcMain.handle('ai:media-test', (_event, input: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     const { provider, config } = (input ?? {}) as {
       provider?: AiMediaProviderId
       config?: AiMediaProviderConfig
     }
     if (!provider || provider === 'genspark') {
-      return hasGskAuth() ? { ok: true } : { ok: false, error: tm('errGskNotLoggedIn') }
+      return { ok: false, error: 'Genspark is unavailable in DVH Office.' }
     }
     if (!config) return { ok: false, error: 'No media provider configuration' }
     return testMediaProvider(provider, config)
   })
 
   ipcMain.handle('ai:chat', async (_event, request: AiChatRequest) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     const { settings, system, user } = request
     const provider = settings.provider
-    let config = settings.providers?.[provider]
-    if (provider === 'genspark' && config && !config.apiKey) {
-      config = { ...config, apiKey: gskApiKey() }
-    }
-    if (!config || (provider !== 'codex' && !config.apiKey)) {
+    if (provider !== 'gemini') return { ok: false, error: 'DVH Office supports Gemini only.' }
+    const config = { ...settings.providers.gemini, baseUrl: undefined }
+    if (!config.apiKey) {
       return {
         ok: false,
-        error: provider === 'genspark' ? tm('errGskNotLoggedIn') : tm('errNoApiKey', { provider }),
+        error: tm('errNoApiKey', { provider }),
       }
     }
-    if (provider !== 'codex' && !config.model) return { ok: false, error: tm('errNoModel') }
+    if (!config.model) return { ok: false, error: tm('errNoModel') }
     try {
       const result = await chatForProvider(provider, config, system, user)
       // the one-shot path reports HTTP failures as ok:false with the raw body —
@@ -5320,6 +5329,7 @@ export function buildDocsMenu(): void {
         { type: 'separator' },
         {
           id: 'docs-menu-ai-sidebar',
+          visible: false,
           type: 'checkbox',
           checked: activeViewMenuState().aiSidebar,
           label: tm('menuAiSidebar'),
@@ -5327,6 +5337,7 @@ export function buildDocsMenu(): void {
         },
         {
           id: 'docs-menu-dark-mode',
+          visible: false,
           type: 'checkbox',
           checked: activeViewMenuState().darkCanvas,
           label: tm('menuDarkMode'),
@@ -5480,7 +5491,7 @@ export function buildDocsMenu(): void {
           : [{ label: tm('menuPreferences'), click: () => sendCommand('preferences') }]),
         { type: 'separator' },
         // Runs the same AI proofread as Review > Editor (renderer shows the one-time ack)
-        { label: tm('menuAiProofread'), click: () => sendCommand('ai-proofread') },
+        { visible: false, label: tm('menuAiProofread'), click: () => sendCommand('ai-proofread') },
       ],
     },
     windowMenuTemplate(process.platform, appMenuLabels(getUiLang())),

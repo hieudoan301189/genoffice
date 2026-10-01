@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 /**
  * Anchored input for annotating the selected preview element with one AI edit
  * (slides/docs parity). Mounted at the app root in viewport coordinates: the
@@ -159,7 +160,7 @@ export function AiAskPopover({
   )
   const canSubmit = text.trim().length > 0
 
-  return (
+  return AI_ENABLED ? (
     <div
       ref={boxRef}
       className="ai-ask-pop"
@@ -270,5 +271,5 @@ export function AiAskPopover({
         )}
       </div>
     </div>
-  )
+  ) : null
 }

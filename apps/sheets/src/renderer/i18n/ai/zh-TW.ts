@@ -47,7 +47,7 @@ export const zhTW = {
   aiInstructionAria: 'AI 指令',
   aiFileTooltip: 'SHA-256 {sha}\n儲存只重寫被編輯的項目，其餘內容原樣保留。',
   aiFileMeta: '{sheets} 個工作表 · {entries} 個項目',
-  aiGensparkAccount: 'Genspark 帳號',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: '偵測中…',
   aiLoggedIn: '已登入',
   aiLoggedInAs: '已登入：{email}',
@@ -61,7 +61,8 @@ export const zhTW = {
   aiTimeoutError: 'AI 請求逾時：網路長時間無回應，已停止。請檢查網路後重試',
   aiOverloadedError: 'AI 服務目前繁忙，請稍後重試',
   aiNetworkError: '網路有問題，無法連接 AI 服務。請檢查網路後重試',
-  aiCreditsExhausted: 'Genspark 點數已用完，請前往 genspark.ai/pricing 儲值後重試',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: '讀取工作表資訊',
   aiToolReadRange: '讀取範圍',
   aiToolReadRangeOf: '讀取範圍 {range}',

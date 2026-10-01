@@ -48,7 +48,7 @@ export const ar = {
   aiFileTooltip:
     'SHA-256 {sha}\nعند الحفظ تتم إعادة كتابة الإدخالات المحرَّرة فقط؛ ويُحتفظ بكل ما عداها كما هو.',
   aiFileMeta: '{sheets} أوراق · {entries} إدخالات',
-  aiGensparkAccount: 'حساب Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'جارٍ التحقق…',
   aiLoggedIn: 'تم تسجيل الدخول',
   aiLoggedInAs: 'تم تسجيل الدخول: {email}',
@@ -65,7 +65,7 @@ export const ar = {
   aiNetworkError:
     'مشكلة في الشبكة: تعذّر الوصول إلى خدمة الذكاء الاصطناعي. تحقق من الاتصال وحاول مجددًا',
   aiCreditsExhausted:
-    'نفدت أرصدة Genspark لديك. يرجى إعادة الشحن عبر genspark.ai/pricing ثم المحاولة مجددًا',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'قراءة معلومات المصنف',
   aiToolReadRange: 'قراءة النطاق',
   aiToolReadRangeOf: 'قراءة النطاق {range}',

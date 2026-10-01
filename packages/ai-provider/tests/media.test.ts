@@ -38,11 +38,11 @@ function openaiSettings(apiKey = 'sk-test', imageModel = 'gpt-image-2'): AiSetti
 }
 
 describe('media settings', () => {
-  it('defaults every provider to its default models and genspark as the active one', () => {
+  it('defaults every provider to its default models and custom setup as the selection', () => {
     const media = defaultAiMediaSettings()
-    expect(media.imageProvider).toBe('genspark')
-    expect(media.analysisProvider).toBe('genspark')
-    expect(media.videoAnalysisProvider).toBe('genspark')
+    expect(media.imageProvider).toBe('custom')
+    expect(media.analysisProvider).toBe('custom')
+    expect(media.videoAnalysisProvider).toBe('custom')
     for (const meta of AI_MEDIA_PROVIDERS) {
       expect(media.providers[meta.id].imageModel).toBe(meta.defaultImageModel)
       expect(media.providers[meta.id].apiKey).toBe('')
@@ -53,7 +53,7 @@ describe('media settings', () => {
 
   it('is carried by defaultAiSettings and healed in from a pre-media settings file', () => {
     const defaults = defaultAiSettings()
-    expect(defaults.media?.imageProvider).toBe('genspark')
+    expect(defaults.media?.imageProvider).toBe('custom')
     const resolved = resolveAiSettings(
       { provider: 'genspark', providers: defaults.providers },
       defaultAiSettings(),
@@ -113,7 +113,7 @@ describe('media settings', () => {
     expect(activeMediaProvider(withMedia(custom), 'image')).toBe('genspark')
     custom.providers.custom.baseUrl = 'http://localhost:1234/v1'
     expect(activeMediaProvider(withMedia(custom), 'image')).toBe('custom')
-    expect(activeMediaProvider(withMedia(custom), 'analysis')).toBe('genspark')
+    expect(activeMediaProvider(withMedia(custom), 'analysis')).toBe('custom')
     expect(activeMediaConfig(withMedia(custom), 'image')?.provider).toBe('custom')
     // MiniMax has no analysis endpoint: picking it for analysis falls back
     const mm = defaultAiMediaSettings()
@@ -140,9 +140,9 @@ describe('media settings', () => {
     ).toBe('genspark')
   })
 
-  it('gates the tools on gsk login + toggle without BYOK, and on the BYOK model with it', () => {
+  it('requires BYOK regardless of legacy login state', () => {
     const genspark = defaultAiSettings()
-    expect(imageGenerationAvailable(genspark, true)).toBe(true)
+    expect(imageGenerationAvailable(genspark, true)).toBe(false)
     expect(imageGenerationAvailable(genspark, false)).toBe(false)
     expect(imageGenerationAvailable({ ...genspark, gskToolsEnabled: false }, true)).toBe(false)
     expect(mediaAnalysisAvailable({ ...genspark, gskToolsEnabled: false }, true)).toBe(false)
@@ -167,7 +167,7 @@ describe('media settings', () => {
     }
     expect(mediaAnalysisAvailable(withMedia(custom), false)).toBe(false)
     expect(imageGenerationAvailable(withMedia(custom), false)).toBe(true)
-    expect(imageGenerationAvailable(null, true)).toBe(true)
+    expect(imageGenerationAvailable(null, true)).toBe(false)
   })
 })
 

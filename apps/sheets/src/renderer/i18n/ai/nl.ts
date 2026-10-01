@@ -50,7 +50,7 @@ export const nl = {
   aiFileTooltip:
     'SHA-256 {sha}\nBij het opslaan worden alleen de bewerkte items herschreven; al het andere blijft behouden.',
   aiFileMeta: '{sheets} bladen · {entries} items',
-  aiGensparkAccount: 'Genspark-account',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Controleren…',
   aiLoggedIn: 'Aangemeld',
   aiLoggedInAs: 'Aangemeld: {email}',
@@ -67,7 +67,7 @@ export const nl = {
   aiNetworkError:
     'Netwerkprobleem: kan de AI-service niet bereiken. Controleer je verbinding en probeer het opnieuw',
   aiCreditsExhausted:
-    'Je Genspark-credits zijn op. Waardeer op via genspark.ai/pricing en probeer het opnieuw',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Werkmapgegevens lezen',
   aiToolReadRange: 'Bereik lezen',
   aiToolReadRangeOf: 'Bereik {range} lezen',

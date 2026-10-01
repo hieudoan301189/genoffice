@@ -8,7 +8,7 @@ export const zh = {
   aiStarterContinue: '接着现有内容往下写',
   aiStarterFillTemplate: '找出并填写文档里的占位符',
   aiGskLoginBtn: '登录 Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: '打开 AI 助手',
   aiSummarizeBtn: 'AI 总结',
   aiSummarizePrompt: '总结这篇文档的主要内容和要点',
@@ -106,7 +106,8 @@ export const zh = {
   aiTimeoutError: 'AI 请求超时：网络长时间无响应，已停止。请检查网络后重试',
   aiOverloadedError: 'AI 服务当前繁忙，请稍后重试',
   aiNetworkError: '网络有问题，无法连接 AI 服务。请检查网络后重试',
-  aiCreditsExhausted: 'Genspark 积分已用完，请前往 genspark.ai/pricing 充值后重试',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiSumReadAttachment: '读取附件',
   aiSumImageAttachment: '图片附件 {name}',
   aiSumRead: '读取 {name}',

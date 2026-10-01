@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 /**
  * Anchored "Ask AI" popover opened from the selection markup bar: captures one
  * instruction about the selected passage and sends it immediately as a normal
@@ -40,7 +41,7 @@ export function AiAskPopover({
   readOnly: boolean
   onSend: (text: string) => void
   onClose: () => void
-}): ReactElement {
+}): ReactElement | null {
   const { t } = useI18n()
   const [text, setText] = useState('')
   const boxRef = useRef<HTMLDivElement>(null)
@@ -89,7 +90,7 @@ export function AiAskPopover({
   const chips = readOnly ? READ_CHIPS : [...READ_CHIPS, 'aiChipRewritePassage' as StringKey]
   const shortExcerpt = excerpt.replace(/\s+/g, ' ').trim()
 
-  return (
+  return AI_ENABLED ? (
     <div
       ref={boxRef}
       className="ai-ask-pop"
@@ -160,5 +161,5 @@ export function AiAskPopover({
         </button>
       </div>
     </div>
-  )
+  ) : null
 }

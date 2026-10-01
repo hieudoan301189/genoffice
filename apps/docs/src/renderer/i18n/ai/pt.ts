@@ -9,7 +9,7 @@ export const pt = {
   aiStarterContinue: 'Continue escrevendo de onde o documento parou',
   aiStarterFillTemplate: 'Encontre e preencha os espaços reservados do documento',
   aiGskLoginBtn: 'Entrar no Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'Abrir assistente de IA',
   aiSummarizeBtn: 'Resumo IA',
   aiSummarizePrompt: 'Resuma o conteúdo principal e os pontos-chave deste documento',
@@ -118,7 +118,7 @@ export const pt = {
   aiNetworkError:
     'Problema de rede: não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente',
   aiCreditsExhausted:
-    'Seus créditos Genspark acabaram. Recarregue em genspark.ai/pricing e tente novamente',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiSumReadAttachment: 'Ler anexo',
   aiSumImageAttachment: 'Imagem anexada {name}',
   aiSumRead: 'Ler {name}',

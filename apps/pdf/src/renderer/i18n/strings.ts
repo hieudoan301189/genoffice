@@ -311,7 +311,8 @@ export const strings = {
     aiTimeoutError: 'AI 请求超时：网络长时间无响应，已停止。请检查网络后重试',
     aiOverloadedError: 'AI 服务当前繁忙，请稍后重试',
     aiNetworkError: '网络有问题，无法连接 AI 服务。请检查网络后重试',
-    aiCreditsExhausted: 'Genspark 积分已用完，请前往 genspark.ai/pricing 充值后重试',
+    aiCreditsExhausted:
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: '读取第 {start}-{end} 页',
     aiToolSearch: '搜索"{query}"（{count} 处）',
     aiToolGoto: '跳转到第 {page} 页',
@@ -642,7 +643,7 @@ export const strings = {
     aiNetworkError:
       'Network problem: could not reach the AI service. Check your connection and try again',
     aiCreditsExhausted:
-      'Your Genspark credits have run out. Visit genspark.ai/pricing to top up, then try again',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Read pages {start}-{end}',
     aiToolSearch: 'Search "{query}" ({count} hits)',
     aiToolGoto: 'Go to page {page}',
@@ -976,7 +977,7 @@ export const strings = {
     aiNetworkError:
       'ネットワークに問題があり、AI サービスに接続できません。接続を確認して再試行してください',
     aiCreditsExhausted:
-      'Gensparkクレジットを使い切りました。genspark.ai/pricing でチャージしてから再試行してください',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'ページ {start}-{end} を読む',
     aiToolSearch: '「{query}」を検索（{count} 件）',
     aiToolGoto: 'ページ {page} へ移動',
@@ -1312,7 +1313,7 @@ export const strings = {
     aiNetworkError:
       '네트워크에 문제가 있어 AI 서비스에 연결할 수 없습니다. 연결을 확인한 후 다시 시도해 주세요',
     aiCreditsExhausted:
-      'Genspark 크레딧을 모두 사용했습니다. genspark.ai/pricing에서 충전한 후 다시 시도해 주세요',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: '{start}-{end}쪽 읽기',
     aiToolSearch: '"{query}" 검색 ({count}건)',
     aiToolGoto: '{page}쪽으로 이동',
@@ -1650,7 +1651,7 @@ export const strings = {
     aiNetworkError:
       'Problème réseau : impossible de joindre le service IA. Vérifiez votre connexion et réessayez',
     aiCreditsExhausted:
-      'Vos crédits Genspark sont épuisés. Rechargez sur genspark.ai/pricing puis réessayez',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Lire les pages {start}-{end}',
     aiToolSearch: 'Rechercher « {query} » ({count} occurrences)',
     aiToolGoto: 'Aller à la page {page}',
@@ -1992,7 +1993,7 @@ export const strings = {
     aiNetworkError:
       'Netzwerkproblem: Der KI-Dienst ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut',
     aiCreditsExhausted:
-      'Deine Genspark-Credits sind aufgebraucht. Lade unter genspark.ai/pricing auf und versuche es erneut',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Seiten {start}-{end} lesen',
     aiToolSearch: '„{query}" suchen ({count} Treffer)',
     aiToolGoto: 'Zu Seite {page} springen',
@@ -2333,7 +2334,7 @@ export const strings = {
     aiNetworkError:
       'Problema de red: no se pudo conectar con el servicio de IA. Comprueba tu conexión e inténtalo de nuevo',
     aiCreditsExhausted:
-      'Tus créditos de Genspark se han agotado. Recarga en genspark.ai/pricing e inténtalo de nuevo',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Leer páginas {start}-{end}',
     aiToolSearch: 'Buscar «{query}» ({count} resultados)',
     aiToolGoto: 'Ir a la página {page}',
@@ -2671,7 +2672,7 @@ export const strings = {
     aiNetworkError:
       'เครือข่ายมีปัญหา ไม่สามารถเชื่อมต่อบริการ AI ได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่',
     aiCreditsExhausted:
-      'เครดิต Genspark ของคุณหมดแล้ว โปรดเติมเครดิตที่ genspark.ai/pricing แล้วลองใหม่',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'อ่านหน้า {start}-{end}',
     aiToolSearch: 'ค้นหา "{query}" ({count} แห่ง)',
     aiToolGoto: 'ไปที่หน้า {page}',
@@ -3006,7 +3007,7 @@ export const strings = {
     aiNetworkError:
       'Masalah jaringan: tidak dapat terhubung ke layanan AI. Periksa koneksi Anda lalu coba lagi',
     aiCreditsExhausted:
-      'Kredit Genspark Anda telah habis. Isi ulang di genspark.ai/pricing lalu coba lagi',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Baca halaman {start}-{end}',
     aiToolSearch: 'Cari "{query}" ({count} temuan)',
     aiToolGoto: 'Ke halaman {page}',
@@ -3344,7 +3345,7 @@ export const strings = {
     aiNetworkError:
       'Проблема с сетью: не удалось подключиться к сервису ИИ. Проверьте подключение и повторите попытку',
     aiCreditsExhausted:
-      'Кредиты Genspark исчерпаны. Пополните баланс на genspark.ai/pricing и повторите попытку',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Чтение страниц {start}-{end}',
     aiToolSearch: 'Поиск «{query}» ({count} совпадений)',
     aiToolGoto: 'Перейти на страницу {page}',
@@ -3681,7 +3682,7 @@ export const strings = {
     aiNetworkError:
       'مشكلة في الشبكة: تعذّر الوصول إلى خدمة الذكاء الاصطناعي. تحقق من الاتصال وحاول مجددًا',
     aiCreditsExhausted:
-      'نفدت أرصدة Genspark لديك. يرجى إعادة الشحن عبر genspark.ai/pricing ثم المحاولة مجددًا',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'قراءة الصفحات {start}-{end}',
     aiToolSearch: 'بحث عن "{query}" ({count} نتيجة)',
     aiToolGoto: 'الانتقال إلى الصفحة {page}',
@@ -4017,7 +4018,7 @@ export const strings = {
     aiNetworkError:
       'Problema de rede: não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente',
     aiCreditsExhausted:
-      'Seus créditos Genspark acabaram. Recarregue em genspark.ai/pricing e tente novamente',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Ler páginas {start}-{end}',
     aiToolSearch: 'Pesquisar "{query}" ({count} ocorrências)',
     aiToolGoto: 'Ir para a página {page}',
@@ -4357,7 +4358,7 @@ export const strings = {
     aiNetworkError:
       'Problema di rete: impossibile raggiungere il servizio IA. Controlla la connessione e riprova',
     aiCreditsExhausted:
-      'I tuoi crediti Genspark sono esauriti. Ricarica su genspark.ai/pricing e riprova',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Leggi le pagine {start}-{end}',
     aiToolSearch: 'Cerca "{query}" ({count} risultati)',
     aiToolGoto: 'Vai alla pagina {page}',
@@ -4697,7 +4698,7 @@ export const strings = {
     aiNetworkError:
       'Problem z siecią: nie można połączyć się z usługą AI. Sprawdź połączenie i spróbuj ponownie',
     aiCreditsExhausted:
-      'Twoje kredyty Genspark wyczerpały się. Doładuj konto na genspark.ai/pricing i spróbuj ponownie',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Czytaj strony {start}-{end}',
     aiToolSearch: 'Szukaj „{query}" ({count} wyników)',
     aiToolGoto: 'Przejdź do strony {page}',
@@ -5035,7 +5036,7 @@ export const strings = {
     aiNetworkError:
       'Problém se sítí: službu AI se nepodařilo kontaktovat. Zkontrolujte připojení a zkuste to znovu',
     aiCreditsExhausted:
-      'Vaše kredity Genspark byly vyčerpány. Navštivte genspark.ai/pricing, dobijte je a zkuste to znovu',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Číst stránky {start}-{end}',
     aiToolSearch: 'Hledat „{query}“ ({count} výskytů)',
     aiToolGoto: 'Přejít na stránku {page}',
@@ -5374,7 +5375,7 @@ export const strings = {
     aiNetworkError:
       'Netwerkprobleem: kan de AI-service niet bereiken. Controleer je verbinding en probeer het opnieuw',
     aiCreditsExhausted:
-      'Je Genspark-credits zijn op. Waardeer op via genspark.ai/pricing en probeer het opnieuw',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: "Pagina's {start}-{end} lezen",
     aiToolSearch: 'Zoeken naar "{query}" ({count} resultaten)',
     aiToolGoto: 'Ga naar pagina {page}',
@@ -5712,7 +5713,7 @@ export const strings = {
     aiNetworkError:
       'Masalah rangkaian: tidak dapat menghubungi perkhidmatan AI. Semak sambungan anda dan cuba lagi',
     aiCreditsExhausted:
-      'Kredit Genspark anda telah habis. Tambah nilai di genspark.ai/pricing dan cuba lagi',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'Baca halaman {start}-{end}',
     aiToolSearch: 'Cari "{query}" ({count} padanan)',
     aiToolGoto: 'Pergi ke halaman {page}',
@@ -6045,7 +6046,8 @@ export const strings = {
     aiTimeoutError: 'תם הזמן לבקשת ה-AI: אין תגובה מהרשת וההרצה הופסקה. בדוק את החיבור ונסה שוב',
     aiOverloadedError: 'שירות ה-AI עמוס כרגע — נסו שוב בעוד רגע',
     aiNetworkError: 'בעיית רשת: לא ניתן להתחבר לשירות ה-AI. בדוק את החיבור ונסה שוב',
-    aiCreditsExhausted: 'קרדיטי Genspark שלך אזלו. טען מחדש ב-genspark.ai/pricing ונסה שוב',
+    aiCreditsExhausted:
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'קריאת עמודים {start}-{end}',
     aiToolSearch: 'חיפוש "{query}" ({count} תוצאות)',
     aiToolGoto: 'מעבר לעמוד {page}',
@@ -6378,7 +6380,7 @@ export const strings = {
     aiNetworkError:
       'नेटवर्क समस्या: AI सेवा से कनेक्ट नहीं हो सका। कनेक्शन जांचें और फिर से प्रयास करें',
     aiCreditsExhausted:
-      'आपके Genspark क्रेडिट समाप्त हो गए हैं। genspark.ai/pricing पर रिचार्ज करें और फिर से प्रयास करें',
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: 'पृष्ठ {start}-{end} पढ़ें',
     aiToolSearch: '"{query}" खोजें ({count} परिणाम)',
     aiToolGoto: 'पृष्ठ {page} पर जाएँ',
@@ -6709,7 +6711,8 @@ export const strings = {
     aiTimeoutError: 'AI 請求逾時：網路長時間無回應，已停止。請檢查網路後重試',
     aiOverloadedError: 'AI 服務目前繁忙，請稍後重試',
     aiNetworkError: '網路有問題，無法連接 AI 服務。請檢查網路後重試',
-    aiCreditsExhausted: 'Genspark 點數已用完，請前往 genspark.ai/pricing 儲值後重試',
+    aiCreditsExhausted:
+      'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
     aiToolReadPages: '讀取第 {start}-{end} 頁',
     aiToolSearch: '搜尋「{query}」（{count} 處）',
     aiToolGoto: '跳至第 {page} 頁',

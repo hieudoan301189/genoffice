@@ -18,7 +18,7 @@ export const en = {
   aiQcStopped: 'Layout check stopped',
   aiQcCapped: '{count} more page(s) not checked (per-run cap)',
   aiGskLoginBtn: 'Sign in to Genspark',
-  aiPanelTitle: 'Genspark',
+  aiPanelTitle: 'DVH AI',
   aiOpenAssistant: 'Open AI assistant',
   aiFactCheckBtn: 'AI Fact Check',
   aiFactCheckPrompt:
@@ -114,7 +114,7 @@ export const en = {
   aiErrNetwork:
     'Network problem: could not reach the AI service. Check your connection and try again',
   aiCreditsExhausted:
-    'Your Genspark credits have run out. Visit genspark.ai/pricing to top up, then try again',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiErrRequestFailed: 'Failed to send request: {msg}',
   aiErrGenerateFailed: 'Generation failed',
   aiErrRegenFailed: 'Slide redo failed',

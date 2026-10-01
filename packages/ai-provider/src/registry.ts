@@ -1,6 +1,6 @@
 import { ANTHROPIC_BASE_URL } from './protocols/anthropic'
 import { GEMINI_BASE_URL } from './protocols/gemini'
-import { AI_PROVIDERS, DEEPSEEK_V41_FLASH, GENSPARK_LLM_BASE_URLS } from './providers'
+import { AI_PROVIDERS, DEEPSEEK_V41_FLASH } from './providers'
 import type { AiProviderConfig, AiProviderId, AiProviderMeta } from './types'
 
 /** Wire protocols every provider maps onto, including the official Codex app-server bridge. */
@@ -178,21 +178,18 @@ function fixedEndpoint(
 }
 
 export const AI_PROVIDER_ADAPTERS: Record<AiProviderId, ProviderAdapter> = {
+  // Retained only to reject legacy saved provider IDs without contacting a service.
   genspark: {
-    meta: metaOf('genspark'),
-    capabilities: { auth: 'gsk-login', vision: true },
-    // Route by model id prefix: claude uses the Anthropic protocol (preserves image
-    // input fidelity), the rest OpenAI-compatible. The proxy's gemini endpoint was
-    // removed server-side (405 as of 2026-08-31) along with its gemini models.
-    resolveEndpoint(config) {
-      if (config.model.startsWith('claude')) {
-        return { protocol: 'anthropic', baseUrl: GENSPARK_LLM_BASE_URLS.anthropic }
-      }
-      return {
-        protocol: 'openai-compatible',
-        baseUrl: GENSPARK_LLM_BASE_URLS.openai,
-        ...(modelHasFixedSampling(config.model) ? { omitTemperature: true } : {}),
-      }
+    meta: {
+      id: 'genspark',
+      label: 'Unavailable',
+      models: [],
+      defaultModel: '',
+      keyPlaceholder: '',
+    },
+    capabilities: { auth: 'api-key', vision: false },
+    resolveEndpoint() {
+      throw new Error('This provider was removed. Choose an AI provider in Settings.')
     },
   },
   codex: {

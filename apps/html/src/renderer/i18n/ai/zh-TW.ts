@@ -4,7 +4,8 @@ export const zhTW = {
   aiCollapsePanel: '收合面板',
   aiComposerPlaceholder: '讓 AI 撰寫或修改文件…',
   aiCopyReplyTitle: '複製回覆',
-  aiCreditsExhausted: '點數不足，請前往 genspark.ai 儲值',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiEmptyTitle: '用 AI 設計一個頁面',
   aiEmptyBody: '登陸頁、報告、海報都可以。說清用途與受眾，AI 先出簡報確認，再產生整頁',
   aiEmptyDocTitle: '讓 AI 幫你改這頁',

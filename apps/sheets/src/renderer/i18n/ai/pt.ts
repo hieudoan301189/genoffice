@@ -49,7 +49,7 @@ export const pt = {
   aiFileTooltip:
     'SHA-256 {sha}\nAo salvar, apenas as entradas editadas são reescritas; todo o resto é preservado.',
   aiFileMeta: '{sheets} planilhas · {entries} entradas',
-  aiGensparkAccount: 'Conta Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Verificando…',
   aiLoggedIn: 'Conectado',
   aiLoggedInAs: 'Conectado: {email}',
@@ -67,7 +67,7 @@ export const pt = {
   aiNetworkError:
     'Problema de rede: não foi possível conectar ao serviço de IA. Verifique sua conexão e tente novamente',
   aiCreditsExhausted:
-    'Seus créditos Genspark acabaram. Recarregue em genspark.ai/pricing e tente novamente',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Ler informações da pasta de trabalho',
   aiToolReadRange: 'Ler intervalo',
   aiToolReadRangeOf: 'Ler intervalo {range}',

@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui/product-features'
 /**
  * AI IPC for the slides main process, extracted from slides-main.ts:
  * settings persistence, the streaming proxy (main process does the networking
@@ -126,10 +127,14 @@ export function registerAiIpc(): void {
   )
 
   ipcMain.handle('ai:gsk-login', () => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     ensureGenofficeLogin((url) => void shell.openExternal(url))
   })
 
   ipcMain.handle('ai:set-settings', (_event, settings: AiSettings) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     writeJsonAtomic(AI_SETTINGS_PATH(), settings)
   })
 
@@ -138,6 +143,8 @@ export function registerAiIpc(): void {
   })
 
   ipcMain.handle('ai:stream', async (event, request: AiStreamRequest) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     const { requestId, settings, system, messages } = request
     const tools = request.tools ?? []
     const maxTokens = request.maxTokens ?? maxOutputTokensOf(settings)
@@ -222,6 +229,8 @@ export function registerAiIpc(): void {
 
   // Search tools (content + images), Serper with DuckDuckGo fallback
   ipcMain.handle('ai:web-search', async (_event, query: string, maxResults?: number) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     try {
       return await webSearchTool(
         AI_SETTINGS_PATH(),
@@ -234,6 +243,8 @@ export function registerAiIpc(): void {
   })
 
   ipcMain.handle('ai:image-search', async (_event, query: string, maxResults?: number) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     try {
       return await imageSearchTool(
         AI_SETTINGS_PATH(),
@@ -266,6 +277,8 @@ export function registerSlidesOnlyAiIpc(): void {
         transparentBackground?: boolean
       },
     ) => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       return generateImageTool(
         AI_SETTINGS_PATH(),
         {
@@ -286,6 +299,8 @@ export function registerSlidesOnlyAiIpc(): void {
   ipcMain.handle(
     'ai:analyze-media',
     async (_event, op: { mediaUrls: string[]; requirements: string }) => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       return analyzeMediaTool(
         AI_SETTINGS_PATH(),
         {
@@ -332,6 +347,8 @@ export function registerSlidesOnlyAiIpc(): void {
         fitWidthPx: number
       },
     ) => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       const session = sessions.get(e.sender.id)
       if (!session) return null
       const slide = session.opened.deck.slides[op.slideIndex]
@@ -404,6 +421,8 @@ export function registerSlidesOnlyAiIpc(): void {
         keepSrcRect?: boolean
       },
     ) => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       const session = sessions.get(e.sender.id)
       if (!session) return null
       const slide = session.opened.deck.slides[op.slideIndex]
@@ -466,6 +485,8 @@ export function registerSlidesOnlyAiIpc(): void {
       event,
       data: { topic: string; styleSkill: string; createdAt: string },
     ): Promise<{ ok: boolean }> => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       try {
         const session = sessions.get(event.sender.id)
         const draftPath = session?.path
@@ -489,6 +510,8 @@ export function registerSlidesOnlyAiIpc(): void {
       name: string,
       data: { topic: string; styleSkill: string; createdAt: string },
     ): Promise<{ ok: boolean; error?: string }> => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       try {
         const dir = STYLE_TEMPLATES_DIR()
         // Filename: replace illegal characters in the name with _ then truncate to 64 chars
@@ -542,6 +565,8 @@ export function registerSlidesOnlyAiIpc(): void {
       _event,
       name: string,
     ): { ok: boolean; styleSkill?: string; topic?: string; error?: string } => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       try {
         const dir = STYLE_TEMPLATES_DIR()
         const safeName = name.replace(/[/\\:*?"<>|]/g, '_').slice(0, 64)

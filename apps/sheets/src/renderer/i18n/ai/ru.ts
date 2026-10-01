@@ -49,7 +49,7 @@ export const ru = {
   aiFileTooltip:
     'SHA-256 {sha}\nПри сохранении перезаписываются только изменённые элементы; всё остальное сохраняется без изменений.',
   aiFileMeta: 'Листов: {sheets} · элементов: {entries}',
-  aiGensparkAccount: 'Учётная запись Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Проверка…',
   aiLoggedIn: 'Вход выполнен',
   aiLoggedInAs: 'Вход выполнен: {email}',
@@ -66,7 +66,7 @@ export const ru = {
   aiNetworkError:
     'Проблема с сетью: не удалось подключиться к сервису ИИ. Проверьте подключение и повторите попытку',
   aiCreditsExhausted:
-    'Кредиты Genspark исчерпаны. Пополните баланс на genspark.ai/pricing и повторите попытку',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Чтение сведений о книге',
   aiToolReadRange: 'Чтение диапазона',
   aiToolReadRangeOf: 'Чтение диапазона {range}',

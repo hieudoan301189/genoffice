@@ -49,7 +49,7 @@ export const ms = {
   aiFileTooltip:
     'SHA-256 {sha}\nPenyimpanan hanya menulis semula entri yang diedit; yang lain dikekalkan seperti sedia ada.',
   aiFileMeta: '{sheets} helaian · {entries} entri',
-  aiGensparkAccount: 'Akaun Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Sedang menyemak…',
   aiLoggedIn: 'Sudah log masuk',
   aiLoggedInAs: 'Sudah log masuk: {email}',
@@ -66,7 +66,7 @@ export const ms = {
   aiNetworkError:
     'Masalah rangkaian: tidak dapat menghubungi perkhidmatan AI. Semak sambungan anda dan cuba lagi',
   aiCreditsExhausted:
-    'Kredit Genspark anda telah habis. Tambah nilai di genspark.ai/pricing dan cuba lagi',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Baca maklumat buku kerja',
   aiToolReadRange: 'Baca julat',
   aiToolReadRangeOf: 'Baca julat {range}',

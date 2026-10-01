@@ -138,38 +138,13 @@ describe('chatForProvider', () => {
     )
   })
 
-  it('genspark: routes by model prefix to the proxy endpoints', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(jsonResponse({ content: [{ type: 'text', text: 'ok' }] }))
+  it('rejects a legacy Genspark chat before any network call', async () => {
+    const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
-    await chatForProvider('genspark', { apiKey: 'gsk-k', model: 'claude-opus-4-7' }, 'sys', 'hi')
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://www.genspark.ai/api/anthropic/v1/messages',
-      expect.anything(),
-    )
-    fetchMock.mockResolvedValue(jsonResponse({ choices: [{ message: { content: 'ok' } }] }))
-    await chatForProvider('genspark', { apiKey: 'gsk-k', model: 'gpt-5.2' }, 'sys', 'hi')
-    expect(fetchMock).toHaveBeenLastCalledWith(
-      'https://www.genspark.ai/api/llm_proxy/v1/chat/completions',
-      expect.anything(),
-    )
-  })
-
-  it('genspark: stamps X-Agent-Type; direct vendors do not get it', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockImplementation(async () => jsonResponse({ content: [{ type: 'text', text: 'ok' }] }))
-    vi.stubGlobal('fetch', fetchMock)
-    await chatForProvider('genspark', { apiKey: 'gsk-k', model: 'claude-opus-4-7' }, 'sys', 'hi')
-    expect((fetchMock.mock.calls[0]![1].headers as Record<string, string>)['X-Agent-Type']).toBe(
-      'genoffice',
-    )
-    fetchMock.mockClear()
-    await chatForProvider('anthropic', { apiKey: 'k', model: 'claude-opus-4-7' }, 'sys', 'hi')
-    expect(
-      (fetchMock.mock.calls[0]![1].headers as Record<string, string>)['X-Agent-Type'],
-    ).toBeUndefined()
+    await expect(
+      chatForProvider('genspark', { apiKey: 'old-key', model: 'claude' }, 'sys', 'hi'),
+    ).resolves.toMatchObject({ ok: false, error: expect.stringContaining('removed') })
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('opencode: a one-shot call gets its own x-opencode-session', async () => {

@@ -50,7 +50,7 @@ export const de = {
   aiFileTooltip:
     'SHA-256 {sha}\nBeim Speichern werden nur die bearbeiteten Einträge neu geschrieben; alles andere bleibt erhalten.',
   aiFileMeta: '{sheets} Blätter · {entries} Einträge',
-  aiGensparkAccount: 'Genspark-Konto',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Wird überprüft…',
   aiLoggedIn: 'Angemeldet',
   aiLoggedInAs: 'Angemeldet: {email}',
@@ -67,7 +67,7 @@ export const de = {
   aiNetworkError:
     'Netzwerkproblem: Der KI-Dienst ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut',
   aiCreditsExhausted:
-    'Deine Genspark-Credits sind aufgebraucht. Lade unter genspark.ai/pricing auf und versuche es erneut',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Arbeitsmappeninformationen lesen',
   aiToolReadRange: 'Bereich lesen',
   aiToolReadRangeOf: 'Bereich {range} lesen',

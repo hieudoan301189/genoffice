@@ -49,7 +49,7 @@ export const en = {
   aiFileTooltip:
     'SHA-256 {sha}\nSaving rewrites only the edited entries; everything else is preserved.',
   aiFileMeta: '{sheets} sheets · {entries} entries',
-  aiGensparkAccount: 'Genspark account',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Checking…',
   aiLoggedIn: 'Signed in',
   aiLoggedInAs: 'Signed in: {email}',
@@ -66,7 +66,7 @@ export const en = {
   aiNetworkError:
     'Network problem: could not reach the AI service. Check your connection and try again',
   aiCreditsExhausted:
-    'Your Genspark credits have run out. Visit genspark.ai/pricing to top up, then try again',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Read workbook info',
   aiToolReadRange: 'Read range',
   aiToolReadRangeOf: 'Read range {range}',

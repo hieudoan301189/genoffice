@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { handlePdfControl, type ControlRequest } from './control'
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react'
@@ -341,9 +342,10 @@ export default function App() {
     window.addEventListener('pointerup', onUp)
   }
   // Persisted so a closed AI panel stays closed on next launch (docs/slides parity)
-  const [aiCollapsed, setAiCollapsed] = useState(
+  const [requestedAiVisibility, setAiCollapsed] = useState(
     () => localStorage.getItem('genoffice-pdf-show-ai') === '0',
   )
+  const aiCollapsed = !AI_ENABLED || requestedAiVisibility
   useEffect(() => {
     localStorage.setItem('genoffice-pdf-show-ai', aiCollapsed ? '0' : '1')
   }, [aiCollapsed])
@@ -6233,53 +6235,55 @@ export default function App() {
         <div className="ribbon-body" data-ribbon-body="">
           {ribbonTab === 'home' && (
             <>
-              {/* ---- Genspark AI (first slot: entry + one-click AI actions, docs parity) ---- */}
-              <div className="ribbon-group">
-                <div className="ribbon-group-items">
-                  <button
-                    className={`rb-big ai-entry${aiCollapsed ? '' : ' active'}`}
-                    data-tip={t('aiOpenAssistant')}
-                    onClick={() => setAiCollapsed((v) => !v)}
-                  >
-                    <span className="rb-big-icon">
-                      <GensparkMark size={26} />
-                    </span>
-                    <span>Genspark AI</span>
-                  </button>
-                  <button
-                    className="rb-big ai-entry"
-                    data-tip={t('aiSummarizeBtn')}
-                    onClick={() =>
-                      runAiPreset(
-                        t(aiSelection ? 'aiQuickSummarySelPrompt' : 'aiQuickSummaryPrompt'),
-                      )
-                    }
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <IconAiSummarize />
+              {/* ---- DVH AI (first slot: entry + one-click AI actions, docs parity) ---- */}
+              {AI_ENABLED && (
+                <div className="ribbon-group">
+                  <div className="ribbon-group-items">
+                    <button
+                      className={`rb-big ai-entry${aiCollapsed ? '' : ' active'}`}
+                      data-tip={t('aiOpenAssistant')}
+                      onClick={() => setAiCollapsed((v) => !v)}
+                    >
+                      <span className="rb-big-icon">
+                        <GensparkMark size={26} />
                       </span>
-                    </span>
-                    <span>{t('aiSummarizeBtn')}</span>
-                  </button>
-                  <button
-                    className="rb-big ai-entry"
-                    data-tip={t('aiKeyPointsBtn')}
-                    onClick={() =>
-                      runAiPreset(
-                        t(aiSelection ? 'aiQuickKeyPointsSelPrompt' : 'aiQuickKeyPointsPrompt'),
-                      )
-                    }
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <IconAiKeyPoints />
+                      <span>DVH AI</span>
+                    </button>
+                    <button
+                      className="rb-big ai-entry"
+                      data-tip={t('aiSummarizeBtn')}
+                      onClick={() =>
+                        runAiPreset(
+                          t(aiSelection ? 'aiQuickSummarySelPrompt' : 'aiQuickSummaryPrompt'),
+                        )
+                      }
+                    >
+                      <span className="rb-big-icon">
+                        <span className="ai-feature-icon" aria-hidden="true">
+                          <IconAiSummarize />
+                        </span>
                       </span>
-                    </span>
-                    <span>{t('aiKeyPointsBtn')}</span>
-                  </button>
+                      <span>{t('aiSummarizeBtn')}</span>
+                    </button>
+                    <button
+                      className="rb-big ai-entry"
+                      data-tip={t('aiKeyPointsBtn')}
+                      onClick={() =>
+                        runAiPreset(
+                          t(aiSelection ? 'aiQuickKeyPointsSelPrompt' : 'aiQuickKeyPointsPrompt'),
+                        )
+                      }
+                    >
+                      <span className="rb-big-icon">
+                        <span className="ai-feature-icon" aria-hidden="true">
+                          <IconAiKeyPoints />
+                        </span>
+                      </span>
+                      <span>{t('aiKeyPointsBtn')}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="ribbon-sep" />
               {markupGroup}
               <div className="ribbon-sep" />
@@ -6364,31 +6368,35 @@ export default function App() {
             <>
               <div className="ribbon-group">
                 <div className="ribbon-group-items">
-                  <button
-                    className="rb-big ai-entry"
-                    data-tip={t('aiReviewSummaryBtn')}
-                    onClick={() => runAiPreset(t('aiReviewSummaryPrompt'))}
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <IconAiSummarize />
+                  {AI_ENABLED && (
+                    <button
+                      className="rb-big ai-entry"
+                      data-tip={t('aiReviewSummaryBtn')}
+                      onClick={() => runAiPreset(t('aiReviewSummaryPrompt'))}
+                    >
+                      <span className="rb-big-icon">
+                        <span className="ai-feature-icon" aria-hidden="true">
+                          <IconAiSummarize />
+                        </span>
                       </span>
-                    </span>
-                    <span>{t('aiReviewSummaryBtn')}</span>
-                  </button>
-                  <button
-                    className="rb-big ai-entry"
-                    disabled={readOnly}
-                    data-tip={t('aiProcessNotesBtn')}
-                    onClick={() => runAiPreset(t('aiProcessNotesPrompt'))}
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <GensparkMark size={20} />
+                      <span>{t('aiReviewSummaryBtn')}</span>
+                    </button>
+                  )}
+                  {AI_ENABLED && (
+                    <button
+                      className="rb-big ai-entry"
+                      disabled={readOnly}
+                      data-tip={t('aiProcessNotesBtn')}
+                      onClick={() => runAiPreset(t('aiProcessNotesPrompt'))}
+                    >
+                      <span className="rb-big-icon">
+                        <span className="ai-feature-icon" aria-hidden="true">
+                          <GensparkMark size={20} />
+                        </span>
                       </span>
-                    </span>
-                    <span>{t('aiProcessNotesBtn')}</span>
-                  </button>
+                      <span>{t('aiProcessNotesBtn')}</span>
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="ribbon-sep" />
@@ -6557,19 +6565,21 @@ export default function App() {
             <>
               <div className="ribbon-group">
                 <div className="ribbon-group-items">
-                  <button
-                    className="rb-big ai-entry"
-                    disabled={readOnly}
-                    data-tip={t('aiFillFormBtn')}
-                    onClick={() => runAiPreset(t('aiFillFormPrompt'))}
-                  >
-                    <span className="rb-big-icon">
-                      <span className="ai-feature-icon" aria-hidden="true">
-                        <GensparkMark size={20} />
+                  {AI_ENABLED && (
+                    <button
+                      className="rb-big ai-entry"
+                      disabled={readOnly}
+                      data-tip={t('aiFillFormBtn')}
+                      onClick={() => runAiPreset(t('aiFillFormPrompt'))}
+                    >
+                      <span className="rb-big-icon">
+                        <span className="ai-feature-icon" aria-hidden="true">
+                          <GensparkMark size={20} />
+                        </span>
                       </span>
-                    </span>
-                    <span>{t('aiFillFormBtn')}</span>
-                  </button>
+                      <span>{t('aiFillFormBtn')}</span>
+                    </button>
+                  )}
                   <button
                     className={`rb-big${pendingStaticFill === 'text' ? ' active' : ''}`}
                     disabled={readOnly}
@@ -6886,26 +6896,28 @@ export default function App() {
       <div className="app-main">
         {/* dock wrapper animates the width between panel and rail (docs-style 180ms ease);
             the panel stays mounted while collapsed so the chat history survives */}
-        <div className={`ai-dock${aiCollapsed ? ' collapsed' : ''}`}>
-          {aiCollapsed && (
-            <button
-              className="ai-rail"
-              data-tip={t('aiOpenAssistant')}
-              aria-label={t('aiOpenAssistant')}
-              onClick={() => setAiCollapsed(false)}
-            >
-              <GensparkMark size={22} />
-            </button>
-          )}
-          <AiPanel
-            api={aiApi}
-            filePath={filePath}
-            preset={aiPreset}
-            onCollapse={() => setAiCollapsed(true)}
-            onRunDone={() => void autoSaveAfterAiRun()}
-            onClearSelection={() => setAiSelection(null)}
-          />
-        </div>
+        {AI_ENABLED && (
+          <div className={`ai-dock${aiCollapsed ? ' collapsed' : ''}`}>
+            {aiCollapsed && (
+              <button
+                className="ai-rail"
+                data-tip={t('aiOpenAssistant')}
+                aria-label={t('aiOpenAssistant')}
+                onClick={() => setAiCollapsed(false)}
+              >
+                <GensparkMark size={22} />
+              </button>
+            )}
+            <AiPanel
+              api={aiApi}
+              filePath={filePath}
+              preset={aiPreset}
+              onCollapse={() => setAiCollapsed(true)}
+              onRunDone={() => void autoSaveAfterAiRun()}
+              onClearSelection={() => setAiSelection(null)}
+            />
+          </div>
+        )}
         <div className="app-content">
           <div className="pdf-body">
             {sidebar === 'outline' && outline && (
@@ -8381,18 +8393,19 @@ export default function App() {
                 </button>
               </div>
             )}
-            {askPop && (
-              <AiAskPopover
-                rect={askPop.rect}
-                excerpt={askPop.excerpt}
-                readOnly={readOnly}
-                onSend={(text) => {
-                  setAskPop(null)
-                  runAiPreset(text)
-                }}
-                onClose={() => setAskPop(null)}
-              />
-            )}
+            {askPop &&
+              (AI_ENABLED ? (
+                <AiAskPopover
+                  rect={askPop.rect}
+                  excerpt={askPop.excerpt}
+                  readOnly={readOnly}
+                  onSend={(text) => {
+                    setAskPop(null)
+                    runAiPreset(text)
+                  }}
+                  onClose={() => setAskPop(null)}
+                />
+              ) : null)}
             {selected && (
               <div
                 ref={delPopupRef}

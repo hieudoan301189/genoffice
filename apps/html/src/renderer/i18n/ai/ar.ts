@@ -4,7 +4,8 @@ export const ar = {
   aiCollapsePanel: 'طي اللوحة',
   aiComposerPlaceholder: 'اطلب من الذكاء الاصطناعي الكتابة أو التعديل…',
   aiCopyReplyTitle: 'نسخ الرد',
-  aiCreditsExhausted: 'نفدت الأرصدة — أعد الشحن على genspark.ai',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiEmptyTitle: 'صمّم صفحة بالذكاء الاصطناعي',
   aiEmptyBody:
     'صفحة هبوط أو تقرير أو ملصق: حدّد الغرض والجمهور، يقترح الذكاء الاصطناعي موجزًا أولًا ثم يبني الصفحة',

@@ -48,7 +48,7 @@ export const ja = {
   aiFileTooltip:
     'SHA-256 {sha}\n保存時は編集されたエントリのみを書き換え、その他はそのまま保持します。',
   aiFileMeta: 'シート {sheets} 件 · エントリ {entries} 件',
-  aiGensparkAccount: 'Genspark アカウント',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: '確認中…',
   aiLoggedIn: 'サインイン済み',
   aiLoggedInAs: 'サインイン済み: {email}',
@@ -65,7 +65,7 @@ export const ja = {
   aiNetworkError:
     'ネットワークに問題があり、AI サービスに接続できません。接続を確認して再試行してください',
   aiCreditsExhausted:
-    'Gensparkクレジットを使い切りました。genspark.ai/pricing でチャージしてから再試行してください',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'ブック情報を読み取り',
   aiToolReadRange: '範囲を読み取り',
   aiToolReadRangeOf: '範囲 {range} を読み取り',

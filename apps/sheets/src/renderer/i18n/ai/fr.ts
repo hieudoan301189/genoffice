@@ -50,7 +50,7 @@ export const fr = {
   aiFileTooltip:
     "SHA-256 {sha}\nL'enregistrement ne réécrit que les entrées modifiées ; tout le reste est conservé.",
   aiFileMeta: '{sheets} feuilles · {entries} entrées',
-  aiGensparkAccount: 'Compte Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Vérification…',
   aiLoggedIn: 'Connecté',
   aiLoggedInAs: 'Connecté : {email}',
@@ -67,7 +67,7 @@ export const fr = {
   aiNetworkError:
     'Problème réseau : impossible de joindre le service IA. Vérifiez votre connexion et réessayez',
   aiCreditsExhausted:
-    'Vos crédits Genspark sont épuisés. Rechargez sur genspark.ai/pricing puis réessayez',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Lire les informations du classeur',
   aiToolReadRange: 'Lire la plage',
   aiToolReadRangeOf: 'Lire la plage {range}',

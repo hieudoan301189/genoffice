@@ -49,7 +49,7 @@ export const cs = {
   aiFileTooltip:
     'SHA-256 {sha}\nPři uložení se přepíší jen upravené položky; všechno ostatní zůstane zachováno.',
   aiFileMeta: 'Listy: {sheets} · položky: {entries}',
-  aiGensparkAccount: 'Účet Genspark',
+  aiGensparkAccount: 'DVH AI',
   aiAccountChecking: 'Ověřuje se…',
   aiLoggedIn: 'Přihlášeno',
   aiLoggedInAs: 'Přihlášeno: {email}',
@@ -66,7 +66,7 @@ export const cs = {
   aiNetworkError:
     'Problém se sítí: službu AI se nepodařilo kontaktovat. Zkontrolujte připojení a zkuste to znovu',
   aiCreditsExhausted:
-    'Vaše kredity Genspark jsou vyčerpány. Dobijte je na genspark.ai/pricing a zkuste to znovu',
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiToolWorkbookContext: 'Načtení informací o sešitu',
   aiToolReadRange: 'Načtení oblasti',
   aiToolReadRangeOf: 'Načtení oblasti {range}',

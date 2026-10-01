@@ -4,7 +4,8 @@ export const it = {
   aiCollapsePanel: 'Comprimi pannello',
   aiComposerPlaceholder: "Chiedi all'IA di scrivere o modificare…",
   aiCopyReplyTitle: 'Copia risposta',
-  aiCreditsExhausted: 'Crediti esauriti — ricarica su genspark.ai',
+  aiCreditsExhausted:
+    'Your AI provider quota has been exceeded. Check your provider account or choose another provider in Settings.',
   aiEmptyTitle: 'Progetta una pagina con l’IA',
   aiEmptyBody:
     'Landing page, report, poster: indica a cosa serve e per chi; l’IA propone prima un brief, poi costruisce la pagina',

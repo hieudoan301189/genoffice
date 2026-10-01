@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import type { Command } from '@tiptap/pm/state'
@@ -692,24 +693,26 @@ export function EditorContextMenu({
         {item(t('appTranslate'), { disabled: !hasSelection, submenuKey: 'translate', ai: true })}
         {submenu === 'translate' && hasSelection && (
           <div className="ctx-submenu">
-            {TRANSLATE_TARGETS.map((target) => (
-              <button
-                key={target.labelKey}
-                className="ctx-item"
-                onClick={run(() =>
-                  onAiPreset(
-                    t('appTranslateSelectionPrompt', {
-                      lang: t(target.labelKey),
-                      text: selectedText,
-                    }),
-                  ),
-                )}
-              >
-                <span className="ctx-label">
-                  {t('appTranslateTo', { lang: t(target.labelKey) })}
-                </span>
-              </button>
-            ))}
+            {TRANSLATE_TARGETS.map((target) =>
+              AI_ENABLED ? (
+                <button
+                  key={target.labelKey}
+                  className="ctx-item"
+                  onClick={run(() =>
+                    onAiPreset(
+                      t('appTranslateSelectionPrompt', {
+                        lang: t(target.labelKey),
+                        text: selectedText,
+                      }),
+                    ),
+                  )}
+                >
+                  <span className="ctx-label">
+                    {t('appTranslateTo', { lang: t(target.labelKey) })}
+                  </span>
+                </button>
+              ) : null,
+            )}
           </div>
         )}
       </div>
