@@ -163,6 +163,9 @@ export interface Run {
   /** w:sdtPr of a content-control checkbox (w14:checkbox) wrapping this run; the run text is the
    * box glyph, and write-back sets w14:checked from it */
   sdtCheckboxXml?: string
+  /** w:sdtPr of a DVH Smart Field content control (w:tag `dvh:f:<id>`) wrapping this run;
+   * consecutive runs with the same value regenerate inside one control */
+  sdtFieldXml?: string
   /**
    * Run-level formatting revision (w:rPrChange): records the review info and the modeled
    * subset of the pre-revision formatting. Accept = keep the current formatting and clear

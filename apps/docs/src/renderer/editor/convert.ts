@@ -1612,6 +1612,8 @@ function runMarks(run: Run): PmMark[] {
   }
   if (run.sdtCheckboxXml !== undefined)
     marks.push({ type: 'ctrlCheckbox', attrs: { sdtPr: run.sdtCheckboxXml } })
+  if (run.sdtFieldXml !== undefined)
+    marks.push({ type: 'dvhField', attrs: { sdtPr: run.sdtFieldXml } })
   if (run.commentIds?.length)
     marks.push({ type: 'comment', attrs: { ids: run.commentIds.join(' ') } })
   if (run.ins) {
@@ -3189,6 +3191,8 @@ function runFromMarks(text: string, marks: PmMark[]): Run {
       }
     } else if (mark.type === 'ctrlCheckbox') {
       run.sdtCheckboxXml = String(mark.attrs?.sdtPr ?? '')
+    } else if (mark.type === 'dvhField') {
+      run.sdtFieldXml = String(mark.attrs?.sdtPr ?? '')
     } else if (mark.type === 'comment') {
       const ids = String(mark.attrs?.ids ?? '')
         .split(' ')
@@ -3329,6 +3333,7 @@ function runStyleKey(run: Run): string {
     run.fldBeginXml ?? null,
     run.fldDirty ?? null,
     run.sdtCheckboxXml ?? null,
+    run.sdtFieldXml ?? null,
     run.math?.omml ?? null,
     run.sym ? [run.sym.font, run.sym.char] : null,
     run.ruby?.xml ?? null,
@@ -3382,6 +3387,7 @@ function normalizedRuns(runs: Run[]): unknown[] {
           r.fldBeginXml ?? null,
           r.fldDirty ?? null,
           r.sdtCheckboxXml ?? null,
+          r.sdtFieldXml ?? null,
           r.math?.omml ?? null,
           r.sym ? [r.sym.font, r.sym.char] : null,
           r.ruby?.xml ?? null,

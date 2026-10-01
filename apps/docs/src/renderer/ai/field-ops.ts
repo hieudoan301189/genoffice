@@ -52,6 +52,7 @@ const NO_INHERIT = new Set([
   'link',
   'docSym',
   'ctrlCheckbox',
+  'dvhField',
   'revisionOriginal',
   'rprChange',
 ])

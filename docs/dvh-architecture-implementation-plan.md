@@ -193,7 +193,9 @@ Công việc:
 [báo cáo](spikes/s5-format-functions.md); S3 giữ D3 nhưng P1 phải có lớp binding trong trình soạn
 thảo (cắt/dán không mang tên ẩn theo, xoá ô đang gắn làm lưu thất bại) –
 [báo cáo](spikes/s3-hidden-names.md); S4 đạt cho bảng 1.000 dòng (ghi một lô 0,35 giây, một Undo), cần
-tối ưu kênh định dạng cho bảng vài nghìn dòng – [báo cáo](spikes/s4-large-table.md). S2 chưa làm.
+tối ưu kênh định dạng cho bảng vài nghìn dòng – [báo cáo](spikes/s4-large-table.md); S2 đạt – Smart Field cấp dòng sống qua chỉnh sửa trong Docs,
+P1 còn phải ghi ngược chữ sửa trong trường vào `customXml` – [báo cáo](spikes/s2-docs-smart-field.md).
+**Cả 5 spike đã có kết luận.**
 
 **Nghiệm thu:** ADR đã duyệt; 5 spike có kết luận bằng văn bản; package rỗng chạy `npm test`;
 mọi thay đổi DVH đã commit trên `dvh/main`.

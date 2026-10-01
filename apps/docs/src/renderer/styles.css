@@ -6846,6 +6846,18 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   cursor: pointer;
 }
 
+/* DVH Smart Field: screen-only tint, never printed or exported */
+.doc-dvh-field {
+  background: var(--accent-soft);
+  border-radius: 2px;
+}
+
+@media print {
+  .doc-dvh-field {
+    background: none;
+  }
+}
+
 /* Bookmark / Cross-reference dialogs */
 .modal-row {
   display: flex;

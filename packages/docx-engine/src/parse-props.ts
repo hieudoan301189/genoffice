@@ -902,6 +902,7 @@ function sameStyle(a: Run, b: Run): boolean {
   if (a.refField !== undefined || b.refField !== undefined) return false
   if (a.instrField !== undefined || b.instrField !== undefined) return false
   if (a.sdtCheckboxXml !== undefined || b.sdtCheckboxXml !== undefined) return false
+  if (a.sdtFieldXml !== b.sdtFieldXml) return false
   if (a.math || b.math) return false
   if (a.sym || b.sym) return false
   if (a.ruby || b.ruby) return false

@@ -201,6 +201,7 @@ import {
 } from './parse-package'
 import { parseSdtBlock, sdtMeta, sdtTableXml, splitSdtParts } from './parse-sdt'
 import { sdtCheckboxControl } from './checkbox-control'
+import { dvhFieldSdtPr } from './smart-field'
 import { parseStyles, runBorderOf } from './parse-styles'
 import {
   VML_PICT_RID_RE,
@@ -3685,6 +3686,7 @@ const RESULT_FORMAT_SKIP = new Set([
   'fldBeginXml',
   'fldDirty',
   'sdtCheckboxXml',
+  'sdtFieldXml',
   'commentIds',
   'ins',
   'del',
@@ -4126,6 +4128,13 @@ function extractRuns(
             if (run.link && !run.styleId) run.link = { ...run.link, plain: true }
           }
         }
+      } else if (name === 'w:sdt' && dvhFieldSdtPr(node)) {
+        // DVH Smart Field: the runs keep the control's w:sdtPr so a regenerated
+        // paragraph wraps them in the same control (tag, binding, id)
+        const sdtPrXml = dvhFieldSdtPr(node)!
+        const first = runs.length
+        walk(childrenOf(node), link, rev)
+        for (let k = first; k < runs.length; k++) runs[k] = { ...runs[k]!, sdtFieldXml: sdtPrXml }
       } else if (name === 'w:sdt' && sdtCheckboxControl(node)) {
         // one glyph run per control, whatever the content held; the state, not
         // the file's text, picks the glyph, as Word does when it draws the box

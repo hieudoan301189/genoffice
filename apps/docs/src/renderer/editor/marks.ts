@@ -434,6 +434,23 @@ export const CtrlCheckboxMark = Mark.create({
   },
 })
 
+/** DVH Smart Field (run-level content control tagged `dvh:f:<id>`): the text is the field's
+ * value, `sdtPr` the control (tag, data binding) written back around it on save. The tint is
+ * screen-only editing chrome. */
+export const DvhFieldMark = Mark.create({
+  name: 'dvhField',
+  inclusive: false,
+  addAttributes() {
+    return { sdtPr: { default: '' } }
+  },
+  parseHTML() {
+    return [{ tag: 'span[data-dvh-field]' }]
+  },
+  renderHTML() {
+    return ['span', { 'data-dvh-field': '', class: 'doc-dvh-field' }, 0]
+  },
+})
+
 /**
  * font-family chain → dual-slot font attrs, inverting renderHTML's encoding:
  * the Latin slot is the chain's first Latin family, the eastAsia slot its first

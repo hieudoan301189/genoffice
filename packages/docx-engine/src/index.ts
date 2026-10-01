@@ -8,6 +8,7 @@ export {
 } from './font-table'
 export { decodeEntities } from './parse-xml-text'
 export { sdtCheckboxGlyphs, sdtCheckboxIsChecked } from './checkbox-control'
+export { DVH_FIELD_TAG_PREFIX, dvhFieldId } from './smart-field'
 export {
   parseDocx,
   reconcileGridColumns,

@@ -2482,6 +2482,17 @@ function runsXml(runs: Run[], allocate: ((href: string) => string) | null): stri
           }
         }
         for (let j = groupStart; j < i; j++) parts.push(endsAt(j))
+      } else if (run.sdtFieldXml) {
+        // DVH Smart Field: consecutive runs of one control share its w:sdtPr
+        const sdtPrXml = run.sdtFieldXml
+        parts.push(`<w:sdt>${sdtPrXml}<w:sdtContent>`)
+        while (i < to && !runs[i].link && runs[i].sdtFieldXml === sdtPrXml) {
+          parts.push(startsAt(i))
+          parts.push(runFragmentXml(runs[i], false))
+          parts.push(endsAt(i))
+          i++
+        }
+        parts.push('</w:sdtContent></w:sdt>')
       } else {
         parts.push(startsAt(i))
         parts.push(runFragmentXml(run, false))
