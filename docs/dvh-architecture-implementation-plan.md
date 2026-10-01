@@ -104,17 +104,18 @@ Các quyết định của chủ dự án ngày 01/10/2026 đã được đưa v
 
 ## 3. Các quyết định kiến trúc cần chốt ở Phase 0
 
-| Mã  | Quyết định đề xuất                                                                                                                                                                                                    | Lý do                                                                                                                                                            |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | Mô hình DVH lưu trong OOXML: `customXml/itemN.xml` (gốc `<dvh:model xmlns:dvh="urn:dvh-office:model:1">`), cả docx lẫn xlsx.                                                                                          | Word và Excel giữ phần `customXml`; docx-engine đã ghi phần này cho danh mục tham khảo, có sẵn mẫu để làm theo.                                                  |
-| D2  | Smart Field trong docx là SDT cấp dòng với `w:tag="dvh:f:<id>"` và `w:dataBinding` trỏ XPath vào phần `customXml`. Bảng là SDT cấp khối `dvh:t:<id>`.                                                                 | Word tự hiển thị và cập nhật giá trị của content control có data binding, nên file vẫn "sống" khi mở bằng Word.                                                  |
-| D3  | Binding ở xlsx là defined name ẩn `_dvh.f.<id>` (Field) và `_dvh.t.<id>` (vùng bảng).                                                                                                                                 | Excel và Univer tự dời defined name khi chèn hoặc xoá hàng/cột. Bài kiểm "Move binding" gần như có sẵn.                                                          |
-| D4  | ID: tiền tố loại + chuỗi ngẫu nhiên 16 ký tự (`f_…`, `t_…`, `l_…`, `wf_…`), không bao giờ đổi. `docId` nằm ở gốc model. Tên kiểu `Project.Name` chỉ là bí danh, đổi được.                                             | Đổi tên không làm đứt liên kết. Chép file sẽ ra hai `docId` trùng nhau; Link Manager phải phát hiện được trường hợp này.                                         |
-| D5  | Lõi nằm trong package mới, thuần TypeScript, không phụ thuộc Electron, Univer hay TipTap (giống `xlsx-gateway`): `packages/dvh-model`, `packages/dvh-actions`, sau đó `packages/dvh-workflow`, `packages/dvh-script`. | Kiểm thử được bằng vitest không cần giao diện, CLI dùng lại được, ít đụng vào file upstream.                                                                     |
-| D6  | Action Core **bọc** các catalog op sẵn có (Docs `ai/ops.ts`, Sheets `WorkbookOperation`, Slides `runTxn`), không viết lại. Action mới chỉ dành cho Smart Data, Table, Link, File và Workflow.                         | Tận dụng phần kiểm tra, Undo và dry run đã chạy ổn định.                                                                                                         |
-| D7  | Mọi hành động ghi đều phát một `ChangeSet` (mục 6.4). History, Recorder và Link đều đọc cùng dòng này.                                                                                                                | Một nguồn sự thật cho lịch sử, ghi workflow và đồng bộ.                                                                                                          |
-| D8  | Bộ điều phối liên kết đặt ở main process của shell (`apps/shell/src/main/dvh-link-host.ts`). Nó biết tài liệu nào đang mở ở tab nào và chuyển change-set qua lại.                                                     | Shell là nơi duy nhất thấy được mọi tab; kênh điều khiển và MCP bridge đã nằm ở đây.                                                                             |
-| D9  | **Lịch sử nhúng vào file** (đã chốt), nằm trong phần `customXml` riêng dạng JSON. Không tự nén thêm vì gói zip đã nén. Có snapshot định kỳ và ngưỡng kích thước. Có lệnh "Xuất bản sạch".                             | Lịch sử đi theo tài liệu khi chép hoặc chuyển máy, đúng yêu cầu của chủ dự án. Rủi ro về kích thước và lộ thông tin xử lý bằng snapshot và chính sách phát hành. |
+| Mã  | Quyết định đề xuất                                                                                                                                                                                                                                     | Lý do                                                                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Mô hình DVH lưu trong OOXML: `customXml/itemN.xml` (gốc `<dvh:model xmlns:dvh="urn:dvh-office:model:1">`), cả docx lẫn xlsx.                                                                                                                           | Word và Excel giữ phần `customXml`; docx-engine đã ghi phần này cho danh mục tham khảo, có sẵn mẫu để làm theo.                                                  |
+| D2  | Smart Field trong docx là SDT cấp dòng với `w:tag="dvh:f:<id>"` và `w:dataBinding` trỏ XPath vào phần `customXml`. Bảng là SDT cấp khối `dvh:t:<id>`.                                                                                                  | Word tự hiển thị và cập nhật giá trị của content control có data binding, nên file vẫn "sống" khi mở bằng Word.                                                  |
+| D3  | Binding ở xlsx là defined name ẩn `_dvh.f.<id>` (Field) và `_dvh.t.<id>` (vùng bảng).                                                                                                                                                                  | Excel và Univer tự dời defined name khi chèn hoặc xoá hàng/cột. Bài kiểm "Move binding" gần như có sẵn.                                                          |
+| D4  | ID: tiền tố loại + chuỗi ngẫu nhiên 16 ký tự (`f_…`, `t_…`, `l_…`, `wf_…`), không bao giờ đổi. `docId` nằm ở gốc model. Tên kiểu `Project.Name` chỉ là bí danh, đổi được.                                                                              | Đổi tên không làm đứt liên kết. Chép file sẽ ra hai `docId` trùng nhau; Link Manager phải phát hiện được trường hợp này.                                         |
+| D5  | Lõi nằm trong package mới, thuần TypeScript, không phụ thuộc Electron, Univer hay TipTap (giống `xlsx-gateway`): `packages/dvh-model`, `packages/dvh-actions`, sau đó `packages/dvh-workflow`, `packages/dvh-script`.                                  | Kiểm thử được bằng vitest không cần giao diện, CLI dùng lại được, ít đụng vào file upstream.                                                                     |
+| D6  | Action Core **bọc** các catalog op sẵn có (Docs `ai/ops.ts`, Sheets `WorkbookOperation`, Slides `runTxn`), không viết lại. Action mới chỉ dành cho Smart Data, Table, Link, File và Workflow.                                                          | Tận dụng phần kiểm tra, Undo và dry run đã chạy ổn định.                                                                                                         |
+| D7  | Mọi hành động ghi đều phát một `ChangeSet` (mục 6.4). History, Recorder và Link đều đọc cùng dòng này.                                                                                                                                                 | Một nguồn sự thật cho lịch sử, ghi workflow và đồng bộ.                                                                                                          |
+| D8  | Bộ điều phối liên kết đặt ở main process của shell (`apps/shell/src/main/dvh-link-host.ts`). Nó biết tài liệu nào đang mở ở tab nào và chuyển change-set qua lại.                                                                                      | Shell là nơi duy nhất thấy được mọi tab; kênh điều khiển và MCP bridge đã nằm ở đây.                                                                             |
+| D9  | **Lịch sử nhúng vào file** (đã chốt), nằm trong phần `customXml` riêng dạng JSON. Không tự nén thêm vì gói zip đã nén. Có snapshot định kỳ và ngưỡng kích thước. Có lệnh "Xuất bản sạch".                                                              | Lịch sử đi theo tài liệu khi chép hoặc chuyển máy, đúng yêu cầu của chủ dự án. Rủi ro về kích thước và lộ thông tin xử lý bằng snapshot và chính sách phát hành. |
+| D10 | **Smart Data là lớp bọc chung cho mọi cấu trúc dữ liệu** (đã chốt). Lõi chỉ biết Field, Record, Collection, Table và schema; schema do người dùng hoặc gói schema định nghĩa. QLCL chỉ là **một gói schema** cộng với adapter trao đổi, nằm ngoài lõi. | Tránh khoá kiến trúc vào một nghiệp vụ. Cùng một lõi dùng được cho dự toán, thanh quyết toán, nhân sự, kho…                                                      |
 
 ---
 
@@ -158,7 +159,7 @@ Mỗi phase ghi: mục tiêu, công việc (kèm vị trí trong code), sản ph
 
 ### P0. Chuẩn bị và đặc tả lõi (2–3 tuần)
 
-**Mục tiêu:** chốt D1–D9, có package rỗng chạy được kiểm thử, và loại bỏ các rủi ro kỹ thuật lớn
+**Mục tiêu:** chốt D1–D10, có package rỗng chạy được kiểm thử, và loại bỏ các rủi ro kỹ thuật lớn
 nhất bằng spike trước khi viết tính năng.
 
 Công việc:
@@ -166,7 +167,7 @@ Công việc:
 1. **Repo.** Commit phần DVH đang dở lên nhánh `dvh/main` thành các commit theo chủ đề (hàm DVH, Home
    tools, AI, i18n…). Đồng bộ upstream: cập nhật `main` từ `upstream/main`, rồi merge `main` vào
    `dvh/main`. Code lưu ở ổ D (đã chốt); nên định kỳ `git bundle` ra ổ khác để phòng hỏng ổ.
-2. **ADR.** Ghi D1–D9 vào `docs/adr/` (mỗi quyết định một file ngắn).
+2. **ADR.** Ghi D1–D10 vào `docs/adr/` (mỗi quyết định một file ngắn).
 3. **Package rỗng.** Tạo `packages/dvh-model` và `packages/dvh-actions` có vitest, thêm vào script
    `test`/`typecheck` ở root, vào `dependencies` của docs, sheets, shell và vào danh sách `exclude` của
    `externalizeDepsPlugin` (xem CLAUDE.md).
@@ -199,7 +200,8 @@ lại không mất ID; cập nhật thủ công từ nguồn.
 Công việc:
 
 - `packages/dvh-model`: kiểu Field, Record, Collection; schema zod; sinh ID; đọc/ghi phần `customXml`;
-  `docId`.
+  `docId`. Schema do người dùng định nghĩa (tạo, sửa, đổi tên trường mà không đứt ID), không cài sẵn
+  schema nghiệp vụ nào (D10).
 - `packages/docx-engine`: đọc/ghi phần model (làm theo `sources.ts`); đọc và sinh SDT cấp dòng
   `dvh:f:<id>` kèm `w:dataBinding`.
 - Docs:
@@ -221,6 +223,7 @@ Công việc:
 
 **Nghiệm thu:**
 
+- Kiểm thử lõi chạy với ít nhất hai bộ schema khác nhau (ví dụ hồ sơ nghiệm thu và bảng kê vật tư).
 - _Move binding_: chuyển `Project.Name` từ B5 sang D10 (chèn hàng, cắt dán), Docs vẫn cập nhật đúng.
 - Lưu và mở lại cả hai file, ID và binding không đổi.
 - Mở bằng Word thấy giá trị trong content control; Excel mở không báo lỗi.
@@ -393,9 +396,11 @@ Làm song song với P1–P2 nếu S5 đạt. Thiết kế ở Phụ lục A.
 
 ### P10. Project Data Model (ước lượng sau M2)
 
-- Kho cấp dự án đặt trong `project-store` (thư mục dự án), schema xây dựng dùng chung: Project,
-  Contractor, WorkItem, Acceptance, Material, Test… Tài liệu liên kết thẳng tới đối tượng dự án thay
-  vì tới từng file nguồn.
+- Kho cấp dự án đặt trong `project-store` (thư mục dự án). Tài liệu liên kết thẳng tới đối tượng dự
+  án thay vì tới từng file nguồn.
+- Lõi vẫn không có schema nghiệp vụ nào (D10). Các bộ như xây dựng/QLCL (Project, Contractor,
+  WorkItem, Acceptance, Material, Test…) là **gói schema** cài thêm: định nghĩa kiểu, quan hệ, quy tắc
+  kiểm tra và mẫu đi kèm.
 - **Trao đổi dữ liệu hai chiều với QLCL-DVH** (đã chốt: hai dự án riêng, có trao đổi): đồng bộ cấp dự
   án theo định dạng trao đổi đã có từ P6. Đối tượng được khớp theo ID, có phát hiện xung đột như P3.
 - Chỉ ở đây mới cân nhắc gói `.dvh`, nếu cần đóng gói cả dự án.
@@ -561,7 +566,7 @@ interface PreviewReport {
 
 1. Commit phần DVH đang dở lên `dvh/main` thành các commit theo chủ đề.
 2. Thử một lần đồng bộ `upstream/main` → `main` → `dvh/main` để đo mức xung đột.
-3. Viết ADR D1–D9.
+3. Viết ADR D1–D10.
 4. Chạy spike S1 → S3 → S2 → S4 → S5. S1 làm trước vì quyết định cả D1 lẫn D2. S5 làm độc lập được,
    có thể làm sớm nếu ưu tiên hàm trả định dạng.
 5. Tạo `packages/dvh-model` và `packages/dvh-actions` rỗng, có vitest, nối vào build.
@@ -571,22 +576,21 @@ interface PreviewReport {
 
 ## 11. Câu hỏi còn mở
 
-1. **Nguồn dữ liệu ở MVP** (xem cách hiểu ở mục 12, dòng 3–6): nếu "dự án riêng" nghĩa là một file dữ
-   liệu dự án riêng, không phải xlsx, thì P1 cần thêm định dạng đó. Cần chủ dự án xác nhận.
-2. **Ngưỡng kích thước phần lịch sử** nhúng trong file (ví dụ 5 MB hay 10% kích thước file), chốt sau
+1. **Ngưỡng kích thước phần lịch sử** nhúng trong file (ví dụ 5 MB hay 10% kích thước file), chốt sau
    spike S1.
 
 ---
 
 ## 12. Quyết định của chủ dự án (01/10/2026)
 
-| #     | Câu hỏi                             | Quyết định                                                                                | Ảnh hưởng tới kế hoạch                                                                                                                                                                                                             |
-| ----- | ----------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Sao lưu và nhánh                    | Code lưu ở ổ D, không có remote.                                                          | Commit lên nhánh `dvh/main` (`main` tiếp tục theo dõi `upstream/main`). Khuyến nghị `git bundle` định kỳ ra ổ khác.                                                                                                                |
-| 2     | Tương thích Office                  | **Bắt buộc** mở được bằng Word/Excel.                                                     | Giữ D1–D3; spike S1 trở thành điều kiện đi tiếp. Mỗi mốc phải qua bài kiểm tương thích Office.                                                                                                                                     |
-| 3 + 6 | Nguồn dữ liệu, quan hệ với QLCL-DVH | DVH Office là **dự án riêng**, có **trao đổi dữ liệu** với QLCL-DVH.                      | Mô hình Smart Data không bám cấu trúc workbook QLCL. _Cách hiểu đang dùng:_ nguồn ở MVP là workbook xlsx của chính DVH Office (cấu trúc tự do). Trao đổi với QLCL-DVH qua định dạng có phiên bản: một chiều ở P6, hai chiều ở P10. |
-| 4     | Lịch sử                             | **Nhúng vào file.**                                                                       | D9, mục 2.2-F, P5 và 6.3 đã đổi. Thêm snapshot, gộp change-set, ngưỡng kích thước, phát hiện sửa bên ngoài, và hỏi trước khi Xuất/Gửi.                                                                                             |
-| 5     | Thứ tự                              | Đồng ý đưa Template/Batch Generator (P6) và AI Actions (P7) lên trước Recorder và Script. | Giữ lộ trình mục 4.                                                                                                                                                                                                                |
+| #     | Câu hỏi                             | Quyết định                                                                                | Ảnh hưởng tới kế hoạch                                                                                                                                                                                  |
+| ----- | ----------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Sao lưu và nhánh                    | Code lưu ở ổ D, không có remote.                                                          | Commit lên nhánh `dvh/main` (`main` tiếp tục theo dõi `upstream/main`). Khuyến nghị `git bundle` định kỳ ra ổ khác.                                                                                     |
+| 2     | Tương thích Office                  | **Bắt buộc** mở được bằng Word/Excel.                                                     | Giữ D1–D3; spike S1 trở thành điều kiện đi tiếp. Mỗi mốc phải qua bài kiểm tương thích Office.                                                                                                          |
+| 3 + 6 | Nguồn dữ liệu, quan hệ với QLCL-DVH | DVH Office là **dự án riêng**, có **trao đổi dữ liệu** với QLCL-DVH.                      | Mô hình Smart Data không bám cấu trúc workbook QLCL. Nguồn ở MVP là workbook xlsx có cấu trúc tùy ý. Trao đổi với QLCL-DVH qua định dạng có phiên bản: một chiều ở P6, hai chiều ở P10.                 |
+| 4     | Lịch sử                             | **Nhúng vào file.**                                                                       | D9, mục 2.2-F, P5 và 6.3 đã đổi. Thêm snapshot, gộp change-set, ngưỡng kích thước, phát hiện sửa bên ngoài, và hỏi trước khi Xuất/Gửi.                                                                  |
+| 5     | Thứ tự                              | Đồng ý đưa Template/Batch Generator (P6) và AI Actions (P7) lên trước Recorder và Script. | Giữ lộ trình mục 4.                                                                                                                                                                                     |
+| 7     | Phạm vi của Smart Data              | Smart Data là **lớp bọc chung cho bất kỳ cấu trúc nào**, không cố định cho QLCL.          | Thêm D10. Lõi không chứa schema nghiệp vụ; QLCL là một gói schema và adapter. Ví dụ `Project.Name`, `WorkItems` trong tài liệu chỉ là minh hoạ. Kiểm thử lõi phải dùng ít nhất hai bộ schema khác nhau. |
 
 ---
 
