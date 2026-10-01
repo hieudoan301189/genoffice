@@ -129,9 +129,12 @@ export const workbookStyleEditSchema = z
     fillColor: z.union([styleColorSchema, z.null()]).optional(),
     /// pattern or gradient fill; wins over fillColor when both are present
     fill: z.union([fillSpecSchema, z.null()]).optional(),
-    horizontalAlignment: z.enum(['left', 'center', 'right', 'justify', 'distributed']).optional(),
+    horizontalAlignment: z
+      .enum(['general', 'left', 'center', 'centerContinuous', 'right', 'justify', 'distributed'])
+      .optional(),
     verticalAlignment: z.enum(['top', 'center', 'bottom']).optional(),
     wrapText: z.boolean().optional(),
+    shrinkToFit: z.boolean().optional(),
     /// OOXML textRotation: 0-90 counterclockwise, 91-180 clockwise (value-90),
     /// 255 stacked vertical; 0 clears the rotation.
     textRotation: z.union([z.number().int().min(0).max(180), z.literal(255)]).optional(),
@@ -147,6 +150,9 @@ export const workbookStyleEditSchema = z
     borderBottom: styleEditBorderSchema.optional(),
     borderLeft: styleEditBorderSchema.optional(),
     borderRight: styleEditBorderSchema.optional(),
+    borderDiagonal: styleEditBorderSchema.optional(),
+    diagonalUp: z.boolean().optional(),
+    diagonalDown: z.boolean().optional(),
   })
   .strict()
 

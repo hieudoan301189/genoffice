@@ -31,6 +31,7 @@ export const FUNCTION_CATEGORIES = [
   'Web',
   'Array',
   'Other',
+  'DVH Tool',
 ] as const
 
 export type FunctionCategory = (typeof FUNCTION_CATEGORIES)[number]
@@ -83,7 +84,9 @@ export function buildFunctionCatalog(
 ): FunctionSpec[] {
   const byName = new Map<string, FunctionSpec>()
   for (const info of live) {
-    const category = CATEGORY_BY_TYPE[info.functionType]
+    const category = info.functionName.toUpperCase().startsWith('DVH.')
+      ? 'DVH Tool'
+      : CATEGORY_BY_TYPE[info.functionType]
     if (!category) continue
     const name = info.functionName.toUpperCase()
     byName.set(name, {

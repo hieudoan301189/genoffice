@@ -1693,6 +1693,14 @@ function mergeCellIntoEntry(
       ? toNeutralStyle(data.s as Record<string, unknown>)
       : undefined
   let style = styleDelta ? { ...previous?.style, ...styleDelta } : previous?.style
+  const custom = data.custom as Record<string, unknown> | undefined
+  if (custom && 'dvhCenterAcross' in custom && custom.dvhCenterAcross === true)
+    style = { ...style, horizontalAlignment: 'centerContinuous' }
+  if (custom && 'dvhShrink' in custom) {
+    style = { ...style, shrinkToFit: custom.dvhShrink === true }
+    if (custom.dvhShrink === true && typeof custom.dvhOriginalSize === 'number')
+      style.fontSize = custom.dvhOriginalSize
+  }
   let styleReset = previous?.styleReset === true
   // Clear Formats sends an explicit `s: null`: earlier deltas are pre-reset
   // and drop; later deltas stack on the default style.
@@ -1902,6 +1910,7 @@ function univerBorderEdgeToNeutral(edge: unknown): NeutralBorderEdge | undefined
 }
 
 const UNIVER_HORIZONTAL: Record<number, WorkbookStyleEdit['horizontalAlignment']> = {
+  0: 'general',
   1: 'left',
   2: 'center',
   3: 'right',
@@ -1991,6 +2000,13 @@ export function toNeutralStyle(s: Record<string, unknown>): WorkbookStyleEdit | 
   }
   if ('bd' in s && typeof s.bd === 'object' && s.bd !== null) {
     const bd = s.bd as Record<string, unknown>
+    if ('tl_br' in bd || 'bl_tr' in bd) {
+      const down = univerBorderEdgeToNeutral(bd.tl_br),
+        up = univerBorderEdgeToNeutral(bd.bl_tr)
+      style.borderDiagonal = down ?? up ?? null
+      style.diagonalDown = Boolean(down)
+      style.diagonalUp = Boolean(up)
+    }
     for (const [univerKey, neutralKey] of BORDER_EDGE_KEYS) {
       if (!(univerKey in bd)) continue
       if (bd[univerKey] === null) {
@@ -2031,6 +2047,8 @@ function isColorClear(value: unknown): boolean {
 }
 
 const XLSX_HORIZONTAL_TO_UNIVER: Record<string, number> = {
+  general: 0,
+  centerContinuous: 2,
   left: 1,
   center: 2,
   right: 3,
@@ -2090,6 +2108,14 @@ export function fromNeutralStyle(style: WorkbookStyleEdit): Record<string, unkno
     s.pd = style.indent === 0 ? null : { l: style.indent * INDENT_STEP_PX }
   }
   const bd: Record<string, unknown> = {}
+  if (style.diagonalDown !== undefined || style.diagonalUp !== undefined) {
+    const edge = style.borderDiagonal
+    const border = edge
+      ? { s: XLSX_BORDER_TO_UNIVER[edge.style] ?? 1, cl: { rgb: edge.color ?? '#000000' } }
+      : null
+    if (style.diagonalDown !== undefined) bd.tl_br = style.diagonalDown ? border : null
+    if (style.diagonalUp !== undefined) bd.bl_tr = style.diagonalUp ? border : null
+  }
   for (const [univerKey, neutralKey] of BORDER_EDGE_KEYS) {
     const edge = style[neutralKey]
     if (edge === undefined) continue

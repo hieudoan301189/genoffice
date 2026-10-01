@@ -286,6 +286,7 @@ import {
 import { installCachedValueFallbackInterceptor } from './formula-cached-fallback'
 import { readLiveFunctionInfos } from './function-catalog'
 import { installSupportedFunctionProbe } from './function-registry-probe'
+import { installDvhPureFunctions } from './dvh-functions'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
 import { installErrorValueAlignment } from './error-value-align'
@@ -1725,6 +1726,8 @@ export function App({
     // value at install time — even when IFERROR/ISERROR would otherwise
     // swallow the #NAME? into the fallback literal.
     const functionProbeDisposable = installSupportedFunctionProbe(runtime)
+    const dvhFunctionsDisposable = installDvhPureFunctions(runtime,
+      () => lazyWorkbookRef.current?.flags.preloadComplete ?? true)
     // Excel-parity number-format display: empty sections, text section,
     // _/* padding, General digit fitting, 1904 date-system serial shift.
     const numberFormatFixDisposable = installNumberFormatFix(
@@ -1993,6 +1996,31 @@ export function App({
     const calcEndDisposable = runtime.univerAPI.getFormula().calculationEnd((executed) => {
       if (executed === FormulaExecutedStateType.SUCCESS) {
         flushPendingChartDataSync(visualSyncContext())
+        // User-entered DVH formulas need a cached result in the XLSX too.
+        // Only remember cells whose current formula matches the journal after
+        // calculation; the save path reads their live values again.
+        const state = lazyWorkbookRef.current
+        if (state) {
+          for (const [sheetId, entries] of state.editJournal.cells) {
+            const formulas = [...entries.values()].filter(
+              (entry) => entry.formula && /^=DVH\./i.test(entry.formula),
+            )
+            if (formulas.length === 0) continue
+            const addresses = formulas.map((entry) => `${columnLabel(entry.column)}${entry.row + 1}`)
+            try {
+              const cells = readCellsImpl(readContext(), addresses, sheetId)
+              for (let i = 0; i < formulas.length; i++) {
+                const entry = formulas[i]!
+                const address = addresses[i]!
+                if (cells[address]?.formula === entry.formula && cells[address]?.value !== null) {
+                  rememberFormulaValue(sheetId, address, { formula: entry.formula! })
+                }
+              }
+            } catch {
+              // A sheet can be removed while a calculation is completing.
+            }
+          }
+        }
       }
     })
     const journalDisposable = runtime.univerAPI.addEvent(
@@ -2922,6 +2950,7 @@ export function App({
       cachedValueDisposable.dispose()
       formulaNewlineDisposable.dispose()
       functionProbeDisposable.dispose()
+      dvhFunctionsDisposable.dispose()
       numberFormatFixDisposable.dispose()
       errorAlignDisposable.dispose()
       cellFilenameDisposable.dispose()

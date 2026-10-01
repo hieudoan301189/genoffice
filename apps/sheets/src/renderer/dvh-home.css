@@ -1,0 +1,116 @@
+.dvh-home-tools {
+  border-right: 1px solid #ddd;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.dvh-home-buttons {
+  display: grid;
+  grid-template-rows: repeat(3, 18px);
+  grid-auto-flow: column;
+  gap: 1px 6px;
+}
+.dvh-home-buttons button {
+  text-align: left;
+  font-size: 11px;
+  line-height: 14px;
+  height: 18px;
+  min-height: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  border-radius: 3px;
+}
+.dvh-home-buttons button:hover {
+  background: #e7f0fa;
+}
+.dvh-home-caption {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: #555;
+  margin-top: 1px;
+}
+.dvh-home-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #0004;
+  display: grid;
+  place-items: center;
+}
+.dvh-home-dialog {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 24px;
+  width: min(780px, 95vw);
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 8px 40px #0003;
+}
+.dvh-home-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+.dvh-home-dialog p {
+  font-size: 13px;
+  white-space: normal;
+}
+.dvh-home-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.dvh-home-dialog fieldset {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+.dvh-home-dialog label {
+  display: grid;
+  margin: 8px 0;
+  gap: 4px;
+  font-size: 12px;
+}
+.dvh-home-dialog input,
+.dvh-home-dialog select {
+  background: #fff;
+  color: #222;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 5px;
+  min-width: 0;
+}
+.dvh-home-dialog pre {
+  background: #f3f6fa;
+  padding: 8px;
+  font-size: 12px;
+  overflow: auto;
+}
+.dvh-border-edge {
+  display: grid;
+  grid-template-columns: 78px 1fr 36px;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0;
+  font-size: 12px;
+}
+.dvh-border-edge input {
+  width: 36px;
+  height: 28px;
+  padding: 2px;
+}
+.dvh-home-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.dvh-home-dialog button {
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  padding: 6px 10px;
+  background: #f5f7fa;
+  color: #222;
+}

@@ -5536,6 +5536,14 @@ textarea:focus {
   display: none;
 }
 
+/* Univer's hidden text input (clipped by its 1px parent) only gets its line
+   box while editable. If it is laid out while the shell is inert (opening a
+   workbook), Chromium keeps a stale 0px height after inert clears, so it
+   can't hold a caret and typed keys (e.g. "=") never reach the cell editor. */
+[data-u-comp='editor'][contenteditable] {
+  min-height: 1lh;
+}
+
 /* ── Shared dropdown (@genoffice/ui gs-dd) app sizing ──────────────────────
    Ports the old native-select metrics per container so replacing <select>
    with the themed Dropdown doesn't shift layout (reference: the matching

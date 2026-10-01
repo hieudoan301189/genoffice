@@ -1,3 +1,4 @@
+import { handleDvhHome } from './dvh-home-actions'
 /**
  * The ribbon command dispatcher. Extracted from App.tsx; the App component
  * passes a RibbonCommandContext built fresh per call so refs and state never
@@ -195,6 +196,12 @@ export function parseStyleCommand(command: string): {
 export function handleRibbonCommand(ctx: RibbonCommandContext, command: string): void {
   const runtime = ctx.univerRef.current
   if (!runtime) return
+  if (command.startsWith('dvh:')) {
+    void handleDvhHome(ctx, command.slice(4)).catch((error: unknown) => {
+      ctx.setMessage(error instanceof Error ? error.message : 'Không áp dụng được định dạng DVH.')
+    })
+    return
+  }
   if (command === 'undo' || command === 'redo') {
     void runtime.univerAPI[command]()
     return

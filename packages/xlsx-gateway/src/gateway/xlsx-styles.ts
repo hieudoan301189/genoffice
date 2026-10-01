@@ -313,7 +313,10 @@ function hasBorderDelta(delta: WorkbookStyleEdit): boolean {
     delta.borderTop !== undefined ||
     delta.borderBottom !== undefined ||
     delta.borderLeft !== undefined ||
-    delta.borderRight !== undefined
+    delta.borderRight !== undefined ||
+    delta.borderDiagonal !== undefined ||
+    delta.diagonalUp !== undefined ||
+    delta.diagonalDown !== undefined
   )
 }
 
@@ -321,7 +324,7 @@ function hasBorderDelta(delta: WorkbookStyleEdit): boolean {
 /// schema order (left, right, top, bottom, diagonal); untouched edges and the
 /// border element's own attributes (diagonalUp/Down) are kept verbatim.
 function buildBorder(baseBorderXml: string, delta: WorkbookStyleEdit): string {
-  const attributes = /<border\b([^>]*?)\/?>/.exec(baseBorderXml)?.[1] ?? ''
+  let attributes = /<border\b([^>]*?)\/?>/.exec(baseBorderXml)?.[1] ?? ''
   const inner = /<border\b[^>]*>([\s\S]*?)<\/border>/.exec(baseBorderXml)?.[1] ?? ''
   const childOf = (tag: string): string =>
     new RegExp(`<${tag}\\b[^>]*/>|<${tag}\\b[^>]*>[\\s\\S]*?</${tag}>`).exec(inner)?.[0] ?? ''
@@ -334,7 +337,23 @@ function buildBorder(baseBorderXml: string, delta: WorkbookStyleEdit): string {
       ? `<${tag} style="${edge.style}"/>`
       : `<${tag} style="${edge.style}">${color}</${tag}>`
   })
-  children.push(childOf('diagonal'))
+  if (delta.borderDiagonal !== undefined) {
+    const edge = delta.borderDiagonal
+    children.push(
+      edge
+        ? '<diagonal style="' +
+            edge.style +
+            '">' +
+            (edge.color ? '<color ' + colorAttributes(edge.color) + '/>' : '') +
+            '</diagonal>'
+        : '<diagonal/>',
+    )
+  } else children.push(childOf('diagonal'))
+  for (const key of ['diagonalUp', 'diagonalDown'] as const)
+    if (delta[key] !== undefined) {
+      attributes = attributes.replace(new RegExp('\\s' + key + '="[^"]*"', 'g'), '')
+      if (delta[key]) attributes += ' ' + key + '="1"'
+    }
   const content = children.join('')
   return content === '' && attributes.trim() === ''
     ? '<border/>'
@@ -342,7 +361,7 @@ function buildBorder(baseBorderXml: string, delta: WorkbookStyleEdit): string {
 }
 
 /** CT_CellAlignment attributes with no model field; readingOrder is the cell's RTL flag */
-const ALIGNMENT_CARRIED = ['relativeIndent', 'justifyLastLine', 'shrinkToFit', 'readingOrder']
+const ALIGNMENT_CARRIED = ['relativeIndent', 'justifyLastLine', 'readingOrder']
 
 function buildAlignment(baseXf: string, delta: WorkbookStyleEdit): string {
   const baseAlignment = /<alignment\b[^>]*\/?>/.exec(baseXf)?.[0] ?? ''
@@ -366,7 +385,9 @@ function buildAlignment(baseXf: string, delta: WorkbookStyleEdit): string {
         ? undefined
         : String(delta.indent)
       : readAttribute(baseAlignment, 'indent')
+  const shrink = delta.shrinkToFit ?? readAttribute(baseAlignment, 'shrinkToFit') === '1'
   const modeled = [
+    ...(shrink ? ['shrinkToFit="1"'] : []),
     ...(horizontal ? [`horizontal="${horizontal}"`] : []),
     ...(vertical ? [`vertical="${vertical}"`] : []),
     ...(wrap ? ['wrapText="1"'] : []),

@@ -2412,7 +2412,7 @@ function isStyleEdit(input: unknown): boolean {
       (value.color === undefined || isHexColor(value.color)) &&
       Object.keys(value).every((key) => ['style', 'color'].includes(key)))
   if (
-    ![input.borderTop, input.borderBottom, input.borderLeft, input.borderRight].every(isBorderEdge)
+    ![input.borderTop, input.borderBottom, input.borderLeft, input.borderRight, input.borderDiagonal].every(isBorderEdge)
   ) {
     return false
   }
@@ -2422,6 +2422,9 @@ function isStyleEdit(input: unknown): boolean {
     isOptionalBoolean(input.underline) &&
     isOptionalBoolean(input.strikethrough) &&
     isOptionalBoolean(input.wrapText) &&
+    isOptionalBoolean(input.shrinkToFit) &&
+    isOptionalBoolean(input.diagonalUp) &&
+    isOptionalBoolean(input.diagonalDown) &&
     (input.fontFamily === undefined ||
       (typeof input.fontFamily === 'string' &&
         input.fontFamily.length > 0 &&
@@ -2434,7 +2437,7 @@ function isStyleEdit(input: unknown): boolean {
     (input.fontColor === undefined || input.fontColor === null || isHexColor(input.fontColor)) &&
     (input.fillColor === undefined || input.fillColor === null || isHexColor(input.fillColor)) &&
     (input.horizontalAlignment === undefined ||
-      ['left', 'center', 'right', 'justify', 'distributed'].includes(
+      ['general', 'left', 'center', 'centerContinuous', 'right', 'justify', 'distributed'].includes(
         String(input.horizontalAlignment),
       )) &&
     (input.verticalAlignment === undefined ||
@@ -2479,6 +2482,10 @@ function isStyleEdit(input: unknown): boolean {
         'borderBottom',
         'borderLeft',
         'borderRight',
+        'borderDiagonal',
+        'diagonalUp',
+        'diagonalDown',
+        'shrinkToFit',
       ].includes(key),
     )
   )

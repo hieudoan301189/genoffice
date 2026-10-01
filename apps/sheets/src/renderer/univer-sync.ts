@@ -3853,7 +3853,21 @@ export function applyJournalOverlay(
       cellRange.setValues([[{ s: null } as unknown as ICellData]])
     }
     if (entry.style) {
-      cellRange.setValues([[{ s: fromNeutralStyle(entry.style) as IStyleData }]])
+      cellRange.setValues([
+        [
+          {
+            s: fromNeutralStyle(entry.style) as IStyleData,
+            ...(entry.style.horizontalAlignment !== undefined
+              ? {
+                  custom: {
+                    ...cellRange.getCellDatas()[0]?.[0]?.custom,
+                    dvhCenterAcross: entry.style.horizontalAlignment === 'centerContinuous',
+                  },
+                }
+              : {}),
+          },
+        ],
+      ])
     }
   }
 }
@@ -4661,8 +4675,26 @@ export function patchWorksheetRangeInner(
               },
             }
           : {}),
+        ...(style?.horizontalAlignment === 'centerContinuous'
+          ? { custom: { dvhCenterAcross: true } }
+          : {}),
+        ...(shrinks
+          ? {
+              custom: {
+                dvhShrink: true,
+                dvhOriginalSize: style?.fontSize ?? 11,
+                shrinkToFit: true,
+              },
+            }
+          : {}),
         ...(shrinks && typeof displayValue === 'number'
-          ? { custom: { [SHRINK_TO_FIT_KEY]: true } }
+          ? {
+              custom: {
+                [SHRINK_TO_FIT_KEY]: true,
+                dvhShrink: true,
+                dvhOriginalSize: style?.fontSize ?? 11,
+              },
+            }
           : {}),
       }
       // Only cells with their own xf override row/col defaults.

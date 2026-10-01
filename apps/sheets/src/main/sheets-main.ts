@@ -1,3 +1,4 @@
+import { AI_ENABLED } from '@genoffice/ui/product-features'
 import { createHash, randomUUID } from 'node:crypto'
 import {
   createReadStream,
@@ -3295,16 +3296,22 @@ export function registerSheetsAiIpc(): void {
   )
 
   ipcMain.handle(IPC_CHANNELS.aiGskLogin, () => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     ensureGenofficeLogin((url) => void shell.openExternal(url))
   })
 
   ipcMain.handle(IPC_CHANNELS.aiSetSettings, async (event, input: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     sessionFor(event)
     const settings = aiSettingsInputSchema.parse(input)
     writeJsonAtomic(SETTINGS_PATH(), settings)
   })
 
   ipcMain.handle(IPC_CHANNELS.aiChat, async (event, input: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     sessionFor(event)
     const request = aiChatRequestSchema.parse(input)
     const provider = request.settings.provider as AiProviderId
@@ -3333,6 +3340,8 @@ export function registerSheetsAiIpc(): void {
   })
 
   ipcMain.handle(IPC_CHANNELS.aiStream, async (event, input: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     const entry = sessionFor(event)
     const request = aiStreamRequestSchema.parse(input)
     const { requestId, system, messages } = request
@@ -3423,6 +3432,8 @@ export function registerSheetsAiIpc(): void {
   // Shared search tools (content + images): Serper with DuckDuckGo fallback
   // (same source as slides/docs)
   ipcMain.handle('ai:web-search', async (_event, query: unknown, maxResults?: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     try {
       return await webSearchTool(
         SETTINGS_PATH(),
@@ -3434,6 +3445,8 @@ export function registerSheetsAiIpc(): void {
     }
   })
   ipcMain.handle('ai:image-search', async (_event, query: unknown, maxResults?: unknown) => {
+    if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
     try {
       return await imageSearchTool(
         SETTINGS_PATH(),
@@ -3452,6 +3465,8 @@ export function registerSheetsAiIpc(): void {
   ipcMain.handle(
     'ai:fetch-image',
     async (_event, url: unknown): Promise<{ base64: string; mime: string } | null> => {
+      if (!AI_ENABLED) throw new Error('AI is temporarily disabled in DVH Office.')
+
       try {
         const resp = await fetchRemoteImage(z.string().parse(url))
         if (!resp || !resp.ok || !resp.body) return null
@@ -4209,7 +4224,7 @@ async function applyMainProcessProxy(): Promise<void> {
     await app.whenReady()
     // PAC/rule proxies answer per-host: probe the host the login flow, the
     // Genspark LLM proxy and the gsk CLI actually target
-    const resolved = await electronSession.defaultSession.resolveProxy('https://www.genspark.ai/')
+    const resolved = await electronSession.defaultSession.resolveProxy('https://api.openai.com/')
     const m = /PROXY\s+([^;]+)/i.exec(resolved || '')
     if (m?.[1]) {
       await setDispatcher(`http://${m[1].trim()}`)

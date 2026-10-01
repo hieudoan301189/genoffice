@@ -293,7 +293,7 @@ const FALLBACK_CATALOG: readonly FallbackSpec[] = [
   { name: 'IRR', category: 'Financial', syntax: 'IRR(values, [guess])', descKey: 'dlgFnDescIrr' },
 ]
 
-const CATEGORY_LABELS: Record<'All' | FunctionCategory, StringKey> = {
+const CATEGORY_LABELS: Record<'All' | Exclude<FunctionCategory, 'DVH Tool'>, StringKey> = {
   All: 'dlgFnCatAll',
   Financial: 'dlgFnCatFinancial',
   'Date & Time': 'dlgFnCatDateTime',
@@ -392,7 +392,7 @@ export function InsertFunctionDialog({
             value={category}
             options={categories.map((name) => ({
               value: name,
-              label: t(CATEGORY_LABELS[name as 'All' | FunctionCategory]),
+              label: name === 'DVH Tool' ? name : t(CATEGORY_LABELS[name as keyof typeof CATEGORY_LABELS]),
             }))}
             onPick={setCategory}
           />

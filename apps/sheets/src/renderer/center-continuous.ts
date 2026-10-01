@@ -15,7 +15,10 @@ interface WorksheetLike {
   getCell?(
     row: number,
     column: number,
-  ): { custom?: Record<string, unknown> | null } | null | undefined
+  ):
+    | { custom?: Record<string, unknown> | null; v?: unknown; f?: unknown; p?: unknown }
+    | null
+    | undefined
 }
 
 function centerAcrossEnd(
@@ -23,7 +26,19 @@ function centerAcrossEnd(
   row: number,
   column: number,
 ): number | undefined {
-  const value = worksheet?.getCell?.(row, column)?.custom?.[CENTER_ACROSS_END_KEY]
+  const cell = worksheet?.getCell?.(row, column)
+  if (cell?.custom && 'dvhCenterAcross' in cell.custom) {
+    if (!cell.custom.dvhCenterAcross) return undefined
+    let end = column
+    while (end - column < 10000) {
+      const next = worksheet?.getCell?.(row, end + 1)
+      if (!next?.custom?.dvhCenterAcross || next.f || next.p || (next.v != null && next.v !== ''))
+        break
+      end++
+    }
+    return end > column ? end : undefined
+  }
+  const value = cell?.custom?.[CENTER_ACROSS_END_KEY]
   return typeof value === 'number' && Number.isInteger(value) && value > column ? value : undefined
 }
 
