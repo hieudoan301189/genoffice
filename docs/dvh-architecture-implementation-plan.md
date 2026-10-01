@@ -189,9 +189,10 @@ Công việc:
      tính lại, không tạo mục Undo, tự tính lại khi định dạng nguồn đổi, được nướng thành style khi lưu
      XLSX, Excel mở thấy đúng, in/PDF đúng.
 
-**Kết quả (01/10/2026):** S1 đạt – [báo cáo](spikes/s1-office-compat.md); S5 đạt phần định dạng –
-[báo cáo](spikes/s5-format-functions.md). S2, S3, S4 chưa làm (S1 đã trả lời một phần S3: tên ẩn không
-được nạp vào Univer).
+**Kết quả:** S1 đạt – [báo cáo](spikes/s1-office-compat.md); S5 đạt phần định dạng –
+[báo cáo](spikes/s5-format-functions.md); S3 giữ D3 nhưng P1 phải có lớp binding trong trình soạn
+thảo (cắt/dán không mang tên ẩn theo, xoá ô đang gắn làm lưu thất bại) –
+[báo cáo](spikes/s3-hidden-names.md). S2 và S4 chưa làm.
 
 **Nghiệm thu:** ADR đã duyệt; 5 spike có kết luận bằng văn bản; package rỗng chạy `npm test`;
 mọi thay đổi DVH đã commit trên `dvh/main`.
