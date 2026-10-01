@@ -18,9 +18,8 @@ import './styles.css'
 
 installScreenTips()
 
-function applyTheme(theme: UiTheme): void {
-  if (theme === 'system') document.documentElement.removeAttribute('data-theme')
-  else document.documentElement.setAttribute('data-theme', theme)
+function applyTheme(_theme: UiTheme): void {
+  document.documentElement.setAttribute('data-theme', 'light')
 }
 
 void (async () => {

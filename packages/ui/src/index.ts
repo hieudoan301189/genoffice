@@ -111,3 +111,5 @@ export {
   notchStep,
   type ZoomWheelIntent,
 } from './wheel-zoom'
+
+export { AI_ENABLED, LIGHT_ONLY } from './product-features'

@@ -33,9 +33,8 @@ if (!root) throw new Error('Missing application root.')
 installScreenTips()
 installCanvasFontFallback()
 
-function applyTheme(theme: UiTheme): void {
-  if (theme === 'system') document.documentElement.removeAttribute('data-theme')
-  else document.documentElement.setAttribute('data-theme', theme)
+function applyTheme(_theme: UiTheme): void {
+  document.documentElement.setAttribute('data-theme', 'light')
 }
 
 // Canvas fillText never triggers @font-face downloads, so the bundled Carlito

@@ -22,9 +22,8 @@ if (window.desktop?.convertAltChunkHtml) {
   setAltChunkHtmlConverter((html) => window.desktop.convertAltChunkHtml(html))
 }
 
-function applyTheme(theme: UiTheme): void {
-  if (theme === 'system') document.documentElement.removeAttribute('data-theme')
-  else document.documentElement.setAttribute('data-theme', theme)
+function applyTheme(_theme: UiTheme): void {
+  document.documentElement.setAttribute('data-theme', 'light')
 }
 
 async function bootstrap(): Promise<void> {

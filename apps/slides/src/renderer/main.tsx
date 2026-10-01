@@ -33,9 +33,8 @@ const mode = new URLSearchParams(window.location.search).get('mode')
 if (mode !== 'audience' && navigator.platform.toLowerCase().includes('mac'))
   document.body.classList.add('vib')
 
-function applyTheme(theme: UiTheme): void {
-  if (theme === 'system') document.documentElement.removeAttribute('data-theme')
-  else document.documentElement.setAttribute('data-theme', theme)
+function applyTheme(_theme: UiTheme): void {
+  document.documentElement.setAttribute('data-theme', 'light')
 }
 
 async function bootstrap(): Promise<void> {
