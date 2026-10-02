@@ -1851,3 +1851,174 @@ export function IconSelectAll(props: IconProps) {
     </Svg>
   )
 }
+
+// ---- DVH tab (Smart Data, templates, workflows, project data) ----
+
+/** a database cylinder: Smart Data */
+export function IconSmartData(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <ellipse cx="8" cy="4" rx="4.6" ry="1.7" />
+      <path d="M 3.4 4 v 8 c 0 0.94 2.06 1.7 4.6 1.7 s 4.6 -0.76 4.6 -1.7 v -8" />
+      <path d="M 3.4 8 c 0 0.94 2.06 1.7 4.6 1.7 s 4.6 -0.76 4.6 -1.7" />
+    </Svg>
+  )
+}
+
+/** a workbook grid with a link: link a workbook */
+export function IconLinkWorkbook(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="2.5" y="2.5" width="7.5" height="7.5" rx="0.6" />
+      <path d="M 2.5 5 h 7.5 M 5 2.5 v 7.5" />
+      <path d="M 9.2 12.6 l -0.7 0.7 a 1.6 1.6 0 0 1 -2.3 -2.3 l 0.7 -0.7" />
+      <path d="M 11.3 10.5 l 0.7 -0.7 a 1.6 1.6 0 0 0 -2.3 -2.3 l -0.7 0.7 M 8.7 11.1 l 2 -2" />
+    </Svg>
+  )
+}
+
+/** a box with an arrow going up and out: write back to the source */
+export function IconWriteBack(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 5.5 6.5 h -2 v 7 h 9 v -7 h -2" />
+      <path d="M 8 10.5 v -8 M 5.6 4.9 l 2.4 -2.4 l 2.4 2.4" />
+    </Svg>
+  )
+}
+
+/** a page with braces: Smart Template */
+export function IconTemplate(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 4 2.5 h 5.5 l 2.5 2.5 v 8.5 h -8 z M 9.5 2.5 v 2.5 h 2.5" />
+      <path d="M 7 7 c -0.8 0 -0.8 0.5 -0.8 1 s 0 1 -0.7 1 c 0.7 0 0.7 0.5 0.7 1 s 0 1 0.8 1" />
+      <path d="M 9 7 c 0.8 0 0.8 0.5 0.8 1 s 0 1 0.7 1 c -0.7 0 -0.7 0.5 -0.7 1 s 0 1 -0.8 1" />
+    </Svg>
+  )
+}
+
+/** a decision diamond: condition */
+export function IconCondition(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 8 2.5 l 4 4 l -4 4 l -4 -4 z" />
+      <path d="M 8 10.5 v 3 M 4 6.5 h -1.5 v 7 M 12 6.5 h 1.5 v 7" />
+    </Svg>
+  )
+}
+
+/** a looping arrow around rows: repeating section */
+export function IconRepeatSection(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 5 5 h 6 M 5 8 h 6 M 5 11 h 6" />
+      <path d="M 2.8 4.5 a 5.5 5.5 0 0 1 9.6 -1.2 M 13.2 11.5 a 5.5 5.5 0 0 1 -9.6 1.2" />
+      <path d="M 12.6 1.6 v 1.9 h -1.9 M 3.4 14.4 v -1.9 h 1.9" />
+    </Svg>
+  )
+}
+
+/** a column with a plus: insert a column value */
+export function IconInsertColumnValue(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="2.5" width="4.5" height="11" rx="0.5" />
+      <path d="M 3 6.2 h 4.5 M 3 9.8 h 4.5" />
+      <path d="M 11.5 6 v 5 M 9 8.5 h 5" />
+    </Svg>
+  )
+}
+
+/** stacked pages: batch generation */
+export function IconBatch(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 6 2.5 h 7 v 8.5 M 4.5 4 h 7 v 8.5" />
+      <rect x="2.5" y="5.5" width="7.5" height="8" rx="0.4" />
+      <path d="M 4.2 8.5 h 4 M 4.2 10.8 h 4" />
+    </Svg>
+  )
+}
+
+/** a page turning into another: convert a template */
+export function IconConvertTemplate(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 2.5 2.5 h 4.5 v 6 h -4.5 z M 9 7.5 h 4.5 v 6 h -4.5 z" />
+      <path d="M 9 3.5 h 2.5 v 2 M 10.5 4.5 l 1 1 l 1 -1" />
+      <path d="M 7 12.5 h -2.5 v -2 M 5.5 11.5 l -1 -1 l -1 1" />
+    </Svg>
+  )
+}
+
+/** two opposite arrows: exchange / sync */
+export function IconExchange(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 2.5 5.5 h 10 M 10 3 l 2.5 2.5 l -2.5 2.5" />
+      <path d="M 13.5 10.5 h -10 M 6 8 l -2.5 2.5 l 2.5 2.5" />
+    </Svg>
+  )
+}
+
+/** a filled dot in a ring: record */
+export function IconRecord(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="8" cy="8" r="5.5" />
+      <circle cx="8" cy="8" r="2.6" fill="currentColor" />
+    </Svg>
+  )
+}
+
+/** connected nodes: workflow */
+export function IconWorkflow(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="2" y="2.5" width="4" height="3" rx="0.5" />
+      <rect x="10" y="6.5" width="4" height="3" rx="0.5" />
+      <rect x="2" y="10.5" width="4" height="3" rx="0.5" />
+      <path d="M 6 4 h 2 v 4 h 2 M 6 12 h 2 v -4" />
+    </Svg>
+  )
+}
+
+/** angle brackets and a slash: script */
+export function IconScript(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 5 4.5 l -3 3.5 l 3 3.5 M 11 4.5 l 3 3.5 l -3 3.5 M 9.2 3 l -2.4 10" />
+    </Svg>
+  )
+}
+
+/** a folder with bars: project data */
+export function IconProjectData(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 2 4 v 8.5 h 12 v -7 h -6 l -1.5 -1.5 z" />
+      <path d="M 5.5 11 v -2 M 8 11 v -3.5 M 10.5 11 v -1.2" />
+    </Svg>
+  )
+}
+
+/** a clock with a back arrow: history */
+export function IconHistory(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 3.2 5.4 a 5.5 5.5 0 1 1 -0.6 3.8" />
+      <path d="M 2.6 2.8 v 2.8 h 2.8 M 8 5 v 3.2 l 2.2 1.4" />
+    </Svg>
+  )
+}
+
+/** a page with a check: release copy */
+export function IconRelease(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M 4 2.5 h 5.5 l 2.5 2.5 v 8.5 h -8 z M 9.5 2.5 v 2.5 h 2.5" />
+      <path d="M 5.8 9 l 1.5 1.5 l 3 -3" />
+    </Svg>
+  )
+}

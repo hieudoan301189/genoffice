@@ -15,6 +15,7 @@ export const he = {
   ribbonCollapse: 'כווץ את רצועת הכלים',
   ribbonExpand: 'הרחב את רצועת הכלים',
   ribbonTabView: 'תצוגה',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'עיצוב טבלה',
   ribbonTabTableLayout: 'פריסת טבלה',
   ribbonTabPictureFormat: 'עיצוב תמונה',

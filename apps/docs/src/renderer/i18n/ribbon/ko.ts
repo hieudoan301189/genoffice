@@ -16,6 +16,7 @@ export const ko = {
   ribbonCollapse: '리본 축소',
   ribbonExpand: '리본 확장',
   ribbonTabView: '보기',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: '테이블 디자인',
   ribbonTabTableLayout: '테이블 레이아웃',
   ribbonTabPictureFormat: '그림 서식',

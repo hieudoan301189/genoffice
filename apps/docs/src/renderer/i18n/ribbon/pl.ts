@@ -15,6 +15,7 @@ export const pl = {
   ribbonCollapse: 'Zwiń Wstążkę',
   ribbonExpand: 'Rozwiń Wstążkę',
   ribbonTabView: 'Widok',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Projekt tabeli',
   ribbonTabTableLayout: 'Układ tabeli',
   ribbonTabPictureFormat: 'Formatowanie obrazu',

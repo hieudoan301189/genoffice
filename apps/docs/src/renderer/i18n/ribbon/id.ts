@@ -15,6 +15,7 @@ export const id = {
   ribbonCollapse: 'Ciutkan Pita',
   ribbonExpand: 'Perluas Pita',
   ribbonTabView: 'Tampilan',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Desain Tabel',
   ribbonTabTableLayout: 'Tata Letak Tabel',
   ribbonTabPictureFormat: 'Format Gambar',

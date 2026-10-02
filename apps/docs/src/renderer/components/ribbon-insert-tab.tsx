@@ -1125,25 +1125,7 @@ export function InsertTab({
 
       <div className="ribbon-sep" />
 
-      <div className="ribbon-group">
-        <div className="ribbon-group-items">
-          {/* DVH Smart Data: the panel lives in App (it needs the document state) */}
-          <button
-            className="rb-big"
-            disabled={!hasDoc}
-            data-tip={t('dvhSmartDataTip')}
-            onClick={() => window.dispatchEvent(new CustomEvent('dvh:smart-data'))}
-          >
-            <span className="rb-big-icon">
-              <IconTable size={BIG} />
-            </span>
-            <span>{t('dvhSmartData')}</span>
-          </button>
-        </div>
-        <div className="ribbon-group-label">{t('dvhSmartData')}</div>
-      </div>
-
-      <div className="ribbon-sep" />
+      {/* DVH Smart Data moved to its own ribbon tab (ribbon-dvh-tab.tsx) */}
 
       <div className="ribbon-group">
         <div className="ribbon-group-items">

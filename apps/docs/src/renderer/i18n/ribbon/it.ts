@@ -15,6 +15,7 @@ export const it = {
   ribbonCollapse: 'Riduci a icona la barra multifunzione',
   ribbonExpand: 'Espandi la barra multifunzione',
   ribbonTabView: 'Visualizza',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Progettazione tabella',
   ribbonTabTableLayout: 'Layout tabella',
   ribbonTabPictureFormat: 'Formato immagine',

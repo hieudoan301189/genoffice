@@ -42,6 +42,7 @@ import { DvhTemplateSection } from './DvhTemplateSection'
 import { DvhWorkflowSection } from './DvhWorkflowSection'
 import { DvhProjectSection } from './DvhProjectSection'
 import { announceUi, installDocsUiActions, noteUnrecordable, runUiAction } from '../dvh-workflow'
+import type { DvhPanelRequest } from './ribbon-dvh-tab'
 import './dvh-smart-data.css'
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
@@ -73,6 +74,8 @@ export function DvhSmartDataHost({
   buildBytes?: () => Promise<Uint8Array | null>
 }) {
   const [open, setOpen] = useState(false)
+  /** what the DVH ribbon tab asked to show; seq makes a repeated request count */
+  const [request, setRequest] = useState<(DvhPanelRequest & { seq: number }) | null>(null)
   const { t } = useI18n()
   const live = useRef({ editor, filePath, buildBytes, t })
   live.current = { editor, filePath, buildBytes, t }
@@ -157,7 +160,16 @@ export function DvhSmartDataHost({
   }, [markDirty])
 
   useEffect(() => {
-    const toggle = () => setOpen((value) => !value)
+    let seq = 0
+    const toggle = (event: Event) => {
+      const detail = (event as CustomEvent<DvhPanelRequest | null>).detail
+      if (!detail) {
+        setOpen((value) => !value)
+        return
+      }
+      setOpen(true)
+      setRequest({ ...detail, seq: ++seq })
+    }
     window.addEventListener('dvh:smart-data', toggle)
     return () => window.removeEventListener('dvh:smart-data', toggle)
   }, [])
@@ -169,6 +181,7 @@ export function DvhSmartDataHost({
       parsed={parsed}
       filePath={filePath}
       onClose={() => setOpen(false)}
+      request={request}
       {...(exportCopy ? { exportCopy } : {})}
       {...(buildBytes ? { buildBytes } : {})}
     />
@@ -181,6 +194,7 @@ export function DvhSmartDataPanel({
   parsed,
   filePath,
   onClose,
+  request,
   exportCopy,
   buildBytes,
 }: {
@@ -188,6 +202,8 @@ export function DvhSmartDataPanel({
   parsed: ParsedDocFull
   filePath: string | null
   onClose: () => void
+  /** the DVH ribbon tab's request: the section to show, an action to start */
+  request?: (DvhPanelRequest & { seq: number }) | null
   exportCopy?: (
     policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
   ) => Promise<string | null>
@@ -456,8 +472,29 @@ export function DvhSmartDataPanel({
 
   const canWrite = typeof window.desktop.dvhWriteFields === 'function'
 
+  // the DVH ribbon tab: show the section it names (opened and in view), then run its action
+  const root = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!request) return
+    const section = root.current?.querySelector<HTMLElement>(`[data-section="${request.section}"]`)
+    if (section instanceof HTMLDetailsElement) section.open = true
+    section?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    if (request.action === 'link') void linkWorkbook()
+    if (request.action === 'writeback') {
+      void (async () => {
+        for (const link of links) {
+          if (linkPendingWrites(editor, dvh!, link).length > 0)
+            reportWrite(await writeBackLink(link.id), link)
+        }
+        repaint()
+      })()
+    }
+    // only a new request (its seq) acts; the handlers read the current state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.seq])
+
   return (
-    <div className="dvh-docs-panel" role="dialog" aria-label={t('dvhPanelTitle')}>
+    <div ref={root} className="dvh-docs-panel" role="dialog" aria-label={t('dvhPanelTitle')}>
       <div className="dvh-docs-panel-head">
         <strong>{t('dvhPanelTitle')}</strong>
         <button type="button" onClick={onClose} aria-label={t('dvhClose')}>
@@ -465,7 +502,7 @@ export function DvhSmartDataPanel({
         </button>
       </div>
 
-      <div className="dvh-docs-panel-section">
+      <div className="dvh-docs-panel-section" data-section="links">
         <div className="dvh-docs-panel-subhead">
           <span>{t('dvhLinks')}</span>
           <button type="button" disabled={busy} onClick={() => void linkWorkbook()}>
@@ -603,7 +640,7 @@ export function DvhSmartDataPanel({
         )}
       </div>
 
-      <div className="dvh-docs-panel-section">
+      <div className="dvh-docs-panel-section" data-section="fields">
         {fields.length === 0 ? (
           <p className="dvh-docs-panel-empty">{t('dvhEmpty')}</p>
         ) : (
@@ -680,7 +717,13 @@ export function DvhSmartDataPanel({
 
       <DvhProjectSection dvh={dvh} filePath={filePath} onChange={repaint} />
 
-      <DvhWorkflowSection dvh={dvh} onChange={repaint} />
+      <DvhWorkflowSection
+        dvh={dvh}
+        onChange={repaint}
+        {...(request?.section === 'workflows' && request.view
+          ? { requestView: { view: request.view, seq: request.seq } }
+          : {})}
+      />
 
       <DvhHistorySection
         editor={editor}

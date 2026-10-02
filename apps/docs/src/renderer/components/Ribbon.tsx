@@ -127,6 +127,7 @@ import {
   stepFontSize as stepSizeInList,
 } from '../font-sizes'
 import { useSystemFontFamilies } from '../system-fonts'
+import { DvhTab } from './ribbon-dvh-tab'
 import {
   DesignTab,
   DrawTab,
@@ -483,8 +484,8 @@ const IN_TAB = new URLSearchParams(window.location.search).get('mode') === 'tab'
 
 const TABS = (
   IS_MAC
-    ? ['home', 'insert', 'draw', 'design', 'layout', 'references', 'review', 'view']
-    : ['file', 'home', 'insert', 'draw', 'design', 'layout', 'references', 'review', 'view']
+    ? ['home', 'insert', 'draw', 'design', 'layout', 'references', 'review', 'view', 'dvh']
+    : ['file', 'home', 'insert', 'draw', 'design', 'layout', 'references', 'review', 'view', 'dvh']
 ) as readonly string[]
 const TABLE_TABS = ['tableDesign', 'tableLayout'] as const
 
@@ -607,6 +608,7 @@ const TAB_LABEL_KEYS: Record<string, StringKey> = {
   references: 'ribbonTabReferences',
   review: 'ribbonTabReview',
   view: 'ribbonTabView',
+  dvh: 'ribbonTabDvh',
   tableDesign: 'ribbonTabTableDesign',
   tableLayout: 'ribbonTabTableLayout',
   pictureFormat: 'ribbonTabPictureFormat',
@@ -4055,6 +4057,8 @@ function RibbonInner({
             onAddSource={onAddSource}
             headingPages={headingPages}
           />
+        ) : tab === 'dvh' ? (
+          <DvhTab hasDoc={canEdit} />
         ) : tab === 'review' ? (
           <ReviewTab
             editor={editor}

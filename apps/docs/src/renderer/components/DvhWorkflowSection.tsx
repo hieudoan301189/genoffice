@@ -56,9 +56,12 @@ const defaultParams = (workflow: Workflow) =>
 export function DvhWorkflowSection({
   dvh,
   onChange,
+  requestView,
 }: {
   dvh: DvhDocsState | null
   onChange: () => void
+  /** the DVH ribbon tab asks for the blocks or the script view */
+  requestView?: { view: 'blocks' | 'script'; seq: number }
 }) {
   const { t } = useI18n()
   const model = dvh?.model ?? null
@@ -87,6 +90,18 @@ export function DvhWorkflowSection({
   const resume = useRef<((decision: PauseDecision) => void) | null>(null)
 
   useEffect(() => onRecorderChange(() => setTick((n) => n + 1)), [])
+  useEffect(() => {
+    if (!requestView) return
+    // a script needs a workflow to show: start an empty one when none is open
+    if (requestView.view === 'script' && !draft) {
+      const fresh = emptyWorkflow(t('dvhWorkflows'))
+      setDraft(fresh)
+      setScriptText(printScript(fresh))
+    }
+    setView(requestView.view)
+    // only a new request acts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestView?.seq])
 
   // the selected record is what the recorder turns into parameters
   const collection = collections.find((c) => c.id === selCollection)

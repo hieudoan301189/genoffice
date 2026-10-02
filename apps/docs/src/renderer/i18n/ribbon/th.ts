@@ -15,6 +15,7 @@ export const th = {
   ribbonCollapse: 'ยุบ Ribbon',
   ribbonExpand: 'ขยาย Ribbon',
   ribbonTabView: 'มุมมอง',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'การออกแบบตาราง',
   ribbonTabTableLayout: 'เค้าโครงตาราง',
   ribbonTabPictureFormat: 'รูปแบบรูปภาพ',

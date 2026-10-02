@@ -184,7 +184,11 @@ export function DvhHistorySection({
   }
 
   return (
-    <details className="dvh-docs-panel-section dvh-docs-panel-history" open={focus !== null}>
+    <details
+      className="dvh-docs-panel-section dvh-docs-panel-history"
+      data-section="history"
+      open={focus !== null}
+    >
       <summary>{focus ? t('dvhHistoryFor', { name: nameOf(focus) }) : t('dvhHistory')}</summary>
 
       {recovered.length > 0 && dvh ? (

@@ -15,6 +15,7 @@ export const ru = {
   ribbonCollapse: 'Свернуть ленту',
   ribbonExpand: 'Развернуть ленту',
   ribbonTabView: 'Вид',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Конструктор таблиц',
   ribbonTabTableLayout: 'Макет таблицы',
   ribbonTabPictureFormat: 'Формат рисунка',

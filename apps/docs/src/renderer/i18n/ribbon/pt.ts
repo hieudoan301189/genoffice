@@ -15,6 +15,7 @@ export const pt = {
   ribbonCollapse: 'Recolher a Faixa de Opções',
   ribbonExpand: 'Expandir a Faixa de Opções',
   ribbonTabView: 'Exibir',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Design da Tabela',
   ribbonTabTableLayout: 'Layout da Tabela',
   ribbonTabPictureFormat: 'Formato da Imagem',

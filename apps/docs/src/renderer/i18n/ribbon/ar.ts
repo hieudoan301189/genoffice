@@ -15,6 +15,7 @@ export const ar = {
   ribbonCollapse: 'طي الشريط',
   ribbonExpand: 'توسيع الشريط',
   ribbonTabView: 'عرض',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'تصميم الجدول',
   ribbonTabTableLayout: 'تخطيط الجدول',
   ribbonTabPictureFormat: 'تنسيق الصورة',

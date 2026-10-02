@@ -15,6 +15,7 @@ export const cs = {
   ribbonCollapse: 'Sbalit pás karet',
   ribbonExpand: 'Rozbalit pás karet',
   ribbonTabView: 'Zobrazení',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Návrh tabulky',
   ribbonTabTableLayout: 'Rozložení tabulky',
   ribbonTabPictureFormat: 'Formát obrázku',

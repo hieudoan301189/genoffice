@@ -15,6 +15,7 @@ export const fr = {
   ribbonCollapse: 'Réduire le ruban',
   ribbonExpand: 'Développer le ruban',
   ribbonTabView: 'Affichage',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Création de tableau',
   ribbonTabTableLayout: 'Disposition du tableau',
   ribbonTabPictureFormat: "Format de l'image",

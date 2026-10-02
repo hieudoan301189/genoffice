@@ -15,6 +15,7 @@ export const es = {
   ribbonCollapse: 'Contraer la cinta de opciones',
   ribbonExpand: 'Expandir la cinta de opciones',
   ribbonTabView: 'Vista',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Diseño de tabla',
   ribbonTabTableLayout: 'Disposición de tabla',
   ribbonTabPictureFormat: 'Formato de imagen',

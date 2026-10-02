@@ -15,6 +15,7 @@ export const hi = {
   ribbonCollapse: 'रिबन संक्षिप्त करें',
   ribbonExpand: 'रिबन विस्तृत करें',
   ribbonTabView: 'दृश्य',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'तालिका डिज़ाइन',
   ribbonTabTableLayout: 'तालिका लेआउट',
   ribbonTabPictureFormat: 'चित्र स्वरूप',

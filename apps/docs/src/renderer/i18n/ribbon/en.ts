@@ -15,6 +15,7 @@ export const en = {
   ribbonCollapse: 'Collapse the Ribbon',
   ribbonExpand: 'Expand the Ribbon',
   ribbonTabView: 'View',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Table Design',
   ribbonTabTableLayout: 'Table Layout',
   ribbonTabPictureFormat: 'Picture Format',

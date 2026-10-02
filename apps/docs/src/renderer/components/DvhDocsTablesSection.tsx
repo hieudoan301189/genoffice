@@ -53,7 +53,7 @@ export function DvhDocsTablesSection({
   }
 
   return (
-    <div className="dvh-docs-panel-section">
+    <div className="dvh-docs-panel-section" data-section="tables">
       <div className="dvh-docs-panel-subhead">
         <span>{t('dvhCollections')}</span>
       </div>

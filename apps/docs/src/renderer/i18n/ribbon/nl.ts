@@ -15,6 +15,7 @@ export const nl = {
   ribbonCollapse: 'Het lint samenvouwen',
   ribbonExpand: 'Het lint uitvouwen',
   ribbonTabView: 'Beeld',
+  ribbonTabDvh: 'DVH',
   ribbonTabTableDesign: 'Tabelontwerp',
   ribbonTabTableLayout: 'Tabelindeling',
   ribbonTabPictureFormat: 'Afbeeldingsopmaak',
