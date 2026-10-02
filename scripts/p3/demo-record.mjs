@@ -5,13 +5,32 @@
 // Usage: node demo-record.mjs <outDir> <DVH Office.exe> [bdcam.exe]
 import { _electron as electron } from 'playwright-core'
 import JSZip from 'jszip'
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
-import { execFileSync, spawn } from 'node:child_process'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { execFileSync } from 'node:child_process'
 
 const outDir = resolve(process.argv[2])
 const exe = resolve(process.argv[3])
 const bandicam = process.argv[4] ?? 'C:\\Program Files (x86)\\Bandicam\\bdcam.exe'
+/** DEMO_NO_RECORD=1: rehearse the demo without Bandicam */
+const record = process.env.DEMO_NO_RECORD !== '1'
+/**
+ * DEMO_HOTKEY=1: the user has Bandicam running with the recording frame set up;
+ * the demo only presses its record hotkey (F12) to start and stop. No UAC, no
+ * Bandicam settings are touched.
+ */
+const hotkeyOnly = record && process.env.DEMO_HOTKEY === '1'
+const pressRecordHotkey = () =>
+  execFileSync(
+    'powershell',
+    [
+      '-NoProfile',
+      '-Command',
+      'Add-Type -TypeDefinition \'using System; using System.Runtime.InteropServices; public static class K { [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra); }\'; [K]::keybd_event(0x7B, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 80; [K]::keybd_event(0x7B, 0, 2, [UIntPtr]::Zero)',
+    ],
+    { stdio: 'ignore' },
+  )
 mkdirSync(outDir, { recursive: true })
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const step = (label) => console.error(`${new Date().toISOString()} ${label}`)
@@ -61,22 +80,21 @@ async function writeDocx(path) {
   writeFileSync(path, await zip.generateAsync({ type: 'nodebuffer' }))
 }
 
+// Bandicam requires administrator: an elevated helper (one UAC prompt) starts it and
+// runs /record, /stop, /shutdown when this script drops signal files
+const signalDir = join(outDir, 'signals')
+mkdirSync(signalDir, { recursive: true })
+const signal = (name) => writeFileSync(join(signalDir, `${name}.signal`), '')
+const signalled = (name) => existsSync(join(signalDir, `${name}.done`))
+let helperStarted = false
+
 const xlsx = join(outDir, 'demo-khoi-luong.xlsx')
 const docx = join(outDir, 'demo-bao-cao.docx')
 await writeXlsx(xlsx)
 await writeDocx(docx)
 
-const profile = join(outDir, `profile-${Date.now()}`)
-mkdirSync(profile, { recursive: true })
-const env = { ...process.env, GENOFFICE_LANG: 'en', GENOFFICE_DEBUG_HOOKS: '1' }
-delete env.ELECTRON_RUN_AS_NODE
-const app = await electron.launch({
-  executablePath: exe,
-  args: [`--user-data-dir=${profile}`],
-  env,
-  timeout: 60000,
-})
-const pid = app.process().pid
+let app = null
+let pid = null
 const findPage = async (kind) => {
   for (let i = 0; i < 150; i++) {
     const page = app
@@ -89,6 +107,7 @@ const findPage = async (kind) => {
   throw new Error(`no ${kind} page`)
 }
 let recording = false
+const helper = join(dirname(fileURLToPath(import.meta.url)), 'bandicam-helper.ps1')
 
 // Bandicam records its last rectangle: point it at the whole primary screen for
 // the demo and give the user's own rectangle back afterwards
@@ -111,6 +130,39 @@ const setRect = (values) =>
   )
 
 try {
+  if (record && !hotkeyOnly) {
+    // Bandicam reads its rectangle at startup: the whole screen, set before it starts
+    setRect([0, 0, Number(physical[0]), Number(physical[1])])
+    step('start Bandicam (UAC prompt)')
+    // blocks until the UAC prompt is answered; a declined or unanswered prompt ends the demo
+    execFileSync(
+      'powershell',
+      [
+        '-NoProfile',
+        '-Command',
+        `Start-Process powershell -Verb RunAs -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','"${helper}"','-SignalDir','"${signalDir}"','-RectBackup','"${join(outDir, 'bandicam-rect-backup.txt')}"','-Bandicam','"${bandicam}"'`,
+      ],
+      { encoding: 'utf8', timeout: 150000 },
+    )
+    helperStarted = true
+    // the helper first finds the mode that records the screen (a few 4 s test recordings)
+    const settled = () =>
+      existsSync(join(signalDir, 'ready.signal')) || existsSync(join(signalDir, 'failed.signal'))
+    for (let i = 0; i < 600 && !settled(); i++) await sleep(300)
+    if (!existsSync(join(signalDir, 'ready.signal'))) throw new Error('Bandicam could not record')
+  }
+  // the app opens after the UAC prompt, so its welcome screen is not missed
+  const profile = join(outDir, `profile-${Date.now()}`)
+  mkdirSync(profile, { recursive: true })
+  const env = { ...process.env, GENOFFICE_LANG: 'en', GENOFFICE_DEBUG_HOOKS: '1' }
+  delete env.ELECTRON_RUN_AS_NODE
+  app = await electron.launch({
+    executablePath: exe,
+    args: [`--user-data-dir=${profile}`],
+    env,
+    timeout: 60000,
+  })
+  pid = app.process().pid
   const home = await app.firstWindow()
   await home.getByText('Welcome to DVH Office', { exact: true }).waitFor({ timeout: 30000 })
   await home.keyboard.press('Escape')
@@ -197,7 +249,20 @@ try {
     .click({ position: { x: 5, y: 5 } })
   await docs.keyboard.press('Control+s')
   await sleep(3000)
-  // the panel stays open: it shows the link in Automatic mode
+  // the AI side panels make room for the grid and the page; the Smart Data panel
+  // closes until the recording starts (it would cover the table)
+  await panel.getByRole('button', { name: 'Close' }).click()
+  await docs
+    .getByRole('button', { name: 'Collapse panel' })
+    .first()
+    .click()
+    .catch(() => {})
+  await sheets
+    .getByRole('button', { name: 'Collapse AI panel' })
+    .first()
+    .click()
+    .catch(() => {})
+  await sleep(800)
 
   step('arrange windows')
   await home.evaluate(async () => {
@@ -225,10 +290,16 @@ try {
     }
   })
   await sleep(1500)
-  // the report shows its title, the field and the table
-  await docs.evaluate(() =>
-    document.querySelector('table[data-dvh-table]')?.scrollIntoView({ block: 'center' }),
-  )
+  // the page fills the report window
+  await docs.getByText('View', { exact: true }).first().click()
+  await docs
+    .getByRole('button', { name: 'Page Width' })
+    .first()
+    .click()
+    .catch(() => {})
+  await sleep(1200)
+  await docs.getByText('Insert', { exact: true }).first().click()
+  await sleep(500)
 
   // grid focus for typing
   const focusGrid = async () => {
@@ -250,11 +321,30 @@ try {
   }
 
   step('start recording')
-  setRect([0, 0, Number(physical[0]), Number(physical[1])])
-  spawn(bandicam, ['/record'], { detached: true, stdio: 'ignore' }).unref()
-  recording = true
-  await sleep(5000)
+  // spelling squiggles under the Vietnamese text would distract (display only)
+  await docs.evaluate(() =>
+    document
+      .querySelectorAll('.ProseMirror')
+      .forEach((el) => el.setAttribute('spellcheck', 'false')),
+  )
+  if (hotkeyOnly) {
+    pressRecordHotkey()
+    recording = true
+  } else if (record) {
+    signal('record')
+    recording = true
+  }
+  await sleep(3000)
+  // the link in Automatic mode, then out of the way
+  await docs.locator('button', { hasText: 'Smart Data' }).first().click()
+  await sleep(4000)
+  await docs
+    .getByRole('dialog', { name: 'Smart Data fields' })
+    .getByRole('button', { name: 'Close' })
+    .click()
+  await sleep(1500)
 
+  if (!record) await docs.screenshot({ path: join(outDir, 'demo-docs-start.png') })
   await focusGrid()
   // 1. a quantity changes
   step('demo: quantity')
@@ -298,7 +388,8 @@ try {
   await sleep(4500)
 
   step('stop recording')
-  spawn(bandicam, ['/stop'], { detached: true, stdio: 'ignore' }).unref()
+  if (hotkeyOnly) pressRecordHotkey()
+  else if (record) signal('stop')
   recording = false
   await sleep(6000)
   await docs.screenshot({ path: join(outDir, 'demo-docs-final.png') })
@@ -312,14 +403,24 @@ try {
   writeFileSync(join(outDir, 'demo-final.json'), JSON.stringify(final, null, 2))
   console.log(JSON.stringify(final, null, 2))
 } finally {
-  if (recording) spawn(bandicam, ['/stop'], { detached: true, stdio: 'ignore' }).unref()
+  if (recording) {
+    if (hotkeyOnly) pressRecordHotkey()
+    else signal('stop')
+  }
   await sleep(3000)
-  // Bandicam saves its settings on exit: close it first, then restore the user's rectangle
-  spawn(bandicam, ['/shutdown'], { detached: true, stdio: 'ignore' }).unref()
-  await sleep(5000)
-  setRect(savedRect.split(','))
-  await Promise.race([app.close().catch(() => {}), sleep(15000)])
-  try {
-    execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' })
-  } catch {}
+  if (record && !hotkeyOnly) {
+    // Bandicam saves its settings on exit: close it first, then restore the user's rectangle
+    if (helperStarted) {
+      signal('shutdown')
+      for (let i = 0; i < 40 && !signalled('shutdown'); i++) await sleep(250)
+      await sleep(5000)
+    }
+    setRect(savedRect.split(','))
+  }
+  if (app) await Promise.race([app.close().catch(() => {}), sleep(15000)])
+  if (pid) {
+    try {
+      execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' })
+    } catch {}
+  }
 }
