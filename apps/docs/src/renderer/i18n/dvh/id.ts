@@ -189,4 +189,7 @@ export const id = {
   dvhProjectLastSync: 'Sinkron terakhir: {time}',
   dvhProjectDeletedThere: 'Dihapus di QLCL-DVH tetapi diubah di sini',
   dvhProjectDeletedHere: 'Dihapus di sini tetapi diubah di QLCL-DVH',
+  dvhProjectConflicts: '{count} konflik menunggu',
+  dvhProjectKeepAllMine: 'Pertahankan semua milik saya',
+  dvhProjectKeepAllTheirs: 'Ambil semua dari QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

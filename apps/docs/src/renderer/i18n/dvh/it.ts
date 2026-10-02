@@ -192,4 +192,7 @@ export const it = {
   dvhProjectLastSync: 'Ultima sincronizzazione: {time}',
   dvhProjectDeletedThere: 'Eliminato in QLCL-DVH ma modificato qui',
   dvhProjectDeletedHere: 'Eliminato qui ma modificato in QLCL-DVH',
+  dvhProjectConflicts: '{count} conflitti in sospeso',
+  dvhProjectKeepAllMine: 'Mantieni tutti i miei',
+  dvhProjectKeepAllTheirs: 'Prendi tutti da QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

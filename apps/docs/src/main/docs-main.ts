@@ -4726,7 +4726,8 @@ export function registerDocsIpc(): void {
   ipcMain.handle(
     'docs:dvh-project-resolve',
     (_event, filePath: unknown, partner: unknown, index: unknown, keep: unknown) => {
-      if (typeof partner !== 'string' || typeof index !== 'number') return
+      // index null settles every pending conflict of the partner the same way
+      if (typeof partner !== 'string' || (typeof index !== 'number' && index !== null)) return
       if (keep !== 'mine' && keep !== 'theirs') return
       projectData.resolve(projectOfRequest(filePath), partner, index, keep)
     },

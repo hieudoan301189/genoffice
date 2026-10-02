@@ -141,7 +141,7 @@ export function DvhProjectSection({
       await reload()
     })
 
-  const settle = (partner: string, index: number, keep: 'mine' | 'theirs') =>
+  const settle = (partner: string, index: number | null, keep: 'mine' | 'theirs') =>
     run(async () => {
       await api.dvhProjectResolve(filePath, partner, index, keep)
       await reload()
@@ -293,6 +293,27 @@ export function DvhProjectSection({
             <span className="dvh-docs-panel-muted">
               {t('dvhProjectLastSync', { time: new Date(partner.at).toLocaleString() })}
             </span>
+            {partner.conflicts.length > 1 ? (
+              <div className="dvh-docs-panel-link-actions" data-status="conflicts">
+                <span className="dvh-docs-panel-warn">
+                  {t('dvhProjectConflicts', { count: partner.conflicts.length })}
+                </span>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void settle(partner.path, null, 'mine')}
+                >
+                  {t('dvhProjectKeepAllMine')}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void settle(partner.path, null, 'theirs')}
+                >
+                  {t('dvhProjectKeepAllTheirs')}
+                </button>
+              </div>
+            ) : null}
             {partner.conflicts.map((c, i) => (
               <div key={`${c.objectId}-${c.key ?? c.kind}`} className="dvh-docs-panel-conflict">
                 <strong>

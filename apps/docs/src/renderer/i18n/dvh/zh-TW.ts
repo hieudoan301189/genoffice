@@ -186,4 +186,7 @@ export const zhTW = {
   dvhProjectLastSync: '上次同步：{time}',
   dvhProjectDeletedThere: '在 QLCL-DVH 中已刪除，但此處已修改',
   dvhProjectDeletedHere: '在此處已刪除，但在 QLCL-DVH 中已修改',
+  dvhProjectConflicts: '{count} 個衝突待處理',
+  dvhProjectKeepAllMine: '全部保留我的',
+  dvhProjectKeepAllTheirs: '全部採用 QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

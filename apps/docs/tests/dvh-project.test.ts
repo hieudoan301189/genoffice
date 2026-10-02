@@ -114,7 +114,7 @@ describe('project data in Docs', () => {
   })
 
   it('syncs both ways with a QLCL workbook on disk; conflicts wait for the user', async () => {
-    const { svc, item } = service()
+    const { svc, store, item } = service()
     const dir = mkdtempSync(join(tmpdir(), 'dvh-project-'))
     dirs.push(dir)
     const partner = join(dir, 'QLCL-DA01.xlsx')
@@ -149,7 +149,14 @@ describe('project data in Docs', () => {
     // the partner file keeps its own value
     const written = await importQlclWorkbook(new Uint8Array(readFileSync(partner)))
     expect(written.collections.find((c) => c.name === 'WorkItem')!.rows[0]![col]).toBe(130)
-    svc.resolve('p1', partner, 0, 'mine')
+    // pending conflicts live in the project data: a restarted app still has them
+    const restarted = new ProjectDataService(
+      () => store,
+      () => {},
+      () => '2026-10-02T11:00:00.000Z',
+    )
+    expect(restarted.info('p1').partners[0]!.conflicts).toEqual(second.conflicts)
+    restarted.resolve('p1', partner, null, 'mine')
     expect(svc.info('p1').partners[0]!.conflicts).toEqual([])
     await svc.sync('p1', partner)
     const pushed = await importQlclWorkbook(new Uint8Array(readFileSync(partner)))

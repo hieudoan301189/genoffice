@@ -188,4 +188,7 @@ export const ko = {
   dvhProjectLastSync: '마지막 동기화: {time}',
   dvhProjectDeletedThere: 'QLCL-DVH에서 삭제되었지만 여기서 변경됨',
   dvhProjectDeletedHere: '여기서 삭제되었지만 QLCL-DVH에서 변경됨',
+  dvhProjectConflicts: '충돌 {count}개 대기 중',
+  dvhProjectKeepAllMine: '모두 내 값 유지',
+  dvhProjectKeepAllTheirs: '모두 QLCL-DVH 값 사용',
 } satisfies Record<keyof typeof zh, string>

@@ -185,4 +185,7 @@ export const zh = {
   dvhProjectLastSync: '上次同步：{time}',
   dvhProjectDeletedThere: '在 QLCL-DVH 中已删除，但此处已修改',
   dvhProjectDeletedHere: '在此处已删除，但在 QLCL-DVH 中已修改',
+  dvhProjectConflicts: '{count} 个冲突待处理',
+  dvhProjectKeepAllMine: '全部保留我的',
+  dvhProjectKeepAllTheirs: '全部采用 QLCL-DVH',
 }

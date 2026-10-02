@@ -188,4 +188,7 @@ export const th = {
   dvhProjectLastSync: 'ซิงค์ล่าสุด: {time}',
   dvhProjectDeletedThere: 'ถูกลบใน QLCL-DVH แต่ถูกแก้ไขที่นี่',
   dvhProjectDeletedHere: 'ถูกลบที่นี่แต่ถูกแก้ไขใน QLCL-DVH',
+  dvhProjectConflicts: 'รอแก้ไขข้อขัดแย้ง {count} รายการ',
+  dvhProjectKeepAllMine: 'เก็บของฉันทั้งหมด',
+  dvhProjectKeepAllTheirs: 'ใช้ทั้งหมดจาก QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

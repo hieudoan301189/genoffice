@@ -186,4 +186,7 @@ export const ar = {
   dvhProjectLastSync: 'آخر مزامنة: {time}',
   dvhProjectDeletedThere: 'حُذف في QLCL-DVH لكنه عُدّل هنا',
   dvhProjectDeletedHere: 'حُذف هنا لكنه عُدّل في QLCL-DVH',
+  dvhProjectConflicts: '{count} تعارض بانتظار القرار',
+  dvhProjectKeepAllMine: 'الاحتفاظ بكل ما لدي',
+  dvhProjectKeepAllTheirs: 'أخذ الكل من QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

@@ -188,4 +188,7 @@ export const ru = {
   dvhProjectLastSync: 'Последняя синхронизация: {time}',
   dvhProjectDeletedThere: 'Удалено в QLCL-DVH, но изменено здесь',
   dvhProjectDeletedHere: 'Удалено здесь, но изменено в QLCL-DVH',
+  dvhProjectConflicts: 'Ожидают решения конфликтов: {count}',
+  dvhProjectKeepAllMine: 'Оставить все мои',
+  dvhProjectKeepAllTheirs: 'Взять все из QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

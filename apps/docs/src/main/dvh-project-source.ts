@@ -29,6 +29,8 @@ import {
   projectSourceModel,
   projectTypes,
   projectUri,
+  pendingConflicts,
+  resolveAllSyncConflicts,
   resolveSyncConflict,
   setValues,
   syncProject,
@@ -56,9 +58,6 @@ export interface ProjectDataStore {
 }
 
 export class ProjectDataService {
-  /** conflicts of the last sync with each partner, until settled */
-  private readonly conflicts = new Map<string, SyncConflict[]>()
-
   constructor(
     private readonly store: () => ProjectDataStore,
     /** tells the documents linked to a project that it changed */
@@ -83,7 +82,6 @@ export class ProjectDataService {
 
   info(projectId: string): ProjectInfo {
     const data = this.load(projectId)
-    const key = (partner: string) => `${projectId}\n${partner}`
     return {
       projectId,
       name: this.store().getProject(projectId)?.name ?? projectId,
@@ -107,7 +105,7 @@ export class ProjectDataService {
       partners: Object.entries(data.sync).map(([path, base]) => ({
         path,
         at: base.at,
-        conflicts: this.conflicts.get(key(path)) ?? [],
+        conflicts: base.conflicts ?? [],
       })),
     }
   }
@@ -209,27 +207,28 @@ export class ProjectDataService {
       : Buffer.from(await exportQlclWorkbook(result.outgoing))
     // the partner file first: if it is locked (open in Excel), nothing changes here either
     await atomicWriteFile(partnerPath, out)
+    // pending conflicts are part of the saved data: they survive a restart
     this.save(result.data)
-    this.conflicts.set(`${projectId}\n${partnerPath}`, [...result.conflicts])
     return { stats: { ...result.stats }, conflicts: result.conflicts }
   }
 
-  /** Settles one pending conflict of a partner. */
-  resolve(projectId: string, partnerPath: string, index: number, keep: 'mine' | 'theirs'): void {
-    const key = `${projectId}\n${partnerPath}`
-    const pending = this.conflicts.get(key) ?? []
-    const conflict = pending[index]
-    if (!conflict) return
-    this.save(
-      resolveSyncConflict(this.load(projectId), partnerPath, conflict, keep, {
-        source: 'ui',
-        action: 'Project.ResolveConflict',
-        at: this.now(),
-      }),
-    )
-    this.conflicts.set(
-      key,
-      pending.filter((_, i) => i !== index),
-    )
+  /**
+   * Settles one pending conflict of a partner (by its place in the pending
+   * list), or all of them the same way (index null).
+   */
+  resolve(
+    projectId: string,
+    partnerPath: string,
+    index: number | null,
+    keep: 'mine' | 'theirs',
+  ): void {
+    const data = this.load(projectId)
+    const ctx = { source: 'ui' as const, action: 'Project.ResolveConflict', at: this.now() }
+    if (index === null) {
+      this.save(resolveAllSyncConflicts(data, partnerPath, keep, ctx))
+      return
+    }
+    const conflict = pendingConflicts(data, partnerPath)[index]
+    if (conflict) this.save(resolveSyncConflict(data, partnerPath, conflict, keep, ctx))
   }
 }

@@ -189,4 +189,7 @@ export const hi = {
   dvhProjectLastSync: 'अंतिम सिंक: {time}',
   dvhProjectDeletedThere: 'QLCL-DVH में हटाया गया पर यहाँ बदला गया',
   dvhProjectDeletedHere: 'यहाँ हटाया गया पर QLCL-DVH में बदला गया',
+  dvhProjectConflicts: '{count} टकराव लंबित',
+  dvhProjectKeepAllMine: 'सब मेरा रखें',
+  dvhProjectKeepAllTheirs: 'सब QLCL-DVH से लें',
 } satisfies Record<keyof typeof zh, string>

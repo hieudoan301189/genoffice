@@ -17,6 +17,8 @@ import {
   installPack,
   parseProjectData,
   parseSchemaPack,
+  pendingConflicts,
+  resolveAllSyncConflicts,
   projectFieldId,
   projectIdOfUri,
   projectSourceModel,
@@ -393,5 +395,60 @@ describe('two-way exchange with QLCL-DVH', () => {
     expect(s2.data.objects.some((o) => o.id === 'o_hm2')).toBe(false)
     const back = resolveSyncConflict(s2.data, partner, s2.conflicts[0]!, 'theirs', ui)
     expect(back.objects.find((o) => o.id === 'o_nt1')!.values.Representative).toBe('Ông A')
+  })
+
+  it('pending conflicts are saved with the data, settled one by one or all at once', async () => {
+    let data = installPack(emptyProjectData('p1'), PACK, ui)
+    const start = await roundTrip(projectSourceModel(project()))
+    data = syncProject(data, start, partner, sync).data
+    data = setValues(data, 'o_hm1', { Name: 'Móng T1 (đây)', Unit: 'cái' }, ui)
+    data = setValues(data, 'o_hm2', { Name: 'Thân T1 (đây)' }, ui)
+    let theirs = edit(await roundTrip(start), 'WorkItem', 'o_hm1', 'Tên hạng mục', 'Móng T1 (QLCL)')
+    theirs = edit(theirs, 'WorkItem', 'o_hm1', 'Đơn vị', 'tấn')
+    theirs = edit(theirs, 'WorkItem', 'o_hm2', 'Tên hạng mục', 'Thân T1 (QLCL)')
+    const s = syncProject(data, theirs, partner, sync)
+    expect(s.conflicts).toHaveLength(3)
+    // they survive a restart: stored in the project data
+    const reopened = parseProjectData(JSON.parse(JSON.stringify(s.data)), 'p1')
+    expect(pendingConflicts(reopened, partner)).toEqual(s.conflicts)
+
+    // one settled: off the list; settling it again changes nothing
+    const first = pendingConflicts(reopened, partner)[0]!
+    data = resolveSyncConflict(reopened, partner, first, 'theirs', ui)
+    expect(pendingConflicts(data, partner)).toHaveLength(2)
+    expect(resolveSyncConflict(data, partner, first, 'mine', ui)).toBe(data)
+    expect(data.objects.find((o) => o.id === 'o_hm1')!.values.Name).toBe('Móng T1 (QLCL)')
+
+    // the rest at once: mine, pushed by the next sync, which is then quiet
+    data = resolveAllSyncConflicts(data, partner, 'mine', ui)
+    expect(pendingConflicts(data, partner)).toEqual([])
+    const next = syncProject(data, theirs, partner, sync)
+    expect(next.conflicts).toEqual([])
+    const rows = next.outgoing.collections.find((c) => c.name === 'WorkItem')!.rows
+    expect(rows.find((r) => r[0] === 'o_hm1')!.slice(2, 4)).toEqual(['Móng T1 (QLCL)', 'cái'])
+    expect(rows.find((r) => r[0] === 'o_hm2')![2]).toBe('Thân T1 (đây)')
+  })
+
+  it('a new sync replaces the pending list; "theirs" brings back an object deleted meanwhile', async () => {
+    let data = installPack(emptyProjectData('p1'), PACK, ui)
+    const start = await roundTrip(projectSourceModel(project()))
+    data = syncProject(data, start, partner, sync).data
+    data = setValues(data, 'o_hm1', { Name: 'đây' }, ui)
+    const theirs = edit(await roundTrip(start), 'WorkItem', 'o_hm1', 'Tên hạng mục', 'QLCL')
+    data = syncProject(data, theirs, partner, sync).data
+    const conflict = pendingConflicts(data, partner)[0]!
+    // the conflicting object is deleted here before the user decides
+    const gone = deleteObject(data, 'o_hm1', ui)
+    const back = resolveSyncConflict(gone, partner, conflict, 'theirs', ui)
+    expect(back.objects.find((o) => o.id === 'o_hm1')!.values).toMatchObject({
+      Name: 'QLCL',
+      Code: 'HM-01',
+    })
+    // agreeing by hand, then syncing again: the stale conflict is gone
+    data = setValues(data, 'o_hm1', { Name: 'QLCL' }, ui)
+    const again = syncProject(data, theirs, partner, sync)
+    expect(again.conflicts).toEqual([])
+    expect(pendingConflicts(again.data, partner)).toEqual([])
+    expect(again.data.sync[partner]).not.toHaveProperty('conflicts')
   })
 })

@@ -32,6 +32,23 @@ export const projectObjectSchema = z
   .strict()
 export type ProjectObject = z.infer<typeof projectObjectSchema>
 
+/** A value or an object both sides changed since the last sync: it waits for the user. */
+export const syncConflictSchema = z
+  .object({
+    objectId: z.string().min(1),
+    type: z.string().min(1),
+    /** the value's key; absent for a deletion conflict */
+    key: z.string().optional(),
+    kind: z.enum(['value', 'deleted-there', 'deleted-here']),
+    base: z.string().nullable(),
+    local: z.string().nullable(),
+    remote: z.string().nullable(),
+    /** the remote object's values (deletion conflicts) */
+    remoteValues: z.record(z.string(), z.string()).optional(),
+  })
+  .strict()
+export type SyncConflict = z.infer<typeof syncConflictSchema>
+
 /** What an exchange partner and this project last agreed on: per object, per key, the text. */
 export const syncBaseSchema = z
   .object({
@@ -40,6 +57,8 @@ export const syncBaseSchema = z
       z.string(),
       z.object({ type: z.string(), values: z.record(z.string(), z.string()) }).strict(),
     ),
+    /** conflicts of the last sync still waiting for the user (kept across restarts) */
+    conflicts: z.array(syncConflictSchema).optional(),
   })
   .strict()
 export type SyncBase = z.infer<typeof syncBaseSchema>

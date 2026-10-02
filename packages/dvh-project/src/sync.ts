@@ -25,22 +25,12 @@ import {
   type ChangeContext,
   type ProjectData,
   type SyncBase,
+  type SyncConflict,
 } from './data'
 import type { PackType } from './pack'
 import { projectSourceModel } from './source'
 
-export interface SyncConflict {
-  readonly objectId: string
-  readonly type: string
-  /** the value's key; absent for a deletion conflict */
-  readonly key?: string
-  readonly kind: 'value' | 'deleted-there' | 'deleted-here'
-  readonly base: string | null
-  readonly local: string | null
-  readonly remote: string | null
-  /** the remote object's values (deletion conflicts) */
-  readonly remoteValues?: Readonly<Record<string, string>>
-}
+export type { SyncConflict }
 
 export interface SyncResult {
   readonly data: ProjectData
@@ -260,7 +250,18 @@ export function syncProject(
     stats.created++
   }
 
-  next = { ...next, sync: { ...next.sync, [partner]: { at: ctx.at, objects: agreed } } }
+  next = {
+    ...next,
+    sync: {
+      ...next.sync,
+      [partner]: {
+        at: ctx.at,
+        objects: agreed,
+        // a new sync replaces the old list: what is still in conflict was found again
+        ...(conflicts.length ? { conflicts: structuredClone(conflicts) } : {}),
+      },
+    },
+  }
   return { data: next, outgoing: outgoingModel(next, keepRemote, omit, addBack), conflicts, stats }
 }
 
@@ -293,6 +294,33 @@ function outgoingModel(
   return projectSourceModel({ ...data, objects })
 }
 
+/** The conflicts of a partner still waiting for the user. */
+export function pendingConflicts(data: ProjectData, partner: string): readonly SyncConflict[] {
+  return data.sync[partner]?.conflicts ?? []
+}
+
+const sameConflict = (a: SyncConflict, b: SyncConflict) =>
+  a.objectId === b.objectId && a.kind === b.kind && (a.key ?? '') === (b.key ?? '')
+
+/**
+ * Settles every pending conflict of a partner the same way. An object whose
+ * value conflict was settled is kept consistent: conflicts on objects that a
+ * deletion conflict already removed are skipped.
+ */
+export function resolveAllSyncConflicts(
+  data: ProjectData,
+  partner: string,
+  keep: 'mine' | 'theirs',
+  ctx: ChangeContext,
+): ProjectData {
+  let next = data
+  for (const conflict of pendingConflicts(data, partner)) {
+    if (!pendingConflicts(next, partner).some((c) => sameConflict(c, conflict))) continue
+    next = resolveSyncConflict(next, partner, conflict, keep, ctx)
+  }
+  return next
+}
+
 /** Settles one conflict: `mine` is pushed at the next sync, `theirs` is taken now. */
 export function resolveSyncConflict(
   data: ProjectData,
@@ -305,25 +333,46 @@ export function resolveSyncConflict(
   if (!sync) return data
   const objects = { ...sync.objects }
   let next = data
+  // a conflict that is no longer pending (settled, or replaced by a newer sync) changes nothing
+  if (sync.conflicts && !sync.conflicts.some((c) => sameConflict(c, conflict))) return data
+  const remaining = (sync.conflicts ?? []).filter((c) => !sameConflict(c, conflict))
   if (conflict.kind === 'value' && conflict.key) {
+    const key = conflict.key
+    const remote = conflict.remote ?? ''
     const entry = objects[conflict.objectId] ?? { type: conflict.type, values: {} }
-    objects[conflict.objectId] = {
-      type: entry.type,
-      // the partner's value becomes the base: unchanged there, so "mine" wins next time
-      values: { ...entry.values, [conflict.key]: conflict.remote ?? '' },
+    // the partner's value becomes the base: unchanged there, so "mine" wins next time
+    objects[conflict.objectId] = { type: entry.type, values: { ...entry.values, [key]: remote } }
+    if (keep === 'theirs') {
+      next = next.objects.some((o) => o.id === conflict.objectId)
+        ? setValues(next, conflict.objectId, { [key]: remote }, ctx)
+        : // deleted here meanwhile: theirs brings it back with the partner's value
+          createObject(
+            next,
+            conflict.type,
+            { ...entry.values, [key]: remote },
+            ctx,
+            conflict.objectId,
+          ).data
     }
-    if (keep === 'theirs')
-      next = setValues(next, conflict.objectId, { [conflict.key]: conflict.remote ?? '' }, ctx)
   } else if (conflict.kind === 'deleted-there') {
     delete objects[conflict.objectId]
     if (keep === 'theirs') next = deleteObject(next, conflict.objectId, ctx)
   } else if (conflict.kind === 'deleted-here') {
     const values = conflict.remoteValues ?? {}
     if (keep === 'theirs') {
-      next = createObject(next, conflict.type, values, ctx, conflict.objectId).data
+      next = next.objects.some((o) => o.id === conflict.objectId)
+        ? setValues(next, conflict.objectId, values, ctx)
+        : createObject(next, conflict.type, values, ctx, conflict.objectId).data
     }
     // either way the base is the partner's object: kept here, or deleted there next time
     objects[conflict.objectId] = { type: conflict.type, values: { ...values } }
   }
-  return { ...next, sync: { ...next.sync, [partner]: { ...sync, objects } } }
+  const { conflicts: _old, ...rest } = sync
+  return {
+    ...next,
+    sync: {
+      ...next.sync,
+      [partner]: { ...rest, objects, ...(remaining.length ? { conflicts: remaining } : {}) },
+    },
+  }
 }

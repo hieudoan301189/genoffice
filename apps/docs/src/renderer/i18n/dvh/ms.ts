@@ -192,4 +192,7 @@ export const ms = {
   dvhProjectLastSync: 'Segerak terakhir: {time}',
   dvhProjectDeletedThere: 'Dipadam dalam QLCL-DVH tetapi diubah di sini',
   dvhProjectDeletedHere: 'Dipadam di sini tetapi diubah dalam QLCL-DVH',
+  dvhProjectConflicts: '{count} konflik menunggu',
+  dvhProjectKeepAllMine: 'Kekalkan semua milik saya',
+  dvhProjectKeepAllTheirs: 'Ambil semua daripada QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

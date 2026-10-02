@@ -190,4 +190,7 @@ export const ja = {
   dvhProjectLastSync: '最終同期：{time}',
   dvhProjectDeletedThere: 'QLCL-DVH で削除されましたが、ここで変更されています',
   dvhProjectDeletedHere: 'ここで削除されましたが、QLCL-DVH で変更されています',
+  dvhProjectConflicts: '{count} 件の競合が未解決',
+  dvhProjectKeepAllMine: 'すべて自分の値を保持',
+  dvhProjectKeepAllTheirs: 'すべて QLCL-DVH の値を使用',
 } satisfies Record<keyof typeof zh, string>

@@ -455,10 +455,11 @@ export interface DesktopApi {
     | { error: string }
     | null
   >
+  /** settles one pending conflict, or all of them (index null) */
   dvhProjectResolve(
     filePath: string | null,
     partner: string,
-    index: number,
+    index: number | null,
     keep: 'mine' | 'theirs',
   ): Promise<void>
   /** P8: saves a workflow (dvh-workflow JSON) into a project folder */

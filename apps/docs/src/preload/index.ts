@@ -165,8 +165,12 @@ const api: DesktopApi = {
     ipcRenderer.invoke('docs:dvh-project-delete', filePath, objectId),
   dvhProjectSync: (filePath: string | null, partner: string | null) =>
     ipcRenderer.invoke('docs:dvh-project-sync', filePath, partner),
-  dvhProjectResolve: (filePath: string | null, partner: string, index: number, keep: string) =>
-    ipcRenderer.invoke('docs:dvh-project-resolve', filePath, partner, index, keep),
+  dvhProjectResolve: (
+    filePath: string | null,
+    partner: string,
+    index: number | null,
+    keep: string,
+  ) => ipcRenderer.invoke('docs:dvh-project-resolve', filePath, partner, index, keep),
   dvhWorkflowExport: (json: string, fileName: string) =>
     ipcRenderer.invoke('docs:dvh-workflow-export', json, fileName),
   dvhWorkflowImport: () => ipcRenderer.invoke('docs:dvh-workflow-import'),

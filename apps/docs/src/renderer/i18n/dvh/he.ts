@@ -186,4 +186,7 @@ export const he = {
   dvhProjectLastSync: 'סנכרון אחרון: {time}',
   dvhProjectDeletedThere: 'נמחק ב-QLCL-DVH אך שונה כאן',
   dvhProjectDeletedHere: 'נמחק כאן אך שונה ב-QLCL-DVH',
+  dvhProjectConflicts: '{count} התנגשויות ממתינות',
+  dvhProjectKeepAllMine: 'שמירת כל שלי',
+  dvhProjectKeepAllTheirs: 'לקחת הכול מ-QLCL-DVH',
 } satisfies Record<keyof typeof zh, string>

@@ -123,8 +123,33 @@ mục P10. Kiểm bằng vitest trên môi trường cloud (Linux, không có b�
 ## Giới hạn còn lại
 
 - Bảng đối tượng chưa có lọc, sắp xếp hay phân trang; dự án rất lớn nên sửa qua đồng bộ.
-- Xung đột đồng bộ chờ giải chỉ giữ trong phiên làm việc (bản gốc thì đã lưu). Đóng ứng dụng thì đồng bộ lại sẽ
-  thấy lại xung đột.
 - Chưa có giao diện gỡ gói schema (đã có hàm `removePack`). Mẫu đi kèm gói mới khai báo, chưa có nút mở.
 - Sheets chưa liên kết tới dữ liệu dự án; Sheets vẫn là nguồn workbook như P3.
 - Chưa thử với QLCL-DVH thật; định dạng trao đổi bám theo P6.
+
+## Bổ sung: xử lý xung đột còn lại (02/10/2026)
+
+- **Xung đột chờ giải được lưu cùng dữ liệu dự án** (`sync[<đối tác>].conflicts`), nên còn nguyên sau khi đóng và
+  mở lại ứng dụng.
+  - Trước đây danh sách chỉ nằm trong bộ nhớ của main process.
+  - Một lần đồng bộ mới thay cả danh sách: xung đột còn thật thì được tìm thấy lại; xung đột đã được hai bên tự
+    thống nhất thì biến mất.
+- **Giải an toàn**:
+  - giải một xung đột thì bỏ nó khỏi danh sách;
+  - giải lại một xung đột không còn chờ (đã giải, hoặc đã bị lần đồng bộ sau thay) thì không đổi gì;
+  - "Lấy từ nguồn" cho một xung đột giá trị mà đối tượng đã bị xoá ở đây trong lúc chờ: đối tượng được tạo lại
+    với giá trị của QLCL-DVH;
+  - xung đột "xoá ở đây": nếu đối tượng đã có lại thì "Lấy từ nguồn" ghi đè giá trị, không lỗi trùng id.
+- **Giải tất cả** (`resolveAllSyncConflicts`): "Giữ tất cả của tôi" / "Lấy tất cả từ QLCL-DVH".
+  - Hiện khi có từ hai xung đột trở lên; IPC `docs:dvh-project-resolve` nhận `index: null`.
+  - 3 chuỗi mới cho cả 20 ngôn ngữ.
+- Test:
+  - `dvh-project` 11 (thêm 2):
+    - xung đột đi–về qua JSON lưu trữ;
+    - giải từng cái, giải lại thì không đổi gì;
+    - giải tất cả "của tôi", lần sau đẩy đi và yên;
+    - đồng bộ mới thay danh sách;
+    - "lấy từ nguồn" tạo lại đối tượng đã xoá.
+  - `apps/docs/tests/dvh-project.test.ts`: một service mới (ứng dụng khởi động lại) vẫn thấy xung đột, rồi giải tất
+    cả.
+  - Docs 3.151/3.151; typecheck shell và `dvh-project` sạch; eslint, english-comments đạt.
