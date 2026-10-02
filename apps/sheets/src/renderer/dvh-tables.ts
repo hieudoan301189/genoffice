@@ -12,6 +12,7 @@
 import {
   collectionDefinedName,
   contentHash,
+  effectiveTableColumns,
   newDvhId,
   renderTable,
   tableDefinedName,
@@ -208,16 +209,31 @@ function readColumns(
   previous?: readonly DvhColumn[],
 ): DvhColumn[] {
   const sheet = sheetOf(runtime, rect.sheetName)
-  const taken = new Set<string>()
+  const taken = new Set<string>(previous?.map((c) => c.key))
+  const titles = Array.from({ length: rect.columns }, (_, i) =>
+    values[0]?.[i] === null || values[0]?.[i] === undefined ? '' : String(values[0][i]),
+  )
+  const used = new Set<string>()
+  /** a column keeps its id when its title is still there, or when it was renamed in place */
+  const previousFor = (i: number): DvhColumn | undefined => {
+    const byTitle = previous?.find((c) => c.title === titles[i] && !used.has(c.id))
+    const atPosition = previous?.[i]
+    const match =
+      byTitle ??
+      (atPosition && !used.has(atPosition.id) && !titles.includes(atPosition.title)
+        ? atPosition
+        : undefined)
+    if (match) used.add(match.id)
+    return match
+  }
   return Array.from({ length: rect.columns }, (_, i) => {
-    const title =
-      values[0]?.[i] === null || values[0]?.[i] === undefined ? '' : String(values[0][i])
+    const title = titles[i]!
     const body = values.slice(1).map((row) => row[i] ?? null)
     const header = cellStyle(runtime, rect.sheetName, rect.row, rect.column + i)
     const first =
       rect.rows > 1 ? cellStyle(runtime, rect.sheetName, rect.row + 1, rect.column + i) : null
     const numFmt = first?.n?.pattern
-    const old = previous?.[i]
+    const old = previousFor(i)
     const column: DvhColumn = {
       id: old?.id ?? newDvhId('c').replace(/^c_/, 'col_'),
       key: old?.key ?? columnKey(title || `col ${i + 1}`, taken),
@@ -228,7 +244,6 @@ function readColumns(
       style: dvhStyleFromUniver(first),
       width: sheet.getColumnWidth(rect.column + i),
     }
-    if (old) taken.add(old.key)
     return column
   })
 }
@@ -292,18 +307,28 @@ const rowIsEmpty = (row: readonly Scalar[]) => row.every((v) => v === null)
  * join it, trailing empty rows leave it (Excel table auto-expand). Returns
  * false when the range is gone (its cells were deleted).
  */
-export function syncCollection(
+/**
+ * A collection as its range holds it right now: rows typed directly under the
+ * range join it, a title typed right of the title row adds a column, trailing
+ * empty rows and columns leave it (Excel table auto-expand). Reads only; null
+ * when the range is gone (its cells were deleted).
+ */
+export function readCollectionState(
   runtime: UniverRuntime,
-  dvh: DvhSheetState,
   collection: DvhCollection,
-): boolean {
-  const name = collectionDefinedName(collection.id)
-  const found = definedRect(runtime, name)
-  if (!found) return false
+): { found: SheetRect; rect: SheetRect; columns: DvhColumn[]; rows: Scalar[][] } | null {
+  const found = definedRect(runtime, collectionDefinedName(collection.id))
+  if (!found) return null
   let rect = found
   const sheet = sheetOf(runtime, rect.sheetName)
   const maxRows = sheet.getMaxRows()
   const rowAt = (r: number) => readValues(runtime, { ...rect, row: r, rows: 1 })[0] ?? []
+  const maxColumns = sheet.getMaxColumns()
+  const titleAt = (c: number) =>
+    readValues(runtime, { ...rect, column: c, columns: 1, rows: 1 })[0]?.[0]
+  while (rect.column + rect.columns < maxColumns && titleAt(rect.column + rect.columns) != null) {
+    rect = { ...rect, columns: rect.columns + 1 }
+  }
   while (rect.row + rect.rows < maxRows && !rowIsEmpty(rowAt(rect.row + rect.rows))) {
     rect = { ...rect, rows: rect.rows + 1 }
   }
@@ -312,17 +337,36 @@ export function syncCollection(
     rect = { ...rect, rows: rect.rows - 1 }
     values = values.slice(0, -1)
   }
-  if (rectFormula(rect) !== rectFormula(found)) setDefinedRect(runtime, name, rect)
-  const columns = readColumns(
-    runtime,
+  while (rect.columns > 1 && values.every((row) => row[rect.columns - 1] === null)) {
+    rect = { ...rect, columns: rect.columns - 1 }
+    values = values.map((row) => row.slice(0, -1))
+  }
+  return {
+    found,
     rect,
-    values,
-    collection.columns.length === rect.columns ? collection.columns : undefined,
-  )
-  const rows = values.slice(1)
+    columns: readColumns(runtime, rect, values, collection.columns),
+    rows: values.slice(1),
+  }
+}
+
+const columnSignature = (columns: readonly DvhColumn[]) =>
+  contentHash(columns.map((c) => [c.title, c.style, c.headerStyle, c.numFmt ?? null]))
+
+/** Re-reads a collection from its range into the model, records the change, follows the range. */
+export function syncCollection(
+  runtime: UniverRuntime,
+  dvh: DvhSheetState,
+  collection: DvhCollection,
+): boolean {
+  const state = readCollectionState(runtime, collection)
+  if (!state) return false
+  const { found, rect, columns, rows } = state
+  if (rectFormula(rect) !== rectFormula(found)) {
+    setDefinedRect(runtime, collectionDefinedName(collection.id), rect)
+  }
   const changed =
     contentHash(rows) !== contentHash(collection.rows) ||
-    contentHash(columns.map((c) => c.title)) !== contentHash(collection.columns.map((c) => c.title))
+    columnSignature(columns) !== columnSignature(collection.columns)
   if (changed) {
     recordDvhChange(dvh, 'Spreadsheet.CollectionEdited', [
       {
@@ -378,6 +422,7 @@ export function createTable(
       columnId: c.id,
       title: c.title,
     })),
+    autoColumns: true,
     style: { mode: options.mode ?? 'source' },
     layout: { repeatHeader: true, keepRowsTogether: true, widths: 'page' },
   }
@@ -455,9 +500,29 @@ export function renderTableInSheet(
   rendering = true
   try {
     if (existing) {
+      // a source column added or removed: shift cells in the table's rows only
+      if (grid.columnCount > existing.columns) {
+        sheet
+          .getRange(
+            existing.row,
+            existing.column + existing.columns,
+            existing.rows,
+            grid.columnCount - existing.columns,
+          )
+          .insertCells(Dimension.COLUMNS)
+      } else if (grid.columnCount < existing.columns) {
+        sheet
+          .getRange(
+            existing.row,
+            existing.column + grid.columnCount,
+            existing.rows,
+            existing.columns - grid.columnCount,
+          )
+          .deleteCells(Dimension.COLUMNS)
+      }
       // shift cells in the table's columns only (Excel's "insert table rows"):
       // whole-row inserts would also split a source range sitting beside the table
-      const width = Math.max(existing.columns, grid.columnCount)
+      const width = grid.columnCount
       if (height > existing.rows) {
         sheet
           .getRange(
@@ -473,14 +538,7 @@ export function renderTableInSheet(
           .deleteCells(Dimension.ROWS)
       }
       try {
-        sheet
-          .getRange(
-            existing.row,
-            existing.column,
-            height,
-            Math.max(existing.columns, grid.columnCount),
-          )
-          .breakApart()
+        sheet.getRange(existing.row, existing.column, height, grid.columnCount).breakApart()
       } catch {
         // nothing merged
       }
@@ -503,11 +561,13 @@ export function renderTableInSheet(
         column += cell.colSpan
       }
     })
-    if (!existing && table.style.mode === 'source' && 'collectionId' in table.source) {
+    // source widths on the first render, and for columns that just appeared
+    if (table.style.mode === 'source' && 'collectionId' in table.source) {
       const collection = model.collections.find(
         (c) => c.id === (table.source as { collectionId: string }).collectionId,
       )
-      table.columns.forEach((col, i) => {
+      effectiveTableColumns(table, collection).forEach((col, i) => {
+        if (existing && i < existing.columns) return
         const px = collection?.columns.find((c) => c.id === col.columnId)?.width
         if (px) sheet.setColumnWidth(rect.column + i, px)
       })

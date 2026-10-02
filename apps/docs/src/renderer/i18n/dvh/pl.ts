@@ -37,4 +37,12 @@ export const pl = {
   dvhRefresh: 'Odśwież',
   dvhTableEditedConfirm:
     'Tabela „{name}” została zmieniona ręcznie. Zastąpić ją danymi źródłowymi?',
+  dvhUpdateMode: 'Aktualizacja',
+  dvhModeManual: 'Ręczna',
+  dvhModeOnOpen: 'Przy otwarciu',
+  dvhModeAuto: 'Automatyczna',
+  dvhUnlink: 'Odłącz',
+  dvhUnlinkConfirm: 'Odłączyć {name}? Pola i tabele pozostaną zwykłą treścią.',
+  dvhStatusEdited:
+    'Tabela została zmieniona ręcznie; automatyczne aktualizacje ją pomijają, dopóki jej nie odświeżysz.',
 } satisfies Record<keyof typeof zh, string>

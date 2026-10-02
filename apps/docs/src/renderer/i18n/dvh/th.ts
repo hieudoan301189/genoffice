@@ -36,4 +36,11 @@ export const th = {
   dvhStyleDestination: 'ใช้สไตล์ตาราง',
   dvhRefresh: 'รีเฟรช',
   dvhTableEditedConfirm: 'ตาราง "{name}" ถูกแก้ไขด้วยมือ ต้องการแทนที่ด้วยข้อมูลต้นฉบับหรือไม่',
+  dvhUpdateMode: 'การอัปเดต',
+  dvhModeManual: 'ด้วยตนเอง',
+  dvhModeOnOpen: 'เมื่อเปิด',
+  dvhModeAuto: 'อัตโนมัติ',
+  dvhUnlink: 'ยกเลิกลิงก์',
+  dvhUnlinkConfirm: 'ยกเลิกลิงก์ {name} หรือไม่ ฟิลด์และตารางจะยังคงเป็นเนื้อหาปกติ',
+  dvhStatusEdited: 'มีตารางถูกแก้ไขด้วยมือ การอัปเดตอัตโนมัติจะข้ามจนกว่าคุณจะรีเฟรช',
 } satisfies Record<keyof typeof zh, string>

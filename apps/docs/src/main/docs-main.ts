@@ -25,6 +25,7 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { readDvhSource } from './dvh-source'
+import { registerDvhLinkIpc } from './dvh-link-watch'
 import { basename, dirname, extname, isAbsolute, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
@@ -4640,6 +4641,9 @@ export function registerDocsIpc(): void {
   ipcMain.handle('docs:recent', () =>
     readJson<string[]>(RECENT_PATH(), []).filter((p) => existsSync(p)),
   )
+
+  // DVH automatic links: watched workbooks and the live channel from Sheets
+  registerDvhLinkIpc()
 
   // DVH tables format numbers like Excel does: by the OS regional settings, not the UI language
   ipcMain.handle('docs:dvh-system-locale', () => app.getSystemLocale() || app.getLocale())

@@ -38,4 +38,12 @@ export const es = {
   dvhRefresh: 'Actualizar',
   dvhTableEditedConfirm:
     'La tabla "{name}" se editó a mano. ¿Reemplazarla con los datos de origen?',
+  dvhUpdateMode: 'Actualización',
+  dvhModeManual: 'Manual',
+  dvhModeOnOpen: 'Al abrir',
+  dvhModeAuto: 'Automática',
+  dvhUnlink: 'Desvincular',
+  dvhUnlinkConfirm: '¿Desvincular {name}? Sus campos y tablas quedan como contenido normal.',
+  dvhStatusEdited:
+    'Una tabla se editó a mano; las actualizaciones automáticas la omiten hasta que la actualice.',
 } satisfies Record<keyof typeof zh, string>

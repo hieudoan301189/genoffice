@@ -38,4 +38,12 @@ export const it = {
   dvhRefresh: 'Aggiorna',
   dvhTableEditedConfirm:
     'La tabella "{name}" è stata modificata a mano. Sostituirla con i dati di origine?',
+  dvhUpdateMode: 'Aggiornamento',
+  dvhModeManual: 'Manuale',
+  dvhModeOnOpen: "All'apertura",
+  dvhModeAuto: 'Automatico',
+  dvhUnlink: 'Scollega',
+  dvhUnlinkConfirm: 'Scollegare {name}? Campi e tabelle restano come contenuto normale.',
+  dvhStatusEdited:
+    'Una tabella è stata modificata a mano; gli aggiornamenti automatici la saltano finché non la aggiorni.',
 } satisfies Record<keyof typeof zh, string>

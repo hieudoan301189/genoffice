@@ -37,4 +37,13 @@ export const de = {
   dvhStyleDestination: 'Tabellenformat verwenden',
   dvhRefresh: 'Aktualisieren',
   dvhTableEditedConfirm: 'Tabelle „{name}“ wurde von Hand geändert. Durch die Quelldaten ersetzen?',
+  dvhUpdateMode: 'Aktualisierung',
+  dvhModeManual: 'Manuell',
+  dvhModeOnOpen: 'Beim Öffnen',
+  dvhModeAuto: 'Automatisch',
+  dvhUnlink: 'Verknüpfung lösen',
+  dvhUnlinkConfirm:
+    'Verknüpfung mit {name} lösen? Felder und Tabellen bleiben als normaler Inhalt erhalten.',
+  dvhStatusEdited:
+    'Eine Tabelle wurde von Hand geändert; automatische Aktualisierungen überspringen sie, bis Sie sie aktualisieren.',
 } satisfies Record<keyof typeof zh, string>

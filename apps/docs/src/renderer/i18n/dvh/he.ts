@@ -36,4 +36,11 @@ export const he = {
   dvhStyleDestination: 'השתמש בסגנון הטבלה',
   dvhRefresh: 'רענן',
   dvhTableEditedConfirm: 'הטבלה "{name}" נערכה ידנית. להחליף אותה בנתוני המקור?',
+  dvhUpdateMode: 'עדכון',
+  dvhModeManual: 'ידני',
+  dvhModeOnOpen: 'בפתיחה',
+  dvhModeAuto: 'אוטומטי',
+  dvhUnlink: 'בטל קישור',
+  dvhUnlinkConfirm: 'לבטל את הקישור ל-{name}? השדות והטבלאות יישארו כתוכן רגיל.',
+  dvhStatusEdited: 'טבלה נערכה ידנית; עדכונים אוטומטיים ידלגו עליה עד שתרענן אותה.',
 } satisfies Record<keyof typeof zh, string>

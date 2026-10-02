@@ -36,4 +36,11 @@ export const ko = {
   dvhStyleDestination: '표 스타일 사용',
   dvhRefresh: '새로 고침',
   dvhTableEditedConfirm: '표 "{name}"이(가) 직접 수정되었습니다. 원본 데이터로 바꿀까요?',
+  dvhUpdateMode: '업데이트',
+  dvhModeManual: '수동',
+  dvhModeOnOpen: '열 때',
+  dvhModeAuto: '자동',
+  dvhUnlink: '연결 해제',
+  dvhUnlinkConfirm: '{name} 연결을 해제할까요? 필드와 표는 일반 내용으로 남습니다.',
+  dvhStatusEdited: '표가 직접 수정되었습니다. 새로 고칠 때까지 자동 업데이트에서 제외됩니다.',
 } satisfies Record<keyof typeof zh, string>

@@ -297,6 +297,7 @@ import {
 } from './dvh-smart-data'
 import { createSheetsDvhActions } from './dvh-actions'
 import { installDvhTableWatch } from './dvh-tables'
+import { installDvhLivePublisher } from './dvh-live'
 import { isDvhDefinedName } from '@genoffice/dvh-model'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
@@ -1752,9 +1753,12 @@ export function App({
       getState: () => lazyWorkbookRef.current,
       markPending: () => setPendingEdits((count) => count + 1),
       notify: (message) => showToast(message, 'error'),
+      isReady: () => lazyWorkbookRef.current?.flags.preloadComplete ?? true,
     })
     const dvhBindingWatchDisposable = installDvhBindingWatch(runtime)
     const dvhTableWatchDisposable = installDvhTableWatch(runtime)
+    // automatic links: linked documents follow edits live, without a save
+    const dvhLiveDisposable = installDvhLivePublisher(runtime)
     // Excel-parity number-format display: empty sections, text section,
     // _/* padding, General digit fitting, 1904 date-system serial shift.
     const numberFormatFixDisposable = installNumberFormatFix(
@@ -2985,6 +2989,7 @@ export function App({
       dvhContextDisposable.dispose()
       dvhBindingWatchDisposable.dispose()
       dvhTableWatchDisposable.dispose()
+      dvhLiveDisposable.dispose()
       numberFormatFixDisposable.dispose()
       errorAlignDisposable.dispose()
       cellFilenameDisposable.dispose()

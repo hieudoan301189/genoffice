@@ -36,4 +36,11 @@ export const ja = {
   dvhStyleDestination: '表のスタイルを使用',
   dvhRefresh: '更新',
   dvhTableEditedConfirm: '表「{name}」は手動で編集されています。ソースのデータで置き換えますか?',
+  dvhUpdateMode: '更新',
+  dvhModeManual: '手動',
+  dvhModeOnOpen: '開くとき',
+  dvhModeAuto: '自動',
+  dvhUnlink: 'リンク解除',
+  dvhUnlinkConfirm: '{name} のリンクを解除しますか? フィールドと表は通常の内容として残ります。',
+  dvhStatusEdited: '表が手動で編集されています。手動で更新するまで自動更新では変更されません。',
 } satisfies Record<keyof typeof zh, string>

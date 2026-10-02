@@ -107,6 +107,12 @@ export const dvhTableSchema = z
       z.object({ rows: z.array(z.array(scalarSchema)) }).strict(),
     ]),
     columns: z.array(dvhTableColumnSchema).min(1),
+    /**
+     * the table shows every column of its collection, in the collection's order
+     * and with its current titles (columns added, removed or renamed at the
+     * source follow on refresh); `columns` then only keeps per-column settings
+     */
+    autoColumns: z.boolean().optional(),
     /** header rows above the column titles; each cell spans consecutive columns */
     headerGroups: z
       .array(z.array(z.object({ title: z.string(), span: z.number().int().min(1) }).strict()))

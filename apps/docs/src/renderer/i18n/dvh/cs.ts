@@ -36,4 +36,12 @@ export const cs = {
   dvhStyleDestination: 'Použít styl tabulky',
   dvhRefresh: 'Aktualizovat',
   dvhTableEditedConfirm: 'Tabulka „{name}“ byla upravena ručně. Nahradit ji zdrojovými daty?',
+  dvhUpdateMode: 'Aktualizace',
+  dvhModeManual: 'Ručně',
+  dvhModeOnOpen: 'Při otevření',
+  dvhModeAuto: 'Automaticky',
+  dvhUnlink: 'Odpojit',
+  dvhUnlinkConfirm: 'Odpojit {name}? Pole a tabulky zůstanou jako běžný obsah.',
+  dvhStatusEdited:
+    'Tabulka byla upravena ručně; automatické aktualizace ji přeskočí, dokud ji neaktualizujete.',
 } satisfies Record<keyof typeof zh, string>

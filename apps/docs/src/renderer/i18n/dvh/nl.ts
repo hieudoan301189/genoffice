@@ -37,4 +37,12 @@ export const nl = {
   dvhStyleDestination: 'Tabelstijl gebruiken',
   dvhRefresh: 'Vernieuwen',
   dvhTableEditedConfirm: 'Tabel "{name}" is met de hand bewerkt. Vervangen door de brongegevens?',
+  dvhUpdateMode: 'Bijwerken',
+  dvhModeManual: 'Handmatig',
+  dvhModeOnOpen: 'Bij openen',
+  dvhModeAuto: 'Automatisch',
+  dvhUnlink: 'Ontkoppelen',
+  dvhUnlinkConfirm: '{name} ontkoppelen? Velden en tabellen blijven als gewone inhoud staan.',
+  dvhStatusEdited:
+    'Een tabel is met de hand bewerkt; automatische updates slaan die over tot u hem vernieuwt.',
 } satisfies Record<keyof typeof zh, string>

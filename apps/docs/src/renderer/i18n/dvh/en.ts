@@ -36,4 +36,11 @@ export const en = {
   dvhStyleDestination: 'Use table style',
   dvhRefresh: 'Refresh',
   dvhTableEditedConfirm: 'Table "{name}" was edited by hand. Replace it with the source data?',
+  dvhUpdateMode: 'Update',
+  dvhModeManual: 'Manual',
+  dvhModeOnOpen: 'On open',
+  dvhModeAuto: 'Automatic',
+  dvhUnlink: 'Unlink',
+  dvhUnlinkConfirm: 'Unlink {name}? Its fields and tables stay as plain content.',
+  dvhStatusEdited: 'A table was edited by hand; automatic updates skip it until you refresh it.',
 } satisfies Record<keyof typeof zh, string>

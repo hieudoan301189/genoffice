@@ -379,6 +379,8 @@ export interface DvhSheetsContext {
   /** a DVH change is pending: let Save write it */
   markPending(): void
   notify(message: string): void
+  /** false while a streaming open is still filling the sheets */
+  isReady?(): boolean
 }
 
 let context: DvhSheetsContext | null = null

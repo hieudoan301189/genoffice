@@ -38,4 +38,12 @@ export const ms = {
   dvhRefresh: 'Segar semula',
   dvhTableEditedConfirm:
     'Jadual "{name}" telah disunting secara manual. Gantikan dengan data sumber?',
+  dvhUpdateMode: 'Kemas kini',
+  dvhModeManual: 'Manual',
+  dvhModeOnOpen: 'Semasa dibuka',
+  dvhModeAuto: 'Automatik',
+  dvhUnlink: 'Nyahpaut',
+  dvhUnlinkConfirm: 'Nyahpaut {name}? Medan dan jadualnya kekal sebagai kandungan biasa.',
+  dvhStatusEdited:
+    'Satu jadual telah disunting secara manual; kemas kini automatik melangkauinya sehingga anda menyegarkannya.',
 } satisfies Record<keyof typeof zh, string>

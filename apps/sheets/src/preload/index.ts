@@ -211,6 +211,22 @@ const desktopApi: DesktopApi = {
     }
     return result as WorkbookDvhParts
   },
+  dvhPublishLive(payload) {
+    if (
+      !isRecord(payload) ||
+      typeof payload.docId !== 'string' ||
+      typeof payload.modelXml !== 'string'
+    ) {
+      return
+    }
+    // same channel as DVH_LIVE_PUBLISH_CHANNEL (@genoffice/dvh-model); the sandboxed
+    // preload cannot load that package. The main process validates the payload.
+    ipcRenderer.send('dvh:live-publish', {
+      docId: payload.docId,
+      path: typeof payload.path === 'string' ? payload.path : null,
+      modelXml: payload.modelXml,
+    })
+  },
   async saveWorkbookEdits(request) {
     const validatedRequest = parseSaveRequest(request)
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.saveWorkbook, validatedRequest)
@@ -2426,7 +2442,13 @@ function isStyleEdit(input: unknown): boolean {
       (value.color === undefined || isHexColor(value.color)) &&
       Object.keys(value).every((key) => ['style', 'color'].includes(key)))
   if (
-    ![input.borderTop, input.borderBottom, input.borderLeft, input.borderRight, input.borderDiagonal].every(isBorderEdge)
+    ![
+      input.borderTop,
+      input.borderBottom,
+      input.borderLeft,
+      input.borderRight,
+      input.borderDiagonal,
+    ].every(isBorderEdge)
   ) {
     return false
   }

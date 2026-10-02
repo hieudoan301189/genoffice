@@ -309,6 +309,11 @@ S5 đạt (01/10/2026, [báo cáo](spikes/s5-format-functions.md)). Kênh địn
 - **Nghiệm thu:** _Round-trip_ (sửa từ Docs, nguồn cập nhật và có lịch sử); liên kết tự sửa được sau khi
   đổi tên hoặc chuyển file nguồn; báo rõ khi đứt.
 
+**Kết quả phần 1 (02/10/2026):** liên kết Tự động chạy cả khi nguồn đang mở trong Sheets (kênh trực tiếp,
+không cần lưu) lẫn khi nguồn được sửa và lưu bằng Excel (theo dõi file, đọc từ ô) –
+[báo cáo](phases/p3-auto-link.md). Link Manager có chế độ, trạng thái, ngắt liên kết. Còn lại: ghi ngược
+Field đơn, tìm nguồn theo project/docId.
+
 ### P4. Action Core hợp nhất (3–4 tuần)
 
 - `packages/dvh-actions`:

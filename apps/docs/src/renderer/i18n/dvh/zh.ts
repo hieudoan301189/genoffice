@@ -35,4 +35,11 @@ export const zh = {
   dvhStyleDestination: '使用表格样式',
   dvhRefresh: '刷新',
   dvhTableEditedConfirm: '表格“{name}”已被手动修改。是否用源数据替换？',
+  dvhUpdateMode: '更新方式',
+  dvhModeManual: '手动',
+  dvhModeOnOpen: '打开时',
+  dvhModeAuto: '自动',
+  dvhUnlink: '取消链接',
+  dvhUnlinkConfirm: '取消链接 {name}？其字段和表格将保留为普通内容。',
+  dvhStatusEdited: '有表格被手动修改，自动更新会跳过它，直至手动刷新。',
 }

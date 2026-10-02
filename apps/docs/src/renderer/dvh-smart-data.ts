@@ -376,6 +376,7 @@ export function updateFromSource(
   dvh: DvhDocsState,
   link: DvhLink,
   source: DvhSource,
+  options: { history?: boolean } = {},
 ): SourceUpdate {
   if (!dvh.model) return { fields: 0, collections: [] }
   const incoming = new Map(source.model.fields.map((f) => [f.id, f]))
@@ -414,8 +415,27 @@ export function updateFromSource(
   record(dvh, 'Link.Update', changes, 'link', true)
   const tr = editor.state.tr
   const changed = replaceFieldTexts(tr, texts)
+  // automatic updates stay out of the user's undo history
+  if (options.history === false) tr.setMeta('addToHistory', false)
   if (tr.docChanged) editor.view.dispatch(tr)
   return { fields: changed, collections: updatedCollections }
+}
+
+export type LinkUpdateMode = DvhLink['update']
+
+/** Manual, on open, or automatic (watched file and live channel). */
+export function setLinkUpdateMode(dvh: DvhDocsState, linkId: string, mode: LinkUpdateMode): void {
+  const link = dvh.model?.links.find((l) => l.id === linkId)
+  if (!link || link.update === mode) return
+  const before = link.update
+  link.update = mode
+  record(
+    dvh,
+    'Link.SetMode',
+    [{ objectId: link.id, path: 'update', before, after: mode }],
+    'ui',
+    true,
+  )
 }
 
 /** Records a change set made by another DVH module (tables); the document becomes dirty. */

@@ -172,3 +172,30 @@ describe('formatCellValue', () => {
     expect(formatCellValue('AB.1', '#,##0')).toBe('AB.1')
   })
 })
+
+describe('autoColumns', () => {
+  it('follows columns added, removed and renamed at the source', () => {
+    const table: DvhTable = {
+      ...tableOf(workItems, 'source'),
+      autoColumns: true,
+      columns: [{ id: 'tc_q', columnId: 'k_qty', title: 'old title', numFmt: '0.0' }],
+    }
+    const renamed: DvhCollection = {
+      ...workItems,
+      columns: [
+        workItems.columns[0]!,
+        { ...workItems.columns[2]!, title: 'KL (m3)' },
+        { id: 'k_note', key: 'note', title: 'Ghi chú', type: 'text' },
+      ],
+      rows: [['AB.1', 120.5, 'ok']],
+    }
+    const grid = renderTable(table, [renamed])
+    expect(grid.rows[0]!.map((c) => c.value)).toEqual(['Mã', 'KL (m3)', 'Ghi chú'])
+    // the table's own setting for a column it already had is kept
+    expect(grid.rows[1]![1]).toMatchObject({ value: 120.5, numFmt: '0.0' })
+    expect(grid.rows[1]![2]!.value).toBe('ok')
+    // a header group that no longer fits is dropped instead of failing the refresh
+    const grouped = { ...table, headerGroups: [[{ title: 'Nhóm', span: 2 }]] }
+    expect(renderTable(grouped, [renamed]).headerRowCount).toBe(1)
+  })
+})

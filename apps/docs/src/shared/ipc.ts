@@ -350,6 +350,14 @@ export interface DesktopApi {
   onRenamedDocx(handler: (paths: { oldPath: string; newPath: string }) => void): () => void
   /** OS regional locale (e.g. vi-VN): DVH tables format numbers with it, as Excel does */
   dvhSystemLocale(): Promise<string>
+  /** DVH automatic links: the workbooks to watch on disk (replaces the previous list) */
+  dvhWatchSources(paths: string[]): Promise<void>
+  /** a watched workbook changed on disk and settled */
+  onDvhSourceChanged(handler: (path: string) => void): () => void
+  /** a workbook open in Sheets published its Smart Data after an edit */
+  onDvhLive(
+    handler: (payload: { docId: string; path: string | null; modelXml: string }) => void,
+  ): () => void
   /** DVH Smart Data: read a linked workbook's model part; pick asks for the file
    *  first. null when the user cancels the picker. */
   dvhReadSource(request: {

@@ -37,4 +37,12 @@ export const fr = {
   dvhRefresh: 'Actualiser',
   dvhTableEditedConfirm:
     'Le tableau « {name} » a été modifié à la main. Le remplacer par les données source ?',
+  dvhUpdateMode: 'Mise à jour',
+  dvhModeManual: 'Manuelle',
+  dvhModeOnOpen: "À l'ouverture",
+  dvhModeAuto: 'Automatique',
+  dvhUnlink: 'Délier',
+  dvhUnlinkConfirm: 'Délier {name} ? Ses champs et tableaux restent en contenu simple.',
+  dvhStatusEdited:
+    'Un tableau a été modifié à la main ; les mises à jour automatiques l’ignorent jusqu’à son actualisation.',
 } satisfies Record<keyof typeof zh, string>

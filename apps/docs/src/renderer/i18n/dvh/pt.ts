@@ -37,4 +37,12 @@ export const pt = {
   dvhStyleDestination: 'Usar estilo da tabela',
   dvhRefresh: 'Atualizar',
   dvhTableEditedConfirm: 'A tabela "{name}" foi editada à mão. Substituí-la pelos dados de origem?',
+  dvhUpdateMode: 'Atualização',
+  dvhModeManual: 'Manual',
+  dvhModeOnOpen: 'Ao abrir',
+  dvhModeAuto: 'Automática',
+  dvhUnlink: 'Desvincular',
+  dvhUnlinkConfirm: 'Desvincular {name}? Seus campos e tabelas ficam como conteúdo normal.',
+  dvhStatusEdited:
+    'Uma tabela foi editada à mão; as atualizações automáticas a ignoram até você atualizá-la.',
 } satisfies Record<keyof typeof zh, string>

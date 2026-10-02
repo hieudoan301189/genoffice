@@ -36,4 +36,12 @@ export const id = {
   dvhStyleDestination: 'Gunakan gaya tabel',
   dvhRefresh: 'Segarkan',
   dvhTableEditedConfirm: 'Tabel "{name}" diedit secara manual. Ganti dengan data sumber?',
+  dvhUpdateMode: 'Pembaruan',
+  dvhModeManual: 'Manual',
+  dvhModeOnOpen: 'Saat dibuka',
+  dvhModeAuto: 'Otomatis',
+  dvhUnlink: 'Lepas tautan',
+  dvhUnlinkConfirm: 'Lepas tautan {name}? Bidang dan tabelnya tetap sebagai konten biasa.',
+  dvhStatusEdited:
+    'Sebuah tabel diedit manual; pembaruan otomatis melewatinya sampai Anda menyegarkannya.',
 } satisfies Record<keyof typeof zh, string>

@@ -36,4 +36,13 @@ export const hi = {
   dvhStyleDestination: 'तालिका शैली उपयोग करें',
   dvhRefresh: 'रीफ़्रेश',
   dvhTableEditedConfirm: 'तालिका "{name}" हाथ से संपादित हुई है। क्या इसे स्रोत डेटा से बदलें?',
+  dvhUpdateMode: 'अपडेट',
+  dvhModeManual: 'मैन्युअल',
+  dvhModeOnOpen: 'खोलने पर',
+  dvhModeAuto: 'स्वचालित',
+  dvhUnlink: 'लिंक हटाएँ',
+  dvhUnlinkConfirm:
+    '{name} का लिंक हटाएँ? इसके फ़ील्ड और तालिकाएँ सामान्य सामग्री के रूप में रहेंगी।',
+  dvhStatusEdited:
+    'कोई तालिका हाथ से संपादित हुई है; रीफ़्रेश करने तक स्वचालित अपडेट उसे छोड़ देंगे।',
 } satisfies Record<keyof typeof zh, string>

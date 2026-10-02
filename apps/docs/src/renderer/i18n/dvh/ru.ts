@@ -36,4 +36,12 @@ export const ru = {
   dvhStyleDestination: 'Использовать стиль таблицы',
   dvhRefresh: 'Обновить',
   dvhTableEditedConfirm: 'Таблица «{name}» изменена вручную. Заменить её данными источника?',
+  dvhUpdateMode: 'Обновление',
+  dvhModeManual: 'Вручную',
+  dvhModeOnOpen: 'При открытии',
+  dvhModeAuto: 'Автоматически',
+  dvhUnlink: 'Разорвать связь',
+  dvhUnlinkConfirm: 'Разорвать связь с {name}? Поля и таблицы останутся обычным содержимым.',
+  dvhStatusEdited:
+    'Таблица изменена вручную; автообновление пропускает её, пока вы её не обновите.',
 } satisfies Record<keyof typeof zh, string>

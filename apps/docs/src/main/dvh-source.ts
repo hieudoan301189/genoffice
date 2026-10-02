@@ -1,11 +1,12 @@
 // DVH Smart Data link source (P1, ADR D8 minimal form): a document reads the
 // model part of a linked workbook straight from disk, without opening it in
-// Sheets. Sheets syncs field values from their bound cells on save, so the
-// model part already carries current values.
+// Sheets. Values come from the cells the hidden DVH names point at, so a
+// workbook last saved by Microsoft Excel (stale model part) still reads right.
 import { readFile, stat } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { readCustomXmlPart } from '@genoffice/docx-engine'
-import { MODEL_NS } from '@genoffice/dvh-model'
+import { MODEL_NS, parseModelXml, serializeModelXml } from '@genoffice/dvh-model'
+import { modelFromCells } from './dvh-xlsx-cells'
 
 const SOURCE_EXTENSIONS = new Set(['.xlsx', '.xlsm'])
 /** a workbook larger than this is not read into memory just for its model part */
@@ -23,6 +24,14 @@ export async function readDvhSource(path: string): Promise<DvhSourceRead> {
   }
   const info = await stat(path)
   if (!info.isFile() || info.size > MAX_SOURCE_BYTES) throw new Error('Workbook not readable.')
-  const part = await readCustomXmlPart(new Uint8Array(await readFile(path)), MODEL_NS)
-  return { path, modelXml: part?.xml ?? null }
+  const bytes = new Uint8Array(await readFile(path))
+  const part = await readCustomXmlPart(bytes, MODEL_NS)
+  if (!part) return { path, modelXml: null }
+  // the cells are the truth: a workbook saved by Excel keeps a stale model part
+  try {
+    const model = await modelFromCells(bytes, parseModelXml(part.xml))
+    return { path, modelXml: serializeModelXml(model) }
+  } catch {
+    return { path, modelXml: part.xml }
+  }
 }

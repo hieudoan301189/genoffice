@@ -36,4 +36,11 @@ export const zhTW = {
   dvhStyleDestination: '使用表格樣式',
   dvhRefresh: '重新整理',
   dvhTableEditedConfirm: '表格「{name}」已被手動修改。要以來源資料取代嗎？',
+  dvhUpdateMode: '更新方式',
+  dvhModeManual: '手動',
+  dvhModeOnOpen: '開啟時',
+  dvhModeAuto: '自動',
+  dvhUnlink: '取消連結',
+  dvhUnlinkConfirm: '要取消連結 {name} 嗎？其欄位和表格會保留為一般內容。',
+  dvhStatusEdited: '有表格被手動修改，自動更新會略過它，直到您手動重新整理。',
 } satisfies Record<keyof typeof zh, string>

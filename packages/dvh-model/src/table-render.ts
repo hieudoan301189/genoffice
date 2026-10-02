@@ -58,14 +58,27 @@ function total(kind: TableTotal, values: readonly Scalar[]): Scalar {
   return null
 }
 
-export function renderTable(table: DvhTable, collections: readonly DvhCollection[]): RenderedTable {
+/** The columns a table shows now: with autoColumns, every collection column with its current title. */
+export function effectiveTableColumns(
+  table: DvhTable,
+  collection: DvhCollection | undefined,
+): DvhTable['columns'] {
+  if (!table.autoColumns || !collection) return table.columns
+  return collection.columns.map((c) => {
+    const own = table.columns.find((col) => col.columnId === c.id)
+    return { ...(own ?? { id: `tc_${c.id}`, columnId: c.id }), title: c.title }
+  })
+}
+
+export function renderTable(input: DvhTable, collections: readonly DvhCollection[]): RenderedTable {
   const collection =
-    'collectionId' in table.source
-      ? collections.find((c) => c.id === (table.source as { collectionId: string }).collectionId)
+    'collectionId' in input.source
+      ? collections.find((c) => c.id === (input.source as { collectionId: string }).collectionId)
       : undefined
-  if ('collectionId' in table.source && !collection) {
-    throw new Error(`table ${table.name}: collection ${table.source.collectionId} not found`)
+  if ('collectionId' in input.source && !collection) {
+    throw new Error(`table ${input.name}: collection ${input.source.collectionId} not found`)
   }
+  const table: DvhTable = { ...input, columns: effectiveTableColumns(input, collection) }
   const dataRows = collection ? collection.rows : (table.source as { rows: Scalar[][] }).rows
   const sourceIndex = table.columns.map((col, i) =>
     collection ? collection.columns.findIndex((c) => c.id === col.columnId) : i,
@@ -97,6 +110,8 @@ export function renderTable(table: DvhTable, collections: readonly DvhCollection
   for (const group of table.headerGroups ?? []) {
     const covered = group.reduce((sum, cell) => sum + cell.span, 0)
     if (covered !== table.columns.length) {
+      // a source column was added or removed under a grouped header: show plain titles
+      if (table.autoColumns) break
       throw new Error(
         `table ${table.name}: a header group spans ${covered} of ${table.columns.length} columns`,
       )

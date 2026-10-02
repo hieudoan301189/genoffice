@@ -698,7 +698,6 @@ const visualObjectSchema = z
   })
   .strict()
 
-
 /// DVH Smart Data written on save (ADR D1, D3).
 export const workbookDvhStateSchema = z
   .object({
@@ -706,7 +705,10 @@ export const workbookDvhStateSchema = z
       .array(
         z
           .object({
-            name: z.string().regex(/^_dvh\./).max(255),
+            name: z
+              .string()
+              .regex(/^_dvh\./)
+              .max(255),
             formula: z.string().min(1).max(8_192),
           })
           .strict(),
@@ -2065,7 +2067,9 @@ const dvhCustomXmlPartSchema = z
 export const workbookDvhPartsSchema = z
   .object({
     names: z
-      .array(z.object({ name: z.string().min(1).max(255), formula: z.string().max(8_192) }).strict())
+      .array(
+        z.object({ name: z.string().min(1).max(255), formula: z.string().max(8_192) }).strict(),
+      )
       .max(10_000),
     model: dvhCustomXmlPartSchema.nullable(),
     history: dvhCustomXmlPartSchema.nullable(),
@@ -2651,6 +2655,8 @@ export interface DesktopApi {
   readPivotDefinition(request: WorkbookPivotRequest): Promise<WorkbookPivotDefinition>
   /// DVH Smart Data parts and binding names of the session's file
   readDvhParts(request: WorkbookDvhRequest): Promise<WorkbookDvhParts>
+  /// DVH automatic links: the workbook's Smart Data after an edit, relayed to linked documents
+  dvhPublishLive?(payload: { docId: string; path: string | null; modelXml: string }): void
   readLocalImage(request: LocalImageRequest): Promise<LocalImageResult>
   captureScreenSources(): Promise<ScreenSourcesResult>
   /// null when the source vanished between listing and capture.

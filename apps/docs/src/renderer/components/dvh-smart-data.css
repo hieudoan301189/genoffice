@@ -159,3 +159,17 @@
   text-decoration: none;
   font-weight: 600;
 }
+
+.dvh-docs-panel-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.dvh-docs-panel select {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}

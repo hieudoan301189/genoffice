@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import type { ParsedDocFull } from '@genoffice/docx-engine'
 import { fieldText, newDvhId, type DvhLink, type Scalar } from '@genoffice/dvh-model'
@@ -6,38 +6,36 @@ import { useI18n } from '../i18n/locale'
 import { showToast } from './toast-bus'
 import { createDocsDvhActions } from '../dvh-actions'
 import {
+  activeDvhDocs,
   dvhDocsStateOf,
   fieldOccurrences,
   historyEntries,
   insertSmartField,
-  linkIsStale,
   linkSource,
-  linkSourcePaths,
   loadDvhDocs,
   setActiveDvhDocs,
   setDvhModelChangeListener,
+  setLinkUpdateMode,
   sourceFromRead,
-  type DvhSource,
+  type LinkUpdateMode,
 } from '../dvh-smart-data'
-import { refreshDocTable, setDvhNumberLocale, updateLinkFromSource } from '../dvh-tables'
+import { refreshDocTable, setDvhNumberLocale, unlinkSource } from '../dvh-tables'
+import {
+  applySource,
+  checkLinksOnOpen,
+  installAutoLinks,
+  linkStatus,
+  onLinkStatus,
+  readLinkedSource,
+  refreshAutoWatch,
+  setLinkStatus,
+} from '../dvh-auto'
 import { DvhDocsTablesSection } from './DvhDocsTablesSection'
 import './dvh-smart-data.css'
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
 const HISTORY_ROWS = 20
-
-/** Reads the first candidate path that still holds the linked workbook. */
-async function readLinkedSource(link: DvhLink, docPath: string | null): Promise<DvhSource | null> {
-  for (const path of linkSourcePaths(link, docPath)) {
-    try {
-      const source = sourceFromRead(await window.desktop.dvhReadSource({ path }))
-      if (source && source.model.docId === link.source.docId) return source
-    } catch {
-      // moved or unreadable: try the next candidate
-    }
-  }
-  return null
-}
+const readSource = (path: string) => window.desktop.dvhReadSource({ path })
 
 /**
  * Mounted once by App: loads the document's Smart Data whenever a document is
@@ -59,6 +57,19 @@ export function DvhSmartDataHost({
   const live = useRef({ editor, filePath })
   live.current = { editor, filePath }
 
+  // automatic links run for the open document whether or not the panel is open
+  useEffect(
+    () =>
+      installAutoLinks({
+        editor: () => live.current.editor,
+        dvh: activeDvhDocs,
+        filePath: () => live.current.filePath,
+        readSource,
+        watch: (paths) => void window.desktop.dvhWatchSources?.(paths),
+      }),
+    [],
+  )
+
   useEffect(() => {
     if (!parsed) {
       setActiveDvhDocs(null)
@@ -66,7 +77,10 @@ export function DvhSmartDataHost({
     }
     let current = true
     void loadDvhDocs(parsed).then((state) => {
-      if (current) setActiveDvhDocs(state)
+      if (!current) return
+      setActiveDvhDocs(state)
+      refreshAutoWatch()
+      void checkLinksOnOpen()
     })
     return () => {
       current = false
@@ -111,8 +125,6 @@ export function DvhSmartDataHost({
   )
 }
 
-type LinkStatus = 'current' | 'stale' | 'missing'
-
 /** Smart Data of the open document: linked workbooks, fields, insert at the caret, history. */
 export function DvhSmartDataPanel({
   editor,
@@ -132,26 +144,16 @@ export function DvhSmartDataPanel({
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [status, setStatus] = useState<Record<string, LinkStatus>>({})
 
   const dvh = dvhDocsStateOf(parsed)
   const fields = dvh?.model?.fields ?? []
   const links = dvh?.model?.links ?? []
 
-  /** compares each link's last pull with the workbook on disk (stale-value warning) */
-  const checkLinks = useCallback(async () => {
-    const state = await loadDvhDocs(parsed)
-    const next: Record<string, LinkStatus> = {}
-    for (const link of state.model?.links ?? []) {
-      const source = await readLinkedSource(link, filePath)
-      next[link.id] = !source ? 'missing' : linkIsStale(link, source) ? 'stale' : 'current'
-    }
-    setStatus(next)
-  }, [parsed, filePath])
-
+  // link statuses come from the automatic-link runner; opening the panel re-checks them
+  useEffect(() => onLinkStatus(() => setTick((n) => n + 1)), [])
   useEffect(() => {
-    void checkLinks()
-  }, [checkLinks])
+    void checkLinksOnOpen()
+  }, [parsed])
 
   useEffect(() => {
     // field text edited in the page shows up in the value column
@@ -185,10 +187,11 @@ export function DvhSmartDataPanel({
         setError(t('dvhNoSourceModel'))
         return
       }
-      linkSource(dvh, source, filePath)
+      const link = linkSource(dvh, source, filePath)
+      setLinkStatus(link.id, 'current')
+      refreshAutoWatch()
       setError('')
       showToast(t('dvhLinked', { count: objects, name: fileName(read.path) }))
-      await checkLinks()
     } catch (e) {
       setError(t('dvhErrReadSource', { error: e instanceof Error ? e.message : String(e) }))
     } finally {
@@ -201,26 +204,48 @@ export function DvhSmartDataPanel({
     if (!dvh || busy) return
     setBusy(true)
     try {
-      const source = await readLinkedSource(link, filePath)
+      const source = await readLinkedSource(link, filePath, readSource)
       if (!source) {
-        setStatus((s) => ({ ...s, [link.id]: 'missing' }))
+        setLinkStatus(link.id, 'missing')
         setError(t('dvhSourceMissing', { path: link.source.path ?? link.source.relPath ?? '' }))
         return
       }
-      const result = updateLinkFromSource(editor, dvh, link, source)
+      const result = applySource(editor, dvh, link, source, false)
       let tables = result.tables
+      let declined = false
       for (const tableId of result.editedTables) {
         const table = dvh.model?.tables.find((tb) => tb.id === tableId)
-        if (!table || !window.confirm(t('dvhTableEditedConfirm', { name: table.name }))) continue
+        if (!table || !window.confirm(t('dvhTableEditedConfirm', { name: table.name }))) {
+          declined = true
+          continue
+        }
         tables += refreshDocTable(editor, dvh, tableId, { force: true, source: 'link' }).refreshed
       }
-      setStatus((s) => ({ ...s, [link.id]: 'current' }))
+      setLinkStatus(link.id, declined ? 'edited' : 'current')
       setError('')
       showToast(t('dvhUpdated', { count: result.fields + tables, name: fileName(source.path) }))
     } finally {
       setBusy(false)
       repaint()
     }
+  }
+
+  const changeMode = (link: DvhLink, mode: LinkUpdateMode) => {
+    if (!dvh) return
+    setLinkUpdateMode(dvh, link.id, mode)
+    refreshAutoWatch()
+    // switching to on-open/automatic catches up right away
+    if (mode !== 'manual') void checkLinksOnOpen()
+    repaint()
+  }
+
+  const unlink = (link: DvhLink) => {
+    if (!dvh) return
+    const label = fileName(link.source.path ?? link.source.relPath ?? link.source.docId)
+    if (!window.confirm(t('dvhUnlinkConfirm', { name: label }))) return
+    unlinkSource(editor, dvh, link.id)
+    refreshAutoWatch()
+    repaint()
   }
 
   const insert = (fieldId: string) => {
@@ -282,21 +307,39 @@ export function DvhSmartDataPanel({
                     {t('dvhLastSync', { time: new Date(link.lastSync.at).toLocaleString() })}
                   </span>
                 ) : null}
-                {status[link.id] === 'stale' ? (
+                {linkStatus(link.id) === 'stale' ? (
                   <span className="dvh-docs-panel-warn" data-status="stale">
                     {t('dvhStale')}
                   </span>
-                ) : status[link.id] === 'missing' ? (
+                ) : linkStatus(link.id) === 'missing' ? (
                   <span className="dvh-docs-panel-warn" data-status="missing">
                     {t('dvhSourceMissing', {
                       path: link.source.path ?? link.source.relPath ?? '',
                     })}
                   </span>
+                ) : linkStatus(link.id) === 'edited' ? (
+                  <span className="dvh-docs-panel-warn" data-status="edited">
+                    {t('dvhStatusEdited')}
+                  </span>
                 ) : null}
+                <div className="dvh-docs-panel-link-actions">
+                  <select
+                    value={link.update}
+                    aria-label={t('dvhUpdateMode')}
+                    onChange={(event) => changeMode(link, event.target.value as LinkUpdateMode)}
+                  >
+                    <option value="manual">{t('dvhModeManual')}</option>
+                    <option value="onOpen">{t('dvhModeOnOpen')}</option>
+                    <option value="auto">{t('dvhModeAuto')}</option>
+                  </select>
+                  <button type="button" disabled={busy} onClick={() => void update(link)}>
+                    {t('dvhUpdateFromSource')}
+                  </button>
+                  <button type="button" onClick={() => unlink(link)}>
+                    {t('dvhUnlink')}
+                  </button>
+                </div>
               </div>
-              <button type="button" disabled={busy} onClick={() => void update(link)}>
-                {t('dvhUpdateFromSource')}
-              </button>
             </div>
           ))
         )}

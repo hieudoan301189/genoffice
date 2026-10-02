@@ -16,6 +16,7 @@ import {
 import {
   contentHash,
   formatCellValue,
+  modelHash,
   newDvhId,
   renderTable,
   tableSdtPrXml,
@@ -160,6 +161,7 @@ export function createDocTable(
       columnId: c.id,
       title: c.title,
     })),
+    autoColumns: true,
     style: { mode: options.mode ?? 'source' },
     layout: { repeatHeader: true, keepRowsTogether: true, widths: 'page' },
   }
@@ -219,7 +221,11 @@ export function refreshDocTable(
   editor: Editor,
   dvh: DvhDocsState,
   tableRef: string,
-  options: { force?: boolean | undefined; source?: 'ui' | 'ai' | 'link' } = {},
+  options: {
+    force?: boolean | undefined
+    source?: 'ui' | 'ai' | 'link'
+    history?: boolean
+  } = {},
 ): DocTableRefresh {
   const table = dvh.model?.tables.find((tb) => tb.id === tableRef || tb.name === tableRef)
   if (!table) throw new Error(`unknown table ${tableRef}`)
@@ -239,6 +245,7 @@ export function refreshDocTable(
     hash = nodeTextHash(node)
     tr.replaceWith(occ.pos, occ.pos + occ.node.nodeSize, node)
   }
+  if (options.history === false) tr.setMeta('addToHistory', false)
   if (tr.docChanged) editor.view.dispatch(tr)
   if (hash) table.lastRender = { hash, at: new Date().toISOString() }
   if (occurrences.length > 0) {
@@ -280,22 +287,71 @@ export interface LinkUpdate {
   readonly editedTables: readonly string[]
 }
 
-/** "Update from source": fields, collections, then every table showing an updated collection. */
+/**
+ * "Update from source": fields, collections, then every table showing an
+ * updated collection. `auto` (automatic links) keeps the changes out of the
+ * undo history and does nothing when the source did not change.
+ */
 export function updateLinkFromSource(
   editor: Editor,
   dvh: DvhDocsState,
   link: DvhLink,
   source: DvhSource,
+  options: { auto?: boolean } = {},
 ): LinkUpdate {
-  const update = updateFromSource(editor, dvh, link, source)
+  if (options.auto && link.lastSync?.hash === modelHash(source.model)) {
+    return { fields: 0, tables: 0, editedTables: [] }
+  }
+  const history = !options.auto
+  const update = updateFromSource(editor, dvh, link, source, { history })
   let tables = 0
   const editedTables: string[] = []
   for (const table of dvh.model?.tables ?? []) {
     if (!('collectionId' in table.source)) continue
     if (!update.collections.includes(table.source.collectionId)) continue
-    const result = refreshDocTable(editor, dvh, table.id, { source: 'link' })
+    const result = refreshDocTable(editor, dvh, table.id, { source: 'link', history })
     if (result.needsConfirm) editedTables.push(table.id)
     else tables += result.refreshed
   }
   return { fields: update.fields, tables, editedTables }
+}
+
+/**
+ * Ends a link: its fields and tables stay in the document as plain content
+ * (no content control), and the objects it brought leave the model.
+ */
+export function unlinkSource(editor: Editor, dvh: DvhDocsState, linkId: string): void {
+  const model = dvh.model
+  const link = model?.links.find((l) => l.id === linkId)
+  if (!model || !link) return
+  const targets = new Set(link.targets)
+  const tables = model.tables.filter(
+    (tb) => 'collectionId' in tb.source && targets.has(tb.source.collectionId),
+  )
+  const tableIds = new Set(tables.map((tb) => tb.id))
+  const tr = editor.state.tr
+  const markType = editor.schema.marks.dvhField!
+  editor.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'docTable') {
+      const id = node.attrs.dvhTable ? dvhTableId(String(node.attrs.dvhTable)) : null
+      if (id && tableIds.has(id))
+        tr.setNodeMarkup(pos, undefined, { ...node.attrs, dvhTable: null })
+      return true
+    }
+    if (!node.isText) return true
+    for (const mark of node.marks) {
+      if (mark.type !== markType) continue
+      const fieldId = /<w:tag\s+w:val="dvh:f:([^"]+)"/.exec(String(mark.attrs.sdtPr ?? ''))?.[1]
+      if (fieldId && targets.has(fieldId)) tr.removeMark(pos, pos + node.nodeSize, mark)
+    }
+    return true
+  })
+  if (tr.docChanged) editor.view.dispatch(tr)
+  model.fields = model.fields.filter((f) => !targets.has(f.id))
+  model.collections = model.collections.filter((c) => !targets.has(c.id))
+  model.tables = model.tables.filter((tb) => !tableIds.has(tb.id))
+  model.links = model.links.filter((l) => l.id !== linkId)
+  recordDvhDocsChange(dvh, 'Link.Remove', [
+    { objectId: link.id, path: '', before: link, after: null },
+  ])
 }

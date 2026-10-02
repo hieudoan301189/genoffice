@@ -36,4 +36,11 @@ export const ar = {
   dvhStyleDestination: 'استخدام نمط الجدول',
   dvhRefresh: 'تحديث',
   dvhTableEditedConfirm: 'تم تعديل الجدول "{name}" يدويًا. هل تريد استبداله ببيانات المصدر؟',
+  dvhUpdateMode: 'التحديث',
+  dvhModeManual: 'يدوي',
+  dvhModeOnOpen: 'عند الفتح',
+  dvhModeAuto: 'تلقائي',
+  dvhUnlink: 'إلغاء الارتباط',
+  dvhUnlinkConfirm: 'إلغاء الارتباط بـ {name}؟ ستبقى الحقول والجداول كمحتوى عادي.',
+  dvhStatusEdited: 'تم تعديل جدول يدويًا؛ تتخطاه التحديثات التلقائية حتى تقوم بتحديثه.',
 } satisfies Record<keyof typeof zh, string>

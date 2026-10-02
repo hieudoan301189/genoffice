@@ -97,6 +97,34 @@ const api: DesktopApi = {
   saveDocx: (path: string, data: ArrayBuffer, auto?: boolean) =>
     ipcRenderer.invoke('docs:save', path, data, auto === true),
   dvhSystemLocale: () => ipcRenderer.invoke('docs:dvh-system-locale'),
+  dvhWatchSources: (paths: string[]) =>
+    ipcRenderer.invoke(
+      'docs:dvh-watch',
+      paths.filter((p) => typeof p === 'string'),
+    ),
+  onDvhSourceChanged: (handler: (path: string) => void) => {
+    const listener = (_event: unknown, path: unknown) => {
+      if (typeof path === 'string') handler(path)
+    }
+    ipcRenderer.on('docs:dvh-source-changed', listener)
+    return () => ipcRenderer.removeListener('docs:dvh-source-changed', listener)
+  },
+  onDvhLive: (
+    handler: (payload: { docId: string; path: string | null; modelXml: string }) => void,
+  ) => {
+    const listener = (_event: unknown, payload: unknown) => {
+      const p = payload as { docId?: unknown; path?: unknown; modelXml?: unknown } | null
+      if (p && typeof p.docId === 'string' && typeof p.modelXml === 'string') {
+        handler({
+          docId: p.docId,
+          path: typeof p.path === 'string' ? p.path : null,
+          modelXml: p.modelXml,
+        })
+      }
+    }
+    ipcRenderer.on('docs:dvh-live', listener)
+    return () => ipcRenderer.removeListener('docs:dvh-live', listener)
+  },
   dvhReadSource: (request: { path?: string; pick?: boolean }) =>
     ipcRenderer.invoke('docs:dvh-read-source', {
       ...(typeof request.path === 'string' ? { path: request.path } : {}),
