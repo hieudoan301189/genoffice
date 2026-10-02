@@ -39,4 +39,5 @@ export const fr = {
   dvhNoTables: 'Aucun tableau.',
   dvhErrSelectAnchor: 'Sélectionnez la cellule où le tableau doit commencer.',
   dvhConfirmAction: 'L’IA veut exécuter {action}, sur {count} objet(s) :\n{summary}\n\nContinuer ?',
+  dvhConfirmPlan: 'L’IA propose : {summary}\n\n{steps}\n\nExécuter ce plan ?',
 } satisfies Record<keyof typeof zh, string>

@@ -37,4 +37,5 @@ export const hi = {
   dvhNoTables: 'अभी कोई तालिका नहीं है।',
   dvhErrSelectAnchor: 'वह सेल चुनें जहाँ तालिका शुरू होनी चाहिए।',
   dvhConfirmAction: 'AI {action} चलाना चाहता है, {count} वस्तुओं पर:\n{summary}\n\nजारी रखें?',
+  dvhConfirmPlan: 'AI का प्रस्ताव: {summary}\n\n{steps}\n\nयह योजना चलाएँ?',
 } satisfies Record<keyof typeof zh, string>

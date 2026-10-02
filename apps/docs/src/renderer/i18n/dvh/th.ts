@@ -127,4 +127,5 @@ export const th = {
   dvhQlclExport: 'ส่งออกไปยัง QLCL…',
   dvhQlclImported: 'นำเข้า {fields} ฟิลด์และ {collections} คอลเลกชันจาก {name} แล้ว',
   dvhBatchKeep: 'เก็บข้อมูลอัจฉริยะ',
+  dvhConfirmPlan: 'AI เสนอ: {summary}\n\n{steps}\n\nเรียกใช้แผนนี้หรือไม่',
 } satisfies Record<keyof typeof zh, string>

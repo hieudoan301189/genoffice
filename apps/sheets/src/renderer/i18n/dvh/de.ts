@@ -38,4 +38,5 @@ export const de = {
   dvhErrSelectAnchor: 'Wählen Sie die Zelle, in der die Tabelle beginnen soll.',
   dvhConfirmAction:
     'Die KI möchte {action} ausführen ({count} Objekt(e)):\n{summary}\n\nFortfahren?',
+  dvhConfirmPlan: 'Die KI schlägt vor: {summary}\n\n{steps}\n\nDiesen Plan ausführen?',
 } satisfies Record<keyof typeof zh, string>

@@ -126,4 +126,5 @@ export const he = {
   dvhQlclExport: 'ייצוא ל-QLCL…',
   dvhQlclImported: 'יובאו {fields} שדות ו-{collections} אוספים מ-{name}',
   dvhBatchKeep: 'שמירת Smart Data',
+  dvhConfirmPlan: 'ה-AI מציע: {summary}\n\n{steps}\n\nלהפעיל את התוכנית?',
 } satisfies Record<keyof typeof zh, string>

@@ -128,4 +128,5 @@ export const ru = {
   dvhQlclExport: 'Экспорт в QLCL…',
   dvhQlclImported: 'Импортировано из {name}: полей {fields}, коллекций {collections}',
   dvhBatchKeep: 'Сохранить Smart Data',
+  dvhConfirmPlan: 'ИИ предлагает: {summary}\n\n{steps}\n\nВыполнить этот план?',
 } satisfies Record<keyof typeof zh, string>

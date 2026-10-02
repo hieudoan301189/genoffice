@@ -131,4 +131,5 @@ export const ms = {
   dvhQlclExport: 'Eksport ke QLCL…',
   dvhQlclImported: 'Diimport {fields} medan dan {collections} koleksi dari {name}',
   dvhBatchKeep: 'Kekalkan Smart Data',
+  dvhConfirmPlan: 'AI mencadangkan: {summary}\n\n{steps}\n\nJalankan pelan ini?',
 } satisfies Record<keyof typeof zh, string>

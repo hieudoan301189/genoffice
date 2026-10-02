@@ -142,8 +142,19 @@ let sequence = 0
 const nextId = (prefix: string) =>
   `${prefix}_${Date.now().toString(36)}${(sequence++).toString(36).padStart(4, '0')}`
 
+export interface RegistryOptions {
+  /**
+   * Wraps every execute: the app makes the run's txId and caller ambient, so
+   * the change sets its own modules record (history, links) carry them too —
+   * one AI run or workflow is one transaction to undo (P7).
+   */
+  around?<T>(ctx: ActionContext, run: () => Promise<T>): Promise<T>
+}
+
 export class ActionRegistry {
   private readonly actions = new Map<string, ActionDescriptor<never, unknown>>()
+
+  constructor(private readonly options: RegistryOptions = {}) {}
 
   register<I, O>(action: ActionDescriptor<I, O>): () => void {
     if (this.actions.has(action.name))
@@ -221,7 +232,8 @@ export class ActionRegistry {
     ) {
       throw new ActionError('confirmation_required', `${name} needs confirmation`)
     }
-    const output = await action.execute(parsed.data, ctx)
+    const execute = async () => action.execute(parsed.data, ctx)
+    const output = this.options.around ? await this.options.around(ctx, execute) : await execute()
     if (changes.length === 0) return { preview, output }
     const changeSet: ChangeSet = {
       id: nextId('cs'),
@@ -256,3 +268,4 @@ export * from './families'
 export * from './saga'
 export * from './bridge'
 export * from './agent-skill'
+export * from './ai-plan'

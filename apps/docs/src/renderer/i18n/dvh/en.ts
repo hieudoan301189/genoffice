@@ -128,4 +128,5 @@ export const en = {
   dvhQlclExport: 'Export to QLCL…',
   dvhQlclImported: 'Imported {fields} field(s) and {collections} collection(s) from {name}',
   dvhBatchKeep: 'Keep Smart Data',
+  dvhConfirmPlan: 'The AI proposes: {summary}\n\n{steps}\n\nRun this plan?',
 } satisfies Record<keyof typeof zh, string>

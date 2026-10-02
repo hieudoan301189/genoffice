@@ -299,7 +299,7 @@ import {
 import { createSheetsDvhActions, sheetsSagaParticipant } from './dvh-actions'
 import {
   createBridgeEndpoint,
-  createDvhActionsSkill,
+  createDvhPlannerSkill,
   type ActionRegistry,
 } from '@genoffice/dvh-actions'
 import { installDvhTableWatch } from './dvh-tables'
@@ -1203,6 +1203,15 @@ export function App({
   /** true once any tool of the run mutated the workbook */
   const runMutatedRef = useRef(false)
 
+  /** the in-app agent's Sheets action registry, built on first use */
+  const sheetsAgentRegistry = (): ActionRegistry =>
+    (sheetsAgentDvhRegistry ??= createSheetsDvhActions({
+      applyOps: async (ops, dryRun) =>
+        (await mcpSheetHandlersRef.current?.applyOps(ops, dryRun)) ?? {
+          ok: false,
+          reason: 'not ready',
+        },
+    }))
   const agentLoopRef = useRef<AgentLoop | null>(null)
   if (!agentLoopRef.current) {
     agentLoopRef.current = new AgentLoop({
@@ -1211,23 +1220,26 @@ export function App({
       skill: composeSkills('sheets+files', '', [
         createWorkbookSkill(sheetsSkillDeps()),
         createFilesSkill(availableAttachments),
-        // P4: the workbook's DVH action catalog (Smart Data, tables, Spreadsheet.* ops)
-        createDvhActionsSkill({
-          registry: () =>
-            (sheetsAgentDvhRegistry ??= createSheetsDvhActions({
-              applyOps: async (ops, dryRun) =>
-                (await mcpSheetHandlersRef.current?.applyOps(ops, dryRun)) ?? {
-                  ok: false,
-                  reason: 'not ready',
-                },
-            })),
+        // P7: DVH actions through an Action Plan only (validated, previewed, confirmed, one txId)
+        createDvhPlannerSkill({
+          registry: sheetsAgentRegistry,
           docId: () => dvhStateOf(lazyWorkbookRef.current)?.model?.docId ?? 'doc_unsaved',
-          confirm: (action, preview) =>
+          model: () => dvhStateOf(lazyWorkbookRef.current)?.model ?? null,
+          checkpoint: () =>
+            sheetsSagaParticipant(
+              () => univerRef.current,
+              sheetsAgentRegistry(),
+              'doc',
+            ).checkpoint(),
+          restore: (cp) =>
+            sheetsSagaParticipant(() => univerRef.current, sheetsAgentRegistry(), 'doc').restore(
+              cp,
+            ),
+          confirm: (lines) =>
             window.confirm(
-              t('dvhConfirmAction', {
-                action,
-                count: preview.objects,
-                summary: [...preview.summary, ...preview.warnings].slice(0, 12).join('\n'),
+              t('dvhConfirmPlan', {
+                summary: lines[0] ?? '',
+                steps: lines.slice(1, 13).join('\n'),
               }),
             ),
         }),

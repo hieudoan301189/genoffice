@@ -37,4 +37,5 @@ export const ru = {
   dvhErrSelectAnchor: 'Выберите ячейку, с которой начнётся таблица.',
   dvhConfirmAction:
     'ИИ хочет выполнить {action}, затронув объектов: {count}:\n{summary}\n\nПродолжить?',
+  dvhConfirmPlan: 'ИИ предлагает: {summary}\n\n{steps}\n\nВыполнить этот план?',
 } satisfies Record<keyof typeof zh, string>

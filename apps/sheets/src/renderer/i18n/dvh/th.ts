@@ -37,4 +37,5 @@ export const th = {
   dvhErrSelectAnchor: 'เลือกเซลล์ที่ตารางจะเริ่มต้น',
   dvhConfirmAction:
     'AI ต้องการเรียกใช้ {action} ซึ่งกระทบ {count} วัตถุ:\n{summary}\n\nดำเนินการต่อหรือไม่',
+  dvhConfirmPlan: 'AI เสนอ: {summary}\n\n{steps}\n\nเรียกใช้แผนนี้หรือไม่',
 } satisfies Record<keyof typeof zh, string>

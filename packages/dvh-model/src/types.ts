@@ -10,6 +10,15 @@ import { z } from 'zod'
 export const fieldTypeSchema = z.enum(['text', 'number', 'date', 'boolean', 'enum', 'image'])
 export type FieldType = z.infer<typeof fieldTypeSchema>
 
+/**
+ * What an AI provider may see of a value (P7, the Sheets column policy applied
+ * to Smart Data): `allow` (default), `redact` (emails and phone numbers
+ * masked), `statistics-only` (whether it is filled, not the value), `deny`
+ * (the object is not mentioned at all).
+ */
+export const privacyPolicySchema = z.enum(['allow', 'redact', 'statistics-only', 'deny'])
+export type PrivacyPolicy = z.infer<typeof privacyPolicySchema>
+
 export const scalarSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 export type Scalar = z.infer<typeof scalarSchema>
 
@@ -29,6 +38,7 @@ export const dvhFieldSchema = z
      * compared as well.
      */
     rev: z.number().int().nonnegative().optional(),
+    privacy: privacyPolicySchema.optional(),
   })
   .strict()
 export type DvhField = z.infer<typeof dvhFieldSchema>
@@ -69,6 +79,7 @@ export const dvhColumnSchema = z
     headerStyle: dvhCellStyleSchema.optional(),
     /** source column width in pixels */
     width: z.number().positive().optional(),
+    privacy: privacyPolicySchema.optional(),
   })
   .strict()
 export type DvhColumn = z.infer<typeof dvhColumnSchema>

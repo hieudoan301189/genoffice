@@ -129,4 +129,5 @@ export const ja = {
   dvhQlclImported:
     '{name} からフィールド {fields} 個とコレクション {collections} 個をインポートしました',
   dvhBatchKeep: 'スマートデータを保持',
+  dvhConfirmPlan: 'AI の提案: {summary}\n\n{steps}\n\nこの計画を実行しますか？',
 } satisfies Record<keyof typeof zh, string>

@@ -36,4 +36,5 @@ export const zhTW = {
   dvhNoTables: '尚無表格。',
   dvhErrSelectAnchor: '請選取表格起始的儲存格。',
   dvhConfirmAction: 'AI 要求執行 {action}，影響 {count} 個物件：\n{summary}\n\n要繼續嗎？',
+  dvhConfirmPlan: 'AI 建議：{summary}\n\n{steps}\n\n要執行此計畫嗎？',
 } satisfies Record<keyof typeof zh, string>

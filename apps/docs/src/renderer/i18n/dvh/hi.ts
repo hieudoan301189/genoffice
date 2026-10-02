@@ -128,4 +128,5 @@ export const hi = {
   dvhQlclExport: 'QLCL में निर्यात…',
   dvhQlclImported: '{name} से {fields} फ़ील्ड और {collections} संग्रह आयात किए',
   dvhBatchKeep: 'Smart Data रखें',
+  dvhConfirmPlan: 'AI का प्रस्ताव: {summary}\n\n{steps}\n\nयह योजना चलाएँ?',
 } satisfies Record<keyof typeof zh, string>

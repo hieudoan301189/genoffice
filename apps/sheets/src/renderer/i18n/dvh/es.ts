@@ -39,4 +39,5 @@ export const es = {
   dvhErrSelectAnchor: 'Seleccione la celda donde debe empezar la tabla.',
   dvhConfirmAction:
     'La IA quiere ejecutar {action}, que afecta a {count} objeto(s):\n{summary}\n\n¿Continuar?',
+  dvhConfirmPlan: 'La IA propone: {summary}\n\n{steps}\n\n¿Ejecutar este plan?',
 } satisfies Record<keyof typeof zh, string>

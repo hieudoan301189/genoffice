@@ -34,6 +34,7 @@ import {
   wrapInRepeat,
 } from './dvh-template-designer'
 import {
+  withDvhTransaction,
   activeDvhDocs,
   fieldOccurrences,
   findField,
@@ -94,7 +95,10 @@ async function readLinked(host: DocsActionHost, link: DvhLink): Promise<DvhSourc
 const fieldRef = z.string().min(1).describe('field name such as Project.Name, or its id')
 
 export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
-  const registry = new ActionRegistry()
+  // every run's change sets carry its txId and caller (P7: undo an AI run as a whole)
+  const registry = new ActionRegistry({
+    around: (ctx, run) => withDvhTransaction(ctx.txId, ctx.caller, run),
+  })
 
   registry.register({
     name: 'Data.ListFields',

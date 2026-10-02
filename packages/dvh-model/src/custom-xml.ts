@@ -59,7 +59,9 @@ export function serializeModelXml(model: DvhModel): string {
   const fields = model.fields
     .map((f) => {
       const enumAttr = f.enumValues ? ` enum="${escapeXml(JSON.stringify(f.enumValues))}"` : ''
-      const revAttr = f.rev !== undefined ? ` rev="${f.rev}"` : ''
+      const revAttr =
+        (f.rev !== undefined ? ` rev="${f.rev}"` : '') +
+        (f.privacy ? ` privacy="${f.privacy}"` : '')
       return (
         `<dvh:f id="${escapeXml(f.id)}" name="${escapeXml(f.name)}" type="${f.type}" access="${f.access}"${enumAttr}${revAttr}>` +
         `${escapeXml(fieldText(f.value))}</dvh:f>`
@@ -97,6 +99,7 @@ export function parseModelXml(xml: string): DvhModel {
     const type = (attr(tag, 'type') ?? 'text') as FieldType
     const enumText = attr(tag, 'enum')
     const rev = Number(attr(tag, 'rev'))
+    const privacy = attr(tag, 'privacy')
     fields.push({
       id: attr(tag, 'id') ?? '',
       name: attr(tag, 'name') ?? '',
@@ -105,6 +108,10 @@ export function parseModelXml(xml: string): DvhModel {
       value: fieldValueFromText(type, decodeXml(m[2] ?? '')),
       ...(enumText ? { enumValues: JSON.parse(enumText) as string[] } : {}),
       ...(Number.isInteger(rev) && rev >= 0 ? { rev } : {}),
+      // an unknown policy from another writer is dropped, never a parse failure
+      ...(privacy && ['allow', 'redact', 'statistics-only', 'deny'].includes(privacy)
+        ? { privacy }
+        : {}),
     })
   }
   const objectsMatch = /<(?:\w+:)?objects\b[^>]*>([\s\S]*?)<\/(?:\w+:)?objects>/.exec(xml)

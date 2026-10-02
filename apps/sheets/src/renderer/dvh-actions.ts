@@ -35,6 +35,7 @@ import {
   quoteSheetName,
   setBoundFieldValue,
   splitBindingFormula,
+  withDvhTransaction,
 } from './dvh-smart-data'
 import {
   createCollection,
@@ -112,7 +113,10 @@ function linesOf(outcome: Record<string, unknown>): string[] {
 }
 
 export function createSheetsDvhActions(host?: SheetsActionHost): ActionRegistry {
-  const registry = new ActionRegistry()
+  // every run's change sets carry its txId and caller (P7: undo an AI run as a whole)
+  const registry = new ActionRegistry({
+    around: (ctx, run) => withDvhTransaction(ctx.txId, ctx.caller, run),
+  })
 
   registry.register({
     name: 'Data.ListFields',

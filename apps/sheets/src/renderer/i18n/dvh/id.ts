@@ -38,4 +38,5 @@ export const id = {
   dvhErrSelectAnchor: 'Pilih sel tempat tabel dimulai.',
   dvhConfirmAction:
     'AI ingin menjalankan {action}, mengenai {count} objek:\n{summary}\n\nLanjutkan?',
+  dvhConfirmPlan: 'AI mengusulkan: {summary}\n\n{steps}\n\nJalankan rencana ini?',
 } satisfies Record<keyof typeof zh, string>

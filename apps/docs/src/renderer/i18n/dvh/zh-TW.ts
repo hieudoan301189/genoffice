@@ -126,4 +126,5 @@ export const zhTW = {
   dvhQlclExport: '匯出到 QLCL…',
   dvhQlclImported: '已從 {name} 匯入 {fields} 個欄位與 {collections} 個集合',
   dvhBatchKeep: '保留智慧資料',
+  dvhConfirmPlan: 'AI 建議：{summary}\n\n{steps}\n\n要執行此計畫嗎？',
 } satisfies Record<keyof typeof zh, string>

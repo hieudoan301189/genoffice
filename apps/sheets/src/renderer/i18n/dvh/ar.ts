@@ -36,4 +36,5 @@ export const ar = {
   dvhNoTables: 'لا توجد جداول بعد.',
   dvhErrSelectAnchor: 'حدد الخلية التي يبدأ منها الجدول.',
   dvhConfirmAction: 'يريد الذكاء الاصطناعي تشغيل {action} على {count} عنصر:\n{summary}\n\nمتابعة؟',
+  dvhConfirmPlan: 'يقترح الذكاء الاصطناعي: {summary}\n\n{steps}\n\nتشغيل هذه الخطة؟',
 } satisfies Record<keyof typeof zh, string>

@@ -127,4 +127,5 @@ export const ko = {
   dvhQlclExport: 'QLCL로 내보내기…',
   dvhQlclImported: '{name}에서 필드 {fields}개와 컬렉션 {collections}개를 가져왔습니다',
   dvhBatchKeep: '스마트 데이터 유지',
+  dvhConfirmPlan: 'AI 제안: {summary}\n\n{steps}\n\n이 계획을 실행할까요?',
 } satisfies Record<keyof typeof zh, string>

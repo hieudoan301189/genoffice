@@ -38,4 +38,5 @@ export const it = {
   dvhNoTables: 'Nessuna tabella.',
   dvhErrSelectAnchor: 'Seleziona la cella in cui deve iniziare la tabella.',
   dvhConfirmAction: 'L’IA vuole eseguire {action} su {count} oggetto/i:\n{summary}\n\nContinuare?',
+  dvhConfirmPlan: 'L’IA propone: {summary}\n\n{steps}\n\nEseguire questo piano?',
 } satisfies Record<keyof typeof zh, string>

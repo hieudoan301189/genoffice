@@ -36,4 +36,5 @@ export const he = {
   dvhNoTables: 'אין עדיין טבלאות.',
   dvhErrSelectAnchor: 'בחר את התא שבו הטבלה תתחיל.',
   dvhConfirmAction: 'ה-AI רוצה להפעיל את {action} על {count} אובייקטים:\n{summary}\n\nלהמשיך?',
+  dvhConfirmPlan: 'ה-AI מציע: {summary}\n\n{steps}\n\nלהפעיל את התוכנית?',
 } satisfies Record<keyof typeof zh, string>

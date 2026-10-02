@@ -131,4 +131,5 @@ export const it = {
   dvhQlclExport: 'Esporta in QLCL…',
   dvhQlclImported: 'Importati {fields} campo/i e {collections} raccolta/e da {name}',
   dvhBatchKeep: 'Mantieni Smart Data',
+  dvhConfirmPlan: 'L’IA propone: {summary}\n\n{steps}\n\nEseguire questo piano?',
 } satisfies Record<keyof typeof zh, string>

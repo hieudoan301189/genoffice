@@ -125,4 +125,5 @@ export const zh = {
   dvhQlclExport: '导出到 QLCL…',
   dvhQlclImported: '已从 {name} 导入 {fields} 个字段和 {collections} 个集合',
   dvhBatchKeep: '保留智能数据',
+  dvhConfirmPlan: 'AI 建议：{summary}\n\n{steps}\n\n运行此计划吗？',
 }

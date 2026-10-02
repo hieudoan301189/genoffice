@@ -39,4 +39,5 @@ export const ms = {
   dvhErrSelectAnchor: 'Pilih sel tempat jadual bermula.',
   dvhConfirmAction:
     'AI mahu menjalankan {action}, menyentuh {count} objek:\n{summary}\n\nTeruskan?',
+  dvhConfirmPlan: 'AI mencadangkan: {summary}\n\n{steps}\n\nJalankan pelan ini?',
 } satisfies Record<keyof typeof zh, string>

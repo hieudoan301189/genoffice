@@ -35,4 +35,5 @@ export const zh = {
   dvhNoTables: '暂无表格。',
   dvhErrSelectAnchor: '请选择表格起始单元格。',
   dvhConfirmAction: 'AI 请求运行 {action}，影响 {count} 个对象：\n{summary}\n\n继续吗？',
+  dvhConfirmPlan: 'AI 建议：{summary}\n\n{steps}\n\n运行此计划吗？',
 }

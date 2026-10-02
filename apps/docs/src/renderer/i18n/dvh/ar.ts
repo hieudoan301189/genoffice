@@ -126,4 +126,5 @@ export const ar = {
   dvhQlclExport: 'تصدير إلى QLCL…',
   dvhQlclImported: 'استُورد {fields} حقل و{collections} مجموعة من {name}',
   dvhBatchKeep: 'الاحتفاظ بالبيانات الذكية',
+  dvhConfirmPlan: 'يقترح الذكاء الاصطناعي: {summary}\n\n{steps}\n\nتشغيل هذه الخطة؟',
 } satisfies Record<keyof typeof zh, string>

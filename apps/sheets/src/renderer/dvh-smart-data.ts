@@ -177,6 +177,27 @@ export function inferFieldType(value: Scalar | undefined): FieldType {
   return 'text'
 }
 
+/** the action run in progress (P7): its change sets share its txId and caller */
+let ambient: { txId: string; source: ChangeSet['source'] } | null = null
+
+/** Runs an action with its txId and caller ambient (ActionRegistry `around`). */
+export async function withDvhTransaction<T>(
+  txId: string,
+  caller: string,
+  run: () => Promise<T>,
+): Promise<T> {
+  const previous = ambient
+  ambient = {
+    txId,
+    source: caller === 'ai' || caller === 'workflow' || caller === 'script' ? caller : 'ui',
+  }
+  try {
+    return await run()
+  } finally {
+    ambient = previous
+  }
+}
+
 function record(
   dvh: DvhSheetState,
   action: string,
@@ -186,10 +207,10 @@ function record(
   if (!dvh.model || changes.length === 0) return
   dvh.pending.push({
     id: newDvhId('r').replace(/^r_/, 'cs_'),
-    txId: newDvhId('r').replace(/^r_/, 'tx_'),
+    txId: ambient?.txId ?? newDvhId('r').replace(/^r_/, 'tx_'),
     docId: dvh.model.docId,
     at: new Date().toISOString(),
-    source,
+    source: ambient && source === 'ui' ? ambient.source : source,
     action,
     changes,
   })

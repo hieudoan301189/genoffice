@@ -41,8 +41,8 @@ import { DOCS_CONTINUE_INSTRUCTION } from './continuation'
 import { waitForFullContent } from '../phased-content'
 import { currentDocGeneration } from '../file-actions'
 import { createFilesSkill } from './files-skill'
-import { createDvhActionsSkill, type ActionRegistry } from '@genoffice/dvh-actions'
-import { createDocsDvhActions } from '../dvh-actions'
+import { createDvhPlannerSkill, type ActionRegistry } from '@genoffice/dvh-actions'
+import { createDocsDvhActions, docsSagaParticipant, type DocsActionHost } from '../dvh-actions'
 import { activeDvhDocs } from '../dvh-smart-data'
 import { createElectronTransport } from './transport'
 import { useI18n, t as tModule, aiLangDirective, type StringKey } from '../i18n/locale'
@@ -745,25 +745,34 @@ export function AiPanel({
     decidePartial(false)
   }
 
-  /** P4: the document's DVH action catalog as agent tools (dvh_list_actions / dvh_run) */
+  /**
+   * P7: DVH actions through an Action Plan only (propose_plan): validated
+   * against the catalog, previewed, confirmed when the policy says so, run as
+   * one transaction the user can undo by its txId.
+   */
   const filePathRef = useRef(filePath ?? null)
   filePathRef.current = filePath ?? null
   const dvhActionsSkill = () => {
     let registry: ActionRegistry | null = null
-    return createDvhActionsSkill({
-      registry: () =>
-        (registry ??= createDocsDvhActions({
-          editor: () => editorRef.current,
-          filePath: () => filePathRef.current,
-          readSource: (path) => window.desktop.dvhReadSource({ path }),
-        })),
-      docId: () => activeDvhDocs()?.model?.docId ?? 'doc_unsaved',
-      confirm: (action, preview) =>
+    const host: DocsActionHost = {
+      editor: () => editorRef.current,
+      filePath: () => filePathRef.current,
+      readSource: (path) => window.desktop.dvhReadSource({ path }),
+    }
+    const docId = () => activeDvhDocs()?.model?.docId ?? 'doc_unsaved'
+    const ensure = () => (registry ??= createDocsDvhActions(host))
+    const participant = () => docsSagaParticipant(host, ensure(), docId())
+    return createDvhPlannerSkill({
+      registry: ensure,
+      docId,
+      model: () => activeDvhDocs()?.model ?? null,
+      checkpoint: () => participant().checkpoint(),
+      restore: (cp) => participant().restore(cp),
+      confirm: (lines) =>
         window.confirm(
-          tModule('dvhConfirmAction', {
-            action,
-            count: preview.objects,
-            summary: [...preview.summary, ...preview.warnings].slice(0, 12).join('\n'),
+          tModule('dvhConfirmPlan', {
+            summary: lines[0] ?? '',
+            steps: lines.slice(1, 13).join('\n'),
           }),
         ),
     })

@@ -417,6 +417,11 @@ bằng Word và batch PDF còn chờ chạy trên Windows.
 - **Nghiệm thu:** _AI safety_: nội dung độc hại trong ô hoặc đoạn văn không kích hoạt được action ngoài
   catalog; kế hoạch xoá 200 đối tượng bắt buộc phải xác nhận.
 
+**Kết quả (02/10/2026):** `propose_plan` → validator theo catalog → preview → xác nhận theo chính sách → saga →
+lịch sử chung một `txId` (hook `around` của registry) → hoàn tác cả lượt chạy; Context Provider có rào dữ liệu
+và chính sách riêng tư cho Field/cột; skill `dvh-planner` thay `dvh_run` trong tác tử Docs/Sheets –
+[báo cáo](phases/p7-ai-actions.md). Nghiệm thu AI safety đạt bằng vitest (không gọi mô hình thật).
+
 ### P8. Workflow Engine + Record Anything (4–6 tuần)
 
 - `packages/dvh-workflow`: các bước (gọi action, `ForEach`, `If`, `Try`, `Transaction`), tham số, biến,

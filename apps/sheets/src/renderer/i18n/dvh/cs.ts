@@ -36,4 +36,5 @@ export const cs = {
   dvhNoTables: 'Zatím žádné tabulky.',
   dvhErrSelectAnchor: 'Vyberte buňku, kde má tabulka začínat.',
   dvhConfirmAction: 'AI chce spustit {action}, objektů: {count}:\n{summary}\n\nPokračovat?',
+  dvhConfirmPlan: 'AI navrhuje: {summary}\n\n{steps}\n\nSpustit tento plán?',
 } satisfies Record<keyof typeof zh, string>

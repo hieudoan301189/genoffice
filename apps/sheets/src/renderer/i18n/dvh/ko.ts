@@ -38,4 +38,5 @@ export const ko = {
   dvhErrSelectAnchor: '표를 시작할 셀을 선택하세요.',
   dvhConfirmAction:
     'AI가 {action} 실행을 요청합니다(개체 {count}개에 영향):\n{summary}\n\n계속할까요?',
+  dvhConfirmPlan: 'AI 제안: {summary}\n\n{steps}\n\n이 계획을 실행할까요?',
 } satisfies Record<keyof typeof zh, string>

@@ -38,4 +38,5 @@ export const ja = {
   dvhErrSelectAnchor: '表を開始するセルを選択してください。',
   dvhConfirmAction:
     'AI が {action} の実行を求めています（{count} 個のオブジェクトに影響）:\n{summary}\n\n続行しますか？',
+  dvhConfirmPlan: 'AI の提案: {summary}\n\n{steps}\n\nこの計画を実行しますか？',
 } satisfies Record<keyof typeof zh, string>
