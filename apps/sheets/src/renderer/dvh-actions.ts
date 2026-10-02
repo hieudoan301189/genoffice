@@ -13,7 +13,13 @@ import {
   type PreviewReport,
   type SagaParticipant,
 } from '@genoffice/dvh-actions'
-import { dvhCellStyleSchema, fieldText, scalarSchema } from '@genoffice/dvh-model'
+import {
+  dvhCellStyleSchema,
+  fieldText,
+  revertPlan,
+  scalarSchema,
+  valueAfter,
+} from '@genoffice/dvh-model'
 import {
   workbookOperationSchema,
   type WorkbookOperation,
@@ -318,6 +324,66 @@ export function createSheetsDvhActions(host?: SheetsActionHost): ActionRegistry 
       ctx.markPending()
       actx.emit([{ objectId: updated.id, path: 'style', before, after: updated.style }])
       return updated.style
+    },
+  })
+
+  // P5: restore a field to any point of its history, or undo one run by txId
+  const allChanges = () => {
+    const { dvh } = session()
+    return [...(dvh.history?.changes ?? []), ...dvh.pending]
+  }
+  const writeField = (fieldId: string, value: unknown, ctx: ActionContext) => {
+    const { ctx: sheets, runtime, dvh } = session()
+    const before = bindingOf(fieldId).field.value
+    setBoundFieldValue(runtime, dvh, fieldId, (value ?? null) as never, 'restore')
+    sheets.markPending()
+    ctx.emit([{ objectId: fieldId, path: 'value', before, after: value }])
+  }
+
+  registry.register({
+    name: 'History.RestoreObject',
+    group: 'History',
+    summary: 'Restore one Smart Data field to its value right after a change set',
+    input: z.object({ changeSet: z.string().min(1), object: fieldRef }).strict(),
+    effect: 'write',
+    preview: ({ changeSet, object }) => preview(1, [`restore ${object} as of ${changeSet}`]),
+    execute: ({ changeSet, object }, ctx) => {
+      const field = bindingOf(object).field
+      const cs = allChanges().find((c) => c.id === changeSet)
+      if (!cs) throw new Error(`no change set ${changeSet}`)
+      const at = valueAfter(cs, field.id, 'value')
+      if (!at.found) throw new Error(`change set ${changeSet} did not set ${field.name}`)
+      writeField(field.id, at.value, ctx)
+      return { id: field.id, value: at.value }
+    },
+  })
+
+  registry.register({
+    name: 'History.RevertTransaction',
+    group: 'History',
+    summary:
+      'Undo the field changes of one transaction by its txId; later edits of the same fields block it unless force',
+    input: z.object({ txId: z.string().min(1), force: z.boolean().optional() }).strict(),
+    effect: 'write',
+    preview: ({ txId }) => {
+      const plan = revertPlan(allChanges(), txId)
+      return preview(
+        plan.writes.length,
+        plan.writes.map((w) => `${w.objectId}.${w.path} ← before ${txId}`),
+      )
+    },
+    execute: ({ txId, force }, ctx) => {
+      const plan = revertPlan(allChanges(), txId)
+      if (plan.writes.length === 0) throw new Error(`no change set with txId ${txId}`)
+      if (plan.conflicts.length > 0 && !force) {
+        throw new Error(
+          `fields changed after ${txId}: ${plan.conflicts.map((c) => c.objectId).join(', ')}; run again with force: true`,
+        )
+      }
+      const fields = new Set(session().dvh.model?.fields.map((f) => f.id))
+      const done = plan.writes.filter((w) => w.path === 'value' && fields.has(w.objectId))
+      for (const w of done) writeField(w.objectId, w.value, ctx)
+      return { reverted: done.length, skipped: plan.writes.length - done.length }
     },
   })
 

@@ -18,6 +18,8 @@ describe('DVH actions (Sheets)', () => {
       'Table.Render:write',
       'Table.Refresh:write',
       'Table.SetStyle:write',
+      'History.RestoreObject:write',
+      'History.RevertTransaction:write',
     ])
   })
 

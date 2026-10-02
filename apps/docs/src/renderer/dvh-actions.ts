@@ -17,13 +17,16 @@ import {
 } from '@genoffice/dvh-actions'
 import {
   dvhCellStyleSchema,
+  dvhColumnSchema,
   fieldText,
+  revertPlan,
   scalarSchema,
   type ChangeSet,
   type DvhLink,
   type DvhModel,
 } from '@genoffice/dvh-model'
 import { executeOps, opCatalog, type Op } from './ai/ops'
+import { allChangeSets, applyHistoryWrite, restoreObject, revertTransaction } from './dvh-history'
 import {
   activeDvhDocs,
   fieldOccurrences,
@@ -294,6 +297,118 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
       const updated = setDocTableStyle(dvh, table, style, ctx.caller === 'ai' ? 'ai' : 'ui')
       ctx.emit([{ objectId: updated.id, path: 'style', before, after: updated.style }])
       return updated.style
+    },
+  })
+
+  // P5: object history — restore one object, undo one transaction, replace a table's data
+  registry.register({
+    name: 'History.RestoreObject',
+    group: 'History',
+    summary: 'Restore one field, collection or table to its state right after a change set',
+    input: z.object({ changeSet: z.string().min(1), object: z.string().min(1) }).strict(),
+    effect: 'write',
+    preview: ({ changeSet, object }) => preview(1, [`restore ${object} as of ${changeSet}`]),
+    execute: ({ changeSet, object }, ctx) => {
+      const dvh = activeDvhDocs()
+      const editor = host.editor()
+      if (!dvh || !editor) throw new Error('no document is open')
+      const results = restoreObject(editor, dvh, changeSet, object)
+      ctx.emit(
+        results
+          .filter((r) => r.applied)
+          .map((r) => ({ objectId: r.objectId, path: r.path, before: null, after: changeSet })),
+      )
+      return results
+    },
+  })
+
+  registry.register({
+    name: 'History.RevertTransaction',
+    group: 'History',
+    summary:
+      'Undo one transaction (an AI run, a workflow) by its txId; later edits of the same objects block it unless force',
+    input: z.object({ txId: z.string().min(1), force: z.boolean().optional() }).strict(),
+    effect: 'write',
+    preview: ({ txId }) => {
+      const plan = revertPlan(allChangeSets(activeDvhDocs()), txId)
+      return preview(
+        plan.writes.length,
+        plan.writes.map((w) => `${w.objectId}.${w.path} ← before ${txId}`),
+        plan.conflicts.map((c) => `${c.objectId}.${c.path} changed later (${c.changeSet})`),
+      )
+    },
+    execute: ({ txId, force }, ctx) => {
+      const dvh = activeDvhDocs()
+      const editor = host.editor()
+      if (!dvh || !editor) throw new Error('no document is open')
+      const outcome = revertTransaction(editor, dvh, txId, { force })
+      if (outcome.conflicts.length > 0 && !force) {
+        throw new Error(
+          `objects changed after ${txId}: ${outcome.conflicts.map((c) => c.objectId).join(', ')}; run again with force: true to revert anyway`,
+        )
+      }
+      ctx.emit(
+        outcome.results
+          .filter((r) => r.applied)
+          .map((r) => ({
+            objectId: r.objectId,
+            path: r.path,
+            before: null,
+            after: `revert ${txId}`,
+          })),
+      )
+      return outcome
+    },
+  })
+
+  registry.register({
+    name: 'Table.ReplaceData',
+    group: 'Table',
+    summary:
+      "Replace the rows (and optionally the columns) of a table's data: its collection, or its own embedded rows",
+    input: z
+      .object({
+        table: z.string().min(1).describe('table name or id'),
+        rows: z.array(z.array(scalarSchema)),
+        columns: z.array(dvhColumnSchema).optional(),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ table, rows }) => preview(rows.length, [`replace the data of ${table}`]),
+    execute: ({ table, rows, columns }, ctx) => {
+      const dvh = activeDvhDocs()
+      const editor = host.editor()
+      const found = dvh?.model?.tables.find((t) => t.id === table || t.name === table)
+      if (!dvh || !editor || !found) throw new Error(`unknown table ${table}`)
+      const outcome =
+        'collectionId' in found.source
+          ? applyHistoryWrite(
+              editor,
+              dvh,
+              {
+                objectId: found.source.collectionId,
+                path: 'data',
+                value: {
+                  columns:
+                    columns ??
+                    dvh.model!.collections.find(
+                      (c) => 'collectionId' in found.source && c.id === found.source.collectionId,
+                    )?.columns ??
+                    [],
+                  rows,
+                },
+              },
+              'Table.ReplaceData',
+            )
+          : applyHistoryWrite(
+              editor,
+              dvh,
+              { objectId: found.id, path: 'definition', value: { ...found, source: { rows } } },
+              'Table.ReplaceData',
+            )
+      if (!outcome.applied) throw new Error(outcome.reason ?? 'not replaced')
+      ctx.emit([{ objectId: found.id, path: 'data', before: null, after: rows.length }])
+      return outcome
     },
   })
 

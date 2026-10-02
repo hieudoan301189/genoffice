@@ -5,7 +5,10 @@
  */
 import { describe, expect, it } from 'vitest'
 import { serializeModelXml, type DvhModel } from '@genoffice/dvh-model'
-import { handleSetFields } from '../src/renderer/dvh-live'
+import { handleSetFields, recordExternalEdits } from '../src/renderer/dvh-live'
+import { createSheetsDvhActions } from '../src/renderer/dvh-actions'
+import { defaultPermissions } from '@genoffice/dvh-actions'
+import { historyForSave, serializeHistoryXml } from '@genoffice/dvh-model'
 import { loadDvhSmartData, registerDvhSheetsContext } from '../src/renderer/dvh-smart-data'
 import type { LazyWorkbookState, UniverRuntime } from '../src/renderer/univer-state'
 
@@ -44,7 +47,7 @@ const model: DvhModel = {
   links: [],
 }
 
-async function setup(nameCell: string) {
+async function setup(nameCell: string, withHistory = false) {
   const cells = new Map<string, { value: unknown; formula?: string }>([
     ['Info!B1', { value: nameCell }],
     ['Info!B3', { value: 10, formula: '=B2*2' }],
@@ -63,7 +66,9 @@ async function setup(nameCell: string) {
           { name: '_dvh.f.f_sum', formula: 'Info!$B$3' },
         ],
         model: { xml: serializeModelXml(model), storeItemId: '{A}' },
-        history: null,
+        history: withHistory
+          ? { xml: serializeHistoryXml(historyForSave(null, [], model)), storeItemId: '{B}' }
+          : null,
       }) as never,
   )
   let pending = 0
@@ -123,5 +128,36 @@ describe('handleSetFields', () => {
       },
     )
     expect(handleSetFields(s.runtime, { nonsense: true })).toBeNull()
+  })
+
+  it('P5: cells Excel changed since the last DVH save become one external change set', async () => {
+    const same = await setup('A', true)
+    expect(recordExternalEdits(same.runtime, same.dvh)).toBeNull()
+    const s = await setup('Sửa trong Excel', true)
+    const external = recordExternalEdits(s.runtime, s.dvh)!
+    expect(external).toMatchObject({
+      source: 'external',
+      changes: [{ objectId: 'f_name', path: 'value', before: 'A', after: 'Sửa trong Excel' }],
+    })
+    expect(s.dvh.pending.at(-1)).toBe(external)
+    expect(s.dvh.model!.fields[0]!.value).toBe('Sửa trong Excel')
+  })
+
+  it('P5: restores a field to a point of its history and undoes a run by txId', async () => {
+    const s = await setup('A')
+    handleSetFields(s.runtime, request('B', { rev: 2, text: 'A' }))
+    handleSetFields(s.runtime, request('C', { rev: 3, text: 'B' }))
+    const [toB, toC] = s.dvh.pending.slice(-2)
+    const registry = createSheetsDvhActions()
+    const ui = { caller: 'ui' as const, docId: 'doc_x', permissions: defaultPermissions('ui') }
+    await registry.run('History.RestoreObject', { changeSet: toB!.id, object: 'f_name' }, ui)
+    expect(s.cells.get('Info!B1')!.value).toBe('B')
+    expect(s.dvh.pending.at(-1)).toMatchObject({ source: 'restore' })
+    // undoing the first run conflicts with the later ones; force reverts it
+    await expect(
+      registry.run('History.RevertTransaction', { txId: toB!.txId }, ui),
+    ).rejects.toThrow(/changed after/)
+    await registry.run('History.RevertTransaction', { txId: toC!.txId, force: true }, ui)
+    expect(s.cells.get('Info!B1')!.value).toBe('B')
   })
 })

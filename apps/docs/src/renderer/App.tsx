@@ -365,6 +365,7 @@ import {
 } from './doc-state'
 import {
   applyAiDocContent as applyAiDocContentImpl,
+  buildDocBytes,
   exportPdf as exportPdfImpl,
   exportHtml as exportHtmlImpl,
   exportImages as exportImagesImpl,
@@ -6786,6 +6787,15 @@ export function App() {
         parsed={doc?.parsed ?? null}
         filePath={doc?.filePath ?? null}
         markDirty={markDvhDirty}
+        exportCopy={async (policy) => {
+          const bytes = await buildDocBytes(fileCtxRef.current)
+          if (!bytes) return null
+          return window.desktop.dvhExportCopy(
+            doc?.fileName ?? 'copy.docx',
+            bytes.slice().buffer as ArrayBuffer,
+            policy,
+          )
+        }}
       />
       {docCss && <style data-doc-css="">{docCss}</style>}
       {liveLineFactor != null && (

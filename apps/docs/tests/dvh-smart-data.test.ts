@@ -265,12 +265,13 @@ describe('Smart Data ops and actions', () => {
       'Table.Refresh',
       'Table.SetStyle',
     ])
-    // P4: the editor's op system follows as Document.* actions
-    expect(
-      registry
-        .catalog()
-        .slice(8)
-        .every((a) => a.name.startsWith('Document.')),
-    ).toBe(true)
+    // P5 history actions, then (P4) the editor's op system as Document.* actions
+    const names = registry.catalog().map((a) => a.name)
+    expect(names.slice(8, 11)).toEqual([
+      'History.RestoreObject',
+      'History.RevertTransaction',
+      'Table.ReplaceData',
+    ])
+    expect(names.slice(11).every((name) => name.startsWith('Document.'))).toBe(true)
   })
 })

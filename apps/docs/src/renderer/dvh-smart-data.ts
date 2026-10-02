@@ -17,8 +17,14 @@ import {
   type ParsedDocFull,
 } from '@genoffice/docx-engine'
 import {
+  collectionData,
+  compactHistoryKeeping,
   emptyModel,
+  externalChangeSet,
   fieldBaseOf,
+  historyForSave,
+  historySizeBytes,
+  HISTORY_SIZE_LIMIT,
   fieldSdtPrXml,
   fieldText,
   fieldValueFromText,
@@ -49,6 +55,11 @@ export interface DvhDocsState {
   historyStoreItemId: string | null
   /** change sets made this session, appended to the history part on save */
   pending: ChangeSet[]
+  /**
+   * change sets a previous session made and never saved (the app quit or
+   * crashed): offered back to the user, never merged silently
+   */
+  recovered?: ChangeSet[]
 }
 
 /** A DvhDocsState whose model exists (after ensureModel). */
@@ -102,8 +113,81 @@ export async function loadDvhDocs(parsed: ParsedDocFull): Promise<DvhDocsState> 
   } catch (error) {
     console.warn('DVH history part ignored:', error)
   }
+  // P5: a model Word changed since the last DVH save is recorded, not silently adopted
+  if (state.model) {
+    const external = externalChangeSet(state.history, state.model)
+    if (external) state.pending.push(external)
+    await readBufferedHistory(state)
+  }
   states.set(parsed, state)
   return state
+}
+
+/** Change sets a previous session left unsaved; a buffer fully in the file is cleared. */
+async function readBufferedHistory(state: DvhDocsState): Promise<void> {
+  const docId = state.model?.docId
+  if (!docId || typeof window === 'undefined' || !window.desktop?.dvhReadHistoryBuffer) return
+  try {
+    const buffered = await window.desktop.dvhReadHistoryBuffer(docId)
+    const saved = new Set((state.history?.changes ?? []).map((c) => c.id))
+    const left = buffered.filter((c) => !saved.has(c.id))
+    if (left.length > 0) state.recovered = left
+    else if (buffered.length > 0) void window.desktop.dvhBufferHistory?.(docId, [])
+  } catch {
+    // the buffer is a safety net; reading it never blocks opening the document
+  }
+}
+
+let bufferTimer: ReturnType<typeof setTimeout> | undefined
+/** Mirrors the session's change sets to the main process' buffer (debounced). */
+function scheduleHistoryBuffer(dvh: DvhDocsState): void {
+  if (typeof window === 'undefined' || !window.desktop?.dvhBufferHistory) return
+  clearTimeout(bufferTimer)
+  bufferTimer = setTimeout(() => {
+    const docId = dvh.model?.docId
+    if (docId) void window.desktop.dvhBufferHistory(docId, dvh.pending).catch(() => {})
+  }, 1000)
+}
+
+/** Takes the change sets of a previous session into this one's history (the user agreed). */
+export function adoptRecoveredHistory(dvh: DvhDocsState): number {
+  const recovered = dvh.recovered ?? []
+  dvh.pending.unshift(...recovered)
+  dvh.recovered = undefined
+  if (recovered.length > 0) onModelChange?.()
+  return recovered.length
+}
+
+/** Drops the change sets of a previous session (the user declined). */
+export function discardRecoveredHistory(dvh: DvhDocsState): void {
+  dvh.recovered = undefined
+  const docId = dvh.model?.docId
+  if (docId) void window.desktop?.dvhBufferHistory?.(docId, dvh.pending)
+}
+
+/** History size against the P0 limit (bytes of the part as it would be saved). */
+export function historyStatus(dvh: DvhDocsState | null): { bytes: number; limit: number } {
+  if (!dvh?.model) return { bytes: 0, limit: HISTORY_SIZE_LIMIT }
+  return {
+    bytes: historySizeBytes(historyForSave(dvh.history, dvh.pending, dvh.model)),
+    limit: HISTORY_SIZE_LIMIT,
+  }
+}
+
+/** states whose history was rewritten (compacted) and must be saved even with no pending change */
+const historyRewritten = new WeakSet<DvhDocsState>()
+
+/** Compacts the history on request, keeping the newest change sets as they are. */
+export function compactDvhHistory(dvh: DvhDocsState, keepRecent = 200): void {
+  if (!dvh.model) return
+  const merged: HistoryPart = {
+    ...(dvh.history ?? { docId: dvh.model.docId, changes: [] }),
+    changes: [...(dvh.history?.changes ?? []), ...dvh.pending],
+  }
+  dvh.history = compactHistoryKeeping(merged, keepRecent)
+  dvh.pending = []
+  historyRewritten.add(dvh)
+  onModelChange?.()
 }
 
 export function ensureModel(dvh: DvhDocsState): DvhDocsReady {
@@ -133,7 +217,37 @@ function record(
     action,
     changes,
   })
+  scheduleHistoryBuffer(dvh)
   if (external) onModelChange?.()
+}
+
+/** automatic link updates of this session that a following automatic update may extend */
+const coalescible = new WeakSet<ChangeSet>()
+
+/**
+ * Automatic link updates arrive in bursts (every edit in Sheets): consecutive
+ * ones merge into one change set — first `before`, last `after` per object
+ * and path — so the history keeps one entry per burst instead of hundreds.
+ */
+function recordCoalesced(dvh: DvhDocsState, action: string, changes: ChangeSet['changes']): void {
+  const last = dvh.pending.at(-1)
+  if (!last || !coalescible.has(last) || last.action !== action || changes.length === 0) {
+    record(dvh, action, changes, 'link', true)
+    const added = dvh.pending.at(-1)
+    if (added && added !== last) coalescible.add(added)
+    return
+  }
+  const merged = [...last.changes]
+  for (const change of changes) {
+    const i = merged.findIndex((c) => c.objectId === change.objectId && c.path === change.path)
+    if (i >= 0) merged[i] = { ...merged[i]!, after: change.after }
+    else merged.push(change)
+  }
+  const next: ChangeSet = { ...last, at: new Date().toISOString(), changes: merged }
+  dvh.pending[dvh.pending.length - 1] = next
+  coalescible.add(next)
+  scheduleHistoryBuffer(dvh)
+  onModelChange?.()
 }
 
 /** A field by id or by name (`Project.Name`). */
@@ -481,11 +595,12 @@ export function updateFromSource(
     if (!link.targets.includes(next.id)) continue
     const current = dvh.model.collections.find((c) => c.id === next.id)
     if (current && contentHash(current) === contentHash(next)) continue
+    // the whole data, so the history can restore this collection to any point (P5)
     changes.push({
       objectId: next.id,
-      path: 'rows',
-      before: current?.rows.length ?? null,
-      after: next.rows.length,
+      path: 'data',
+      before: current ? collectionData(current) : null,
+      after: collectionData(next),
     })
     dvh.model.collections = [
       ...dvh.model.collections.filter((c) => c.id !== next.id),
@@ -526,7 +641,8 @@ export function updateFromSource(
     at: new Date().toISOString(),
     fields: { ...(link.lastSync?.fields ?? {}), ...Object.fromEntries(bases) },
   }
-  record(dvh, 'Link.Update', changes, 'link', true)
+  if (options.history === false) recordCoalesced(dvh, 'Link.Update', changes)
+  else record(dvh, 'Link.Update', changes, 'link', true)
   const tr = editor.state.tr
   const changed = replaceFieldTexts(tr, texts)
   // automatic updates stay out of the user's undo history
@@ -600,14 +716,11 @@ export function dvhDocsCustomXmlParts(
   const dvh = states.get(parsed)
   if (!dvh?.model) return undefined
   syncModelFromEditor(editor, dvh)
-  if (dvh.pending.length === 0) return undefined
+  // a compaction leaves no pending change but a new history to write
+  if (dvh.pending.length === 0 && !historyRewritten.has(dvh)) return undefined
   dvh.modelStoreItemId ??= newStoreItemId()
   dvh.historyStoreItemId ??= newStoreItemId()
-  const history: HistoryPart = {
-    docId: dvh.model.docId,
-    modelHash: modelHash(dvh.model),
-    changes: [...(dvh.history?.changes ?? []), ...dvh.pending],
-  }
+  const history = historyForSave(dvh.history, dvh.pending, dvh.model)
   return [
     { ns: MODEL_NS, xml: serializeModelXml(dvh.model), storeItemId: dvh.modelStoreItemId },
     { ns: HISTORY_NS, xml: serializeHistoryXml(history), storeItemId: dvh.historyStoreItemId },

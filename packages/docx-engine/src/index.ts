@@ -19,6 +19,7 @@ export {
 export {
   customXmlItemPropsXml,
   findCustomXmlItemByNamespace,
+  itemPropsPathOf,
   readCustomXmlPart,
   type CustomXmlPart,
   type CustomXmlPartWrite,

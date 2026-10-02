@@ -230,9 +230,13 @@ export async function writeFieldsToXlsx(
       // an unreadable history part is replaced rather than blocking the write
     }
   }
+  // the written model is a DVH save: it becomes the base the next open compares with
+  const written = parseModelXml(modelXml)
   const nextHistory: HistoryPart = {
+    ...history,
     docId: model.docId,
-    modelHash: modelHash(parseModelXml(modelXml)),
+    modelHash: modelHash(written),
+    base: written,
     changes: [...history.changes, changeSet],
   }
   const touched = new Set<string>()

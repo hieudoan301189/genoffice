@@ -370,6 +370,13 @@ bằng vitest; bài trên bản đóng gói còn chờ chạy trên Windows.
   lịch sử còn nguyên; sửa file bằng Word/Excel rồi mở lại, có change-set `external`; bản xuất sạch không
   còn dữ liệu lịch sử; kích thước lịch sử nằm trong ngưỡng chốt ở P0.
 
+**Kết quả (02/10/2026):** lịch sử có `base` và snapshot, bộ đệm phiên chống mất khi tắt đột ngột, gộp theo
+snapshot và theo yêu cầu với ngưỡng 5 MB, change-set `external` khi Word/Excel sửa file; bảng Lịch sử theo đối
+tượng (nguồn, diff giá trị và diff theo ô); phục hồi riêng Field/collection/bảng (`History.RestoreObject`,
+`Table.ReplaceData`) và hoàn tác theo `txId` có kiểm xung đột; "Xuất bản sao" với bốn chính sách (đủ, từ một
+ngày, không lịch sử, không DVH) – [báo cáo](phases/p5-history.md). Nghiệm thu đạt bằng vitest; bài mở bằng
+Word/Excel còn chờ chạy trên Windows. Còn thiếu: phục hồi collection và panel Lịch sử ở Sheets.
+
 ### P6. Smart Template + Batch Generator (5–7 tuần) → Mốc M2
 
 - Template là docx gồm Smart Field (P1), Dynamic Table (P2), **Condition** (SDT cấp khối `dvh:if`),

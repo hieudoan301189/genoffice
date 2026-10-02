@@ -224,7 +224,7 @@ export function refreshDocTable(
   tableRef: string,
   options: {
     force?: boolean | undefined
-    source?: 'ui' | 'ai' | 'link'
+    source?: 'ui' | 'ai' | 'link' | 'restore'
     history?: boolean
   } = {},
 ): DocTableRefresh {

@@ -43,7 +43,7 @@ import type {
   AiStreamRequest,
   GenSparkAccountStatus,
 } from '@genoffice/ai-provider'
-import type { WriteFieldsRequest, WriteFieldsResult } from '@genoffice/dvh-model'
+import type { ChangeSet, WriteFieldsRequest, WriteFieldsResult } from '@genoffice/dvh-model'
 import type { HeadlessExportTarget } from '@genoffice/electron-utils/headless-export'
 import type { FaceVerticalMetrics } from '@genoffice/font-metrics'
 import type { AiPanelPrefs } from '@genoffice/ui'
@@ -375,6 +375,16 @@ export interface DesktopApi {
   dvhWriteFields(request: WriteFieldsRequest): Promise<WriteFieldsResult>
   /** DVH links: workbooks on disk with this docId (project files, then the search index) */
   dvhFindSource(docId: string): Promise<string[]>
+  /** DVH history: mirror the session's change sets until the next save (crash safety) */
+  dvhBufferHistory(docId: string, changes: unknown[]): Promise<void>
+  /** DVH history: change sets a previous session left unsaved for this document */
+  dvhReadHistoryBuffer(docId: string): Promise<ChangeSet[]>
+  /** DVH release policy: save a copy with all, part or none of the DVH data; null when cancelled */
+  dvhExportCopy(
+    defaultName: string,
+    data: ArrayBuffer,
+    policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
+  ): Promise<string | null>
   /** DVH links: open the source workbook in its editor; false when it cannot be opened */
   dvhOpenSource(path: string): Promise<boolean>
   /** auto=true marks an autosave: an externally modified file then fails with

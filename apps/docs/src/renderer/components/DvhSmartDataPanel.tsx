@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/core'
 import type { ParsedDocFull } from '@genoffice/docx-engine'
-import { fieldText, newDvhId, type DvhLink, type Scalar } from '@genoffice/dvh-model'
+import { fieldText, newDvhId, type DvhLink } from '@genoffice/dvh-model'
 import { useI18n } from '../i18n/locale'
 import { showToast } from './toast-bus'
 import { createDocsDvhActions } from '../dvh-actions'
@@ -9,7 +9,6 @@ import {
   activeDvhDocs,
   dvhDocsStateOf,
   fieldOccurrences,
-  historyEntries,
   insertSmartField,
   linkSource,
   loadDvhDocs,
@@ -39,10 +38,10 @@ import {
   type WriteBackOutcome,
 } from '../dvh-auto'
 import { DvhDocsTablesSection } from './DvhDocsTablesSection'
+import { DvhHistorySection } from './DvhHistorySection'
 import './dvh-smart-data.css'
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
-const HISTORY_ROWS = 20
 const readSource = (path: string) => window.desktop.dvhReadSource({ path })
 const findSource = (docId: string) => window.desktop.dvhFindSource?.(docId) ?? Promise.resolve([])
 
@@ -56,11 +55,16 @@ export function DvhSmartDataHost({
   parsed,
   filePath,
   markDirty,
+  exportCopy,
 }: {
   editor: Editor | null
   parsed: ParsedDocFull | null
   filePath: string | null
   markDirty: () => void
+  /** P5 release policy: saves a copy with all, part or none of the DVH data */
+  exportCopy?: (
+    policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
+  ) => Promise<string | null>
 }) {
   const [open, setOpen] = useState(false)
   const live = useRef({ editor, filePath })
@@ -146,6 +150,7 @@ export function DvhSmartDataHost({
       parsed={parsed}
       filePath={filePath}
       onClose={() => setOpen(false)}
+      {...(exportCopy ? { exportCopy } : {})}
     />
   )
 }
@@ -156,11 +161,15 @@ export function DvhSmartDataPanel({
   parsed,
   filePath,
   onClose,
+  exportCopy,
 }: {
   editor: Editor
   parsed: ParsedDocFull
   filePath: string | null
   onClose: () => void
+  exportCopy?: (
+    policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
+  ) => Promise<string | null>
 }) {
   const { t } = useI18n()
   const [, setTick] = useState(0)
@@ -171,7 +180,6 @@ export function DvhSmartDataPanel({
   const [busy, setBusy] = useState(false)
   /** the history list shows only this field (from a conflict's "History") */
   const [historyField, setHistoryField] = useState<string | null>(null)
-  const historyRef = useRef<HTMLDetailsElement>(null)
 
   const dvh = dvhDocsStateOf(parsed)
   const fields = dvh?.model?.fields ?? []
@@ -200,8 +208,6 @@ export function DvhSmartDataPanel({
     if (!shownText.has(occ.fieldId)) shownText.set(occ.fieldId, occ.text)
   }
   const fieldName = (id: string) => fields.find((f) => f.id === id)?.name ?? id
-  const show = (v: unknown) =>
-    v === null || ['string', 'number', 'boolean'].includes(typeof v) ? fieldText(v as Scalar) : '…'
 
   const linkWorkbook = async () => {
     if (!dvh || busy) return
@@ -305,11 +311,7 @@ export function DvhSmartDataPanel({
     }
   }
 
-  const showHistory = (fieldId: string) => {
-    setHistoryField(fieldId)
-    if (historyRef.current) historyRef.current.open = true
-    historyRef.current?.scrollIntoView({ block: 'nearest' })
-  }
+  const showHistory = (fieldId: string) => setHistoryField(fieldId)
 
   /** Points the link at another copy of its workbook: same docId, or one carrying every linked object. */
   const changeSource = async (link: DvhLink, picked?: string) => {
@@ -401,9 +403,6 @@ export function DvhSmartDataPanel({
     repaint()
   }
 
-  const history = historyEntries(dvh)
-    .filter((cs) => !historyField || cs.changes.some((c) => c.objectId === historyField))
-    .slice(0, HISTORY_ROWS)
   const canWrite = typeof window.desktop.dvhWriteFields === 'function'
 
   return (
@@ -607,36 +606,14 @@ export function DvhSmartDataPanel({
 
       <DvhDocsTablesSection editor={editor} dvh={dvh} onChange={repaint} />
 
-      <details ref={historyRef} className="dvh-docs-panel-section dvh-docs-panel-history">
-        <summary>
-          {historyField ? t('dvhHistoryFor', { name: fieldName(historyField) }) : t('dvhHistory')}
-        </summary>
-        {historyField ? (
-          <button type="button" onClick={() => setHistoryField(null)}>
-            {t('dvhHistoryAll')}
-          </button>
-        ) : null}
-        {history.length === 0 ? (
-          <p className="dvh-docs-panel-empty">{t('dvhNoHistory')}</p>
-        ) : (
-          <ul>
-            {history.map((cs) => (
-              <li key={cs.id} data-action={cs.action}>
-                <span className="dvh-docs-panel-muted">{new Date(cs.at).toLocaleString()}</span>{' '}
-                <code>{cs.action}</code>
-                {cs.changes
-                  .filter((c) => c.path === 'value')
-                  .map((c) => (
-                    <div key={`${cs.id}:${c.objectId}`} className="dvh-docs-panel-diff">
-                      {fieldName(c.objectId)}: <del>{show(c.before)}</del> →{' '}
-                      <ins>{show(c.after)}</ins>
-                    </div>
-                  ))}
-              </li>
-            ))}
-          </ul>
-        )}
-      </details>
+      <DvhHistorySection
+        editor={editor}
+        dvh={dvh}
+        focus={historyField}
+        onFocus={setHistoryField}
+        onChange={repaint}
+        {...(exportCopy ? { exportCopy } : {})}
+      />
     </div>
   )
 }

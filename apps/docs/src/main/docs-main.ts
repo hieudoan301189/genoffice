@@ -27,6 +27,8 @@ import { tmpdir } from 'node:os'
 import { readDvhSource } from './dvh-source'
 import { registerDvhLinkIpc } from './dvh-link-watch'
 import { findDvhSources } from './dvh-find-source'
+import { applyReleasePolicy, type DvhReleasePolicy } from './dvh-release'
+import { readHistoryBuffer, writeHistoryBuffer } from './dvh-history-buffer'
 import { basename, dirname, extname, isAbsolute, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
@@ -4676,6 +4678,53 @@ export function registerDocsIpc(): void {
     }
     return findDvhSources(docId, [...projectFilePaths(), ...indexed])
   })
+
+  // DVH history (P5): the session's change sets mirrored to userData until the next save
+  const historyBufferDir = () => join(app.getPath('userData'), 'dvh-history')
+  ipcMain.handle('docs:dvh-history-buffer', async (_event, docId: unknown, changes: unknown) => {
+    if (typeof docId !== 'string' || !Array.isArray(changes)) return
+    await writeHistoryBuffer(historyBufferDir(), docId, changes.slice(0, 10_000))
+  })
+  ipcMain.handle('docs:dvh-read-history-buffer', async (_event, docId: unknown) =>
+    typeof docId === 'string' ? readHistoryBuffer(historyBufferDir(), docId) : [],
+  )
+
+  // DVH release policy (P5): a copy for sending out, with all, part or none of the DVH data
+  ipcMain.handle(
+    'docs:dvh-export-copy',
+    async (event, defaultName: unknown, data: unknown, policy: unknown) => {
+      if (!(data instanceof ArrayBuffer) && !ArrayBuffer.isView(data)) return null
+      const p = (policy ?? {}) as { kind?: unknown; at?: unknown }
+      const release: DvhReleasePolicy | null =
+        p.kind === 'all' || p.kind === 'none' || p.kind === 'strip'
+          ? { kind: p.kind }
+          : p.kind === 'from' && typeof p.at === 'string' && !Number.isNaN(Date.parse(p.at))
+            ? { kind: 'from', at: new Date(p.at).toISOString() }
+            : null
+      if (!release) return null
+      const result = await saveDialog(event, {
+        title: tm('dlgSaveAs'),
+        defaultPath: saveAsSuggestion(
+          null,
+          typeof defaultName === 'string' ? defaultName : 'copy.docx',
+        ),
+        filters: [{ name: tm('filterWord'), extensions: ['docx'] }],
+      })
+      if (result.canceled || !result.filePath) return null
+      const raw =
+        data instanceof ArrayBuffer
+          ? Buffer.from(data)
+          : Buffer.from(
+              (data as Uint8Array).buffer,
+              (data as Uint8Array).byteOffset,
+              (data as Uint8Array).byteLength,
+            )
+      const { bytes } = await materializeLazyDocx(raw)
+      const cleaned = await applyReleasePolicy(new Uint8Array(bytes), release)
+      await atomicWriteFile(result.filePath, Buffer.from(cleaned))
+      return result.filePath
+    },
+  )
 
   // DVH links: open the source workbook in its editor (a Sheets tab in the shell)
   ipcMain.handle('docs:dvh-open-source', async (_event, path: unknown) => {

@@ -209,3 +209,18 @@
   white-space: nowrap;
   color: var(--text-muted);
 }
+
+/* P5 history: who or what made a change */
+.dvh-docs-panel-badge {
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.dvh-docs-panel-badge[data-source='external'],
+.dvh-docs-panel-badge[data-source='ai'] {
+  color: var(--accent);
+  border-color: var(--accent);
+}

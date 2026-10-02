@@ -134,6 +134,16 @@ const api: DesktopApi = {
   dvhWriteFields: (request: unknown) => ipcRenderer.invoke('docs:dvh-write-fields', request),
   dvhFindSource: (docId: string) =>
     ipcRenderer.invoke('docs:dvh-find-source', typeof docId === 'string' ? docId : ''),
+  dvhBufferHistory: (docId: string, changes: unknown[]) =>
+    ipcRenderer.invoke(
+      'docs:dvh-history-buffer',
+      String(docId),
+      Array.isArray(changes) ? changes : [],
+    ),
+  dvhReadHistoryBuffer: (docId: string) =>
+    ipcRenderer.invoke('docs:dvh-read-history-buffer', String(docId)),
+  dvhExportCopy: (defaultName: string, data: ArrayBuffer, policy: unknown) =>
+    ipcRenderer.invoke('docs:dvh-export-copy', String(defaultName), data, policy),
   dvhOpenSource: (path: string) =>
     ipcRenderer.invoke('docs:dvh-open-source', typeof path === 'string' ? path : ''),
   writeRecoveryCopy: (path: string, data: ArrayBuffer) =>

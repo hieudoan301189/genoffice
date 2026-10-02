@@ -13,6 +13,8 @@
 import {
   checkFieldWrite,
   contentHash,
+  externalChangeSet,
+  type ChangeSet,
   fieldBaseOf,
   fieldText,
   serializeModelXml,
@@ -30,6 +32,7 @@ import {
   dvhStateOf,
   setBoundFieldValue,
   splitBindingFormula,
+  type DvhSheetState,
 } from './dvh-smart-data'
 import { readCollectionState } from './dvh-tables'
 import type { UniverRuntime } from './univer-state'
@@ -67,6 +70,7 @@ export function installDvhLivePublisher(runtime: UniverRuntime): { dispose(): vo
   const commands = runtime.univer.__getInjector().get(ICommandService)
   let timer: ReturnType<typeof setTimeout> | undefined
   let lastHash: string | null = null
+  let externalChecked = false
 
   /** true once this workbook's data went out (or was already out) */
   const publish = (): boolean => {
@@ -81,6 +85,11 @@ export function installDvhLivePublisher(runtime: UniverRuntime): { dispose(): vo
     const current = ctx.getRuntime()
     if (!current) return false
     try {
+      // once the workbook is fully loaded: cells Excel changed since the last DVH save
+      if (!externalChecked && dvh) {
+        externalChecked = true
+        recordExternalEdits(current, dvh)
+      }
       const modelXml = serializeModelXml(liveModel(current, model))
       const hash = contentHash(modelXml)
       if (hash === lastHash) return true
@@ -119,6 +128,23 @@ export function installDvhLivePublisher(runtime: UniverRuntime): { dispose(): vo
       offWrites?.()
     },
   }
+}
+
+/**
+ * P5: a workbook saved by Excel after its last DVH save has other cell values
+ * than the model it saved. The difference is recorded as one `external`
+ * change set (written with the next save) and the model takes the cell values,
+ * so the history has no silent gap.
+ */
+export function recordExternalEdits(runtime: UniverRuntime, dvh: DvhSheetState): ChangeSet | null {
+  if (!dvh.model) return null
+  const live = liveModel(runtime, dvh.model)
+  const external = externalChangeSet(dvh.history, live)
+  if (!external) return null
+  dvh.pending.push(external)
+  dvh.model.fields = live.fields
+  dvh.model.collections = live.collections
+  return external
 }
 
 /** True when the bound cell holds a formula: its value is computed, not written. */

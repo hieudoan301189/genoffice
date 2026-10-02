@@ -15,7 +15,7 @@ import {
   HISTORY_NS,
   isDvhDefinedName,
   MODEL_NS,
-  modelHash,
+  historyForSave,
   newDvhId,
   newStoreItemId,
   parseDvhDefinedName,
@@ -349,11 +349,8 @@ export function collectDvhState(
   if (dvh.model && dvh.pending.length > 0) {
     dvh.modelStoreItemId ??= newStoreItemId()
     dvh.historyStoreItemId ??= newStoreItemId()
-    const history: HistoryPart = {
-      docId: dvh.model.docId,
-      modelHash: modelHash(dvh.model),
-      changes: [...(dvh.history?.changes ?? []), ...dvh.pending],
-    }
+    // P5: base for external-edit detection, snapshots every SNAPSHOT_EVERY change sets
+    const history = historyForSave(dvh.history, dvh.pending, dvh.model)
     customXmlParts.push(
       { ns: MODEL_NS, xml: serializeModelXml(dvh.model), storeItemId: dvh.modelStoreItemId },
       { ns: HISTORY_NS, xml: serializeHistoryXml(history), storeItemId: dvh.historyStoreItemId },
