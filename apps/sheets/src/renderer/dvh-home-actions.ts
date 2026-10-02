@@ -1,4 +1,5 @@
-import { WrapStrategy, type ICellData, type IStyleData } from '@univerjs/core'
+import { WrapStrategy, type ICellData, type IStyleData, type Nullable } from '@univerjs/core'
+import type { FWorksheet } from '@univerjs/sheets/facade'
 import type { RibbonCommandContext } from './ribbon-actions'
 import { beginUndoBatch } from './op-executor'
 import { changeTextIndent, type IndentPreset, type BorderPreset } from './dvh-home-presets'
@@ -7,6 +8,53 @@ import { lazySheetMeta } from './univer-state'
 import { handleDvhTool, type DvhToolPayload } from './dvh-tool-actions'
 
 /** Commands of dvh-tool-actions.ts (text case, visibility, formulas, visible copy). */
+/**
+ * DVH-Tool's "fit merged": row heights that show every wrapped line, measured
+ * against each merged span instead of treating its anchor as one column.
+ * `cells` holds the rows × columns cell data from (row0, col0).
+ */
+export function fitRowHeights(
+  sheet: FWorksheet,
+  row0: number,
+  col0: number,
+  height: number,
+  width: number,
+  cells: readonly (readonly Nullable<ICellData>[])[],
+): void {
+  const measure = document.createElement('canvas').getContext('2d')!
+  for (let r = 0; r < height; r++) {
+    let rowHeight = 20
+    for (let c = 0; c < width; c++) {
+      const cell = cells[r]?.[c]
+      if (!cell || cell.v == null) continue
+      const style = sheet.getRange(row0 + r, col0 + c).getCellStyleData() ?? {}
+      const merged = sheet.getSheet().getMergedCell(row0 + r, col0 + c)
+      if (merged && (merged.startRow !== row0 + r || merged.startColumn !== col0 + c)) continue
+      const size = style.fs ?? 11
+      measure.font = `${style.bl ? 'bold ' : ''}${(size * 96) / 72}px "${style.ff ?? 'Arial'}"`
+      let spanWidth = 0
+      for (let col = merged?.startColumn ?? col0 + c; col <= (merged?.endColumn ?? col0 + c); col++)
+        spanWidth += sheet.getSheet().getColumnWidth(col)
+      const lines = String(cell.v)
+        .split('\n')
+        .reduce(
+          (n, line) =>
+            n +
+            Math.max(1, Math.ceil(measure.measureText(line).width / Math.max(1, spanWidth - 8))),
+          0,
+        )
+      rowHeight = Math.max(
+        rowHeight,
+        Math.ceil(
+          (((lines * size * 96) / 72) * 1.25 + 6) /
+            (merged ? merged.endRow - merged.startRow + 1 : 1),
+        ),
+      )
+    }
+    sheet.setRowHeight(row0 + r, Math.min(546, rowHeight))
+  }
+}
+
 const DVH_TOOL_ACTIONS = new Set([
   'case',
   'hidden',
@@ -175,42 +223,7 @@ export async function handleDvhHome(ctx: RibbonCommandContext, encoded: string):
       range.setValues(values)
     }
     if (action === 'fit') {
-      // Measure against each merged span instead of treating its anchor as one column.
-      for (let r = 0; r < range.getHeight(); r++) {
-        let height = 20
-        for (let c = 0; c < range.getWidth(); c++) {
-          const cell = source[r]?.[c]
-          if (!cell || cell.v == null) continue
-          const style = sheet.getRange(row0 + r, col0 + c).getCellStyleData() ?? {}
-          const merged = sheet.getSheet().getMergedCell(row0 + r, col0 + c)
-          if (merged && (merged.startRow !== row0 + r || merged.startColumn !== col0 + c)) continue
-          const size = style.fs ?? 11
-          measure.font = `${style.bl ? 'bold ' : ''}${(size * 96) / 72}px "${style.ff ?? 'Arial'}"`
-          let width = 0
-          for (
-            let col = merged?.startColumn ?? col0 + c;
-            col <= (merged?.endColumn ?? col0 + c);
-            col++
-          )
-            width += sheet.getSheet().getColumnWidth(col)
-          const lines = String(cell.v)
-            .split('\n')
-            .reduce(
-              (n, line) =>
-                n +
-                Math.max(1, Math.ceil(measure.measureText(line).width / Math.max(1, width - 8))),
-              0,
-            )
-          height = Math.max(
-            height,
-            Math.ceil(
-              (((lines * size * 96) / 72) * 1.25 + 6) /
-                (merged ? merged.endRow - merged.startRow + 1 : 1),
-            ),
-          )
-        }
-        sheet.setRowHeight(row0 + r, Math.min(546, height))
-      }
+      fitRowHeights(sheet, row0, col0, range.getHeight(), range.getWidth(), source)
     }
     ctx.setMessage('Đã áp dụng định dạng DVH cho vùng chọn. Ctrl+Z để hoàn tác.')
   } finally {

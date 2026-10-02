@@ -21,6 +21,7 @@ import {
   sortDvhRows, subDvhArray, sumDvhExpression,
   type DvhMatrix,
 } from './dvh-matrix-functions'
+import { registerDvhAliases } from './dvh-function-aliases'
 import type { UniverRuntime } from './univer-state'
 
 // Ported from DVH-Excel/Function/clsFun_Text.cs, clsFun_Color.cs,
@@ -620,7 +621,7 @@ export function installDvhPureFunctions(runtime: UniverRuntime, isLoaded: () => 
     new DvhLastUsedFunction('column', isLoaded),
   ]
   functions.registerExecutors(...executors)
-  const descriptionHandle = descriptions.registerDescriptions([...specs, ...arraySpecs, ...lastUsedSpecs].map((spec): IFunctionInfo => ({
+  const infos = [...specs, ...arraySpecs, ...lastUsedSpecs].map((spec): IFunctionInfo => ({
     functionName: spec.name.toUpperCase(),
     functionType: FunctionType.User,
     abstract: spec.description,
@@ -628,9 +629,13 @@ export function installDvhPureFunctions(runtime: UniverRuntime, isLoaded: () => 
     functionParameter: spec.params.map((name, index) => ({
       name, detail: name, example: '', require: index < spec.required ? 1 : 0, repeat: 0,
     })),
-  })))
+  }))
+  const descriptionHandle = descriptions.registerDescriptions(infos)
+  // DVH.Table and Table: every function also answers to its short name
+  const aliases = registerDvhAliases(injector, executors, infos)
   return {
     dispose() {
+      aliases.dispose()
       descriptionHandle.dispose()
       functions.unregisterExecutors(...executors.map((executor) => executor.name))
     },

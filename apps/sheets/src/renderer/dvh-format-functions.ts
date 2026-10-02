@@ -30,6 +30,7 @@ import {
   type FormatRect,
   type FormulaFormatStore,
 } from './dvh-format-channel'
+import { registerDvhAliases } from './dvh-function-aliases'
 import { toNeutralStyle } from './edit-journal'
 import type { UniverRuntime } from './univer-state'
 
@@ -178,11 +179,16 @@ export function copiedCellStyle(source: Nullable<IStyleData>): WorkbookStyleEdit
 // ---------------- argument access ----------------
 
 /** Univer hands references to `needsReferenceObject` functions as BaseValueObject. */
-const asReference = (value: BaseValueObject): BaseReferenceObject =>
+export const asReference = (value: BaseValueObject): BaseReferenceObject =>
   value as unknown as BaseReferenceObject
 
-function scalarOf(value: BaseValueObject | undefined): Scalar | null {
-  if (!value || value.isNull()) return null
+/** A missing or empty argument; reference objects have no isNull of their own. */
+export function isBlankArg(value: BaseValueObject | undefined): value is undefined {
+  return !value || (!value.isReferenceObject() && value.isNull())
+}
+
+export function scalarOf(value: BaseValueObject | undefined): Scalar | null {
+  if (isBlankArg(value)) return null
   let cell: BaseValueObject = value
   if (cell.isReferenceObject()) cell = asReference(cell).toArrayValueObject()
   if (cell.isArray()) cell = (cell as ArrayValueObject).getFirstCell()
@@ -190,8 +196,8 @@ function scalarOf(value: BaseValueObject | undefined): Scalar | null {
   return cell.isNull() ? '' : (cell.getValue() as Scalar)
 }
 
-function matrixOf(value: BaseValueObject | undefined): Scalar | Scalar[][] | null {
-  if (!value || value.isNull()) return null
+export function matrixOf(value: BaseValueObject | undefined): Scalar | Scalar[][] | null {
+  if (isBlankArg(value)) return null
   let array: BaseValueObject = value
   if (value.isReferenceObject()) array = asReference(value).toArrayValueObject()
   if (!array.isArray()) return array.isError() ? null : (array.getValue() as Scalar)
@@ -205,7 +211,7 @@ function matrixOf(value: BaseValueObject | undefined): Scalar | Scalar[][] | nul
 }
 
 /** A reference's rectangle clamped to the sheet (whole-column refs report open ends). */
-function boundsOf(reference: BaseReferenceObject): {
+export function boundsOf(reference: BaseReferenceObject): {
   startRow: number
   endRow: number
   startColumn: number
@@ -226,7 +232,7 @@ function boundsOf(reference: BaseReferenceObject): {
 
 // ---------------- functions ----------------
 
-abstract class DvhFormattedFunction extends BaseFunction {
+export abstract class DvhFormattedFunction extends BaseFunction {
   override needsReferenceObject = true
   constructor(
     name: string,
@@ -285,7 +291,7 @@ class DvhColorFunction extends DvhFormattedFunction {
   }
   override calculate(range: BaseValueObject, color?: BaseValueObject): BaseValueObject {
     if (!range.isReferenceObject()) return this.fail('#REF: Invalid range')
-    const raw = color === undefined || color.isNull() ? 255 : Number(scalarOf(color))
+    const raw = isBlankArg(color) ? 255 : Number(scalarOf(color))
     const ole = Number.isFinite(raw) && raw >= 0 && raw <= 0xffffff ? Math.trunc(raw) : 0
     const hex = oleColorToHex(ole)
     const reference = asReference(range)
@@ -475,15 +481,17 @@ export function installDvhFormatFunctions(
     new DvhTableFunction(store),
   ]
   functions.registerExecutors(...executors)
-  const descriptionHandle = injector.get(IDescriptionService).registerDescriptions(
-    descriptions.map((d): IFunctionInfo => ({
-      ...d,
-      functionType: FunctionType.User,
-      description: `DVH Tool · ${d.abstract}`,
-    })),
-  )
+  const infos = descriptions.map((d): IFunctionInfo => ({
+    ...d,
+    functionType: FunctionType.User,
+    description: `DVH Tool · ${d.abstract}`,
+  }))
+  const descriptionHandle = injector.get(IDescriptionService).registerDescriptions(infos)
+  // DVH.Table and Table: every function also answers to its short name
+  const aliases = registerDvhAliases(injector, executors, infos)
   return {
     dispose() {
+      aliases.dispose()
       descriptionHandle.dispose()
       functions.unregisterExecutors(...executors.map((executor) => executor.name))
     },

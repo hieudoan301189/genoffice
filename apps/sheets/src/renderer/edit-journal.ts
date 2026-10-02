@@ -1794,7 +1794,7 @@ export function unescapeCssLeadingDigit(family: string): string {
   return family.replace(/^\\3([0-9]) /, '$1')
 }
 
-function extractRichText(p: unknown): { text: string; runs?: WorkbookRichRun[] } | undefined {
+export function extractRichText(p: unknown): { text: string; runs?: WorkbookRichRun[] } | undefined {
   if (typeof p !== 'object' || p === null) return undefined
   const body = (p as Record<string, unknown>).body
   if (typeof body !== 'object' || body === null) return undefined

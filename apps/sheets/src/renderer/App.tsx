@@ -260,6 +260,7 @@ import {
   handleInsertPictureFile,
   handleInsertScreenshot,
   handleRecommendedCharts as handleRecommendedChartsImpl,
+  insertAiImageVisual,
   type VisualActionContext,
 } from './visual-actions'
 import {
@@ -288,8 +289,11 @@ import { installCachedValueFallbackInterceptor } from './formula-cached-fallback
 import { readLiveFunctionInfos } from './function-catalog'
 import { installSupportedFunctionProbe } from './function-registry-probe'
 import { installDvhPureFunctions } from './dvh-functions'
+import { formulaCallsDvh } from './dvh-function-aliases'
 import { installFormulaFormatChannel } from './dvh-format-channel'
 import { installDvhFormatFunctions } from './dvh-format-functions'
+import { installDvhWorkbookFunctions } from './dvh-workbook-functions'
+import { installDvhFormulaCommands } from './dvh-formula-commands'
 import { showToast } from './toast-bus'
 import {
   dvhStateOf,
@@ -1808,6 +1812,42 @@ export function App({
     // an interceptor paints them, save bakes them into real cell styles.
     const dvhFormatChannelDisposable = installFormulaFormatChannel(runtime)
     const dvhFormatFunctionsDisposable = installDvhFormatFunctions(runtime)
+    // Dev-only: e2e drivers read cells before any file is open.
+    if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__univerAPI = runtime.univerAPI
+    // DVH functions reading colors, notes, names and formulas (DVH.SumColor...)
+    const dvhWorkbookFunctionsDisposable = installDvhWorkbookFunctions(runtime)
+    // DVH functions that change the workbook (DVH.AddName, DVH.TextCom...):
+    // queued per formula cell, run once after the calculation, undoable.
+    const dvhFormulaCommandsDisposable = installDvhFormulaCommands(runtime, () => {
+      const state = lazyWorkbookRef.current
+      return {
+        // without a file every formula was typed in this session
+        isUserFormula: (sheetId, row, column) =>
+          !state || Boolean(state.editJournal.cells.get(sheetId)?.get(`${row}:${column}`)?.formula),
+        isLoaded: () => state?.flags.preloadComplete ?? true,
+        recordPrintSetup: (sheetId, patch) => {
+          if (!state || isSheetRemoved(state.editJournal, sheetId)) return false
+          recordPageSetup(state.editJournal, sheetId, patch)
+          setPendingEdits(journalSize(state.editJournal))
+          return true
+        },
+        notify: (message, kind) => showToast(message, kind === 'error' ? 'error' : 'success'),
+        placePicture: (sheetId, row, column, name, image) => {
+          if (!state || univerRef.current !== runtime) return false
+          // a rerun replaces the picture it placed before
+          for (const old of state.editJournal.visualAdds.filter((v) => v.name === name))
+            shapeEditRef.current(old.id, { remove: true })
+          insertAiImageVisual(
+            visualContext(),
+            runtime,
+            state,
+            { op: 'add_image', sheetId, path: name, anchorCell: `${columnLabel(column)}${row + 1}` },
+            image,
+          )
+          return true
+        },
+      }
+    })
     // DVH Smart Data: the field panel reaches the workbook through this
     // context; the watch warns as soon as an edit deletes a bound cell.
     const dvhContextDisposable = registerDvhSheetsContext({
@@ -2096,7 +2136,7 @@ export function App({
         if (state) {
           for (const [sheetId, entries] of state.editJournal.cells) {
             const formulas = [...entries.values()].filter(
-              (entry) => entry.formula && /^=DVH\./i.test(entry.formula),
+              (entry) => entry.formula && formulaCallsDvh(entry.formula),
             )
             if (formulas.length === 0) continue
             const addresses = formulas.map(
@@ -3048,6 +3088,8 @@ export function App({
       functionProbeDisposable.dispose()
       dvhFunctionsDisposable.dispose()
       dvhFormatFunctionsDisposable.dispose()
+      dvhWorkbookFunctionsDisposable.dispose()
+      dvhFormulaCommandsDisposable.dispose()
       dvhFormatChannelDisposable.dispose()
       dvhContextDisposable.dispose()
       dvhBindingWatchDisposable.dispose()

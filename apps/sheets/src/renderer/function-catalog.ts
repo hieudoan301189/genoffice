@@ -1,6 +1,7 @@
 import { FunctionType, type IFunctionInfo } from '@univerjs/engine-formula'
 import { IDescriptionService } from '@univerjs/sheets-formula'
 
+import { isDvhFunctionName } from './dvh-function-aliases'
 import type { UniverRuntime } from './univer-state'
 
 /// One Insert Function row. `category` is a stable English id, displayed
@@ -84,7 +85,7 @@ export function buildFunctionCatalog(
 ): FunctionSpec[] {
   const byName = new Map<string, FunctionSpec>()
   for (const info of live) {
-    const category = info.functionName.toUpperCase().startsWith('DVH.')
+    const category = isDvhFunctionName(info.functionName)
       ? 'DVH Tool'
       : CATEGORY_BY_TYPE[info.functionType]
     if (!category) continue
