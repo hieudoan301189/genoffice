@@ -25,6 +25,7 @@
   "dependencies": {
     "@genoffice/dvh-actions": "*",
     "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-script": "*",
     "@fluentui/react-icons": "^2.0.333",
     "@genoffice/agent-core": "*",
     "@genoffice/ai-provider": "*",

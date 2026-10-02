@@ -166,4 +166,8 @@ export const en = {
   dvhWfUnrecordable: 'Cannot be recorded: {command}',
   dvhWfConfirm:
     'The workflow will run {action}, touching {count} object(s):\n{summary}\n\nContinue?',
+  dvhWfBlocks: 'Blocks',
+  dvhWfScript: 'Script',
+  dvhWfApplyScript: 'Apply script',
+  dvhWfLine: 'line {line}',
 } satisfies Record<keyof typeof zh, string>

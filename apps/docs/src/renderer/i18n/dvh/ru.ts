@@ -165,4 +165,8 @@ export const ru = {
   dvhWfImport: 'Импорт сценария…',
   dvhWfUnrecordable: 'Не записывается: {command}',
   dvhWfConfirm: 'Сценарий выполнит {action}, затронув объектов: {count}:\n{summary}\n\nПродолжить?',
+  dvhWfBlocks: 'Блоки',
+  dvhWfScript: 'Скрипт',
+  dvhWfApplyScript: 'Применить скрипт',
+  dvhWfLine: 'строка {line}',
 } satisfies Record<keyof typeof zh, string>

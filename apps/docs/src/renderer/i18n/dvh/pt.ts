@@ -168,4 +168,8 @@ export const pt = {
   dvhWfImport: 'Importar fluxo…',
   dvhWfUnrecordable: 'Não pode ser gravado: {command}',
   dvhWfConfirm: 'O fluxo executará {action}, afetando {count} objeto(s):\n{summary}\n\nContinuar?',
+  dvhWfBlocks: 'Blocos',
+  dvhWfScript: 'Script',
+  dvhWfApplyScript: 'Aplicar script',
+  dvhWfLine: 'linha {line}',
 } satisfies Record<keyof typeof zh, string>

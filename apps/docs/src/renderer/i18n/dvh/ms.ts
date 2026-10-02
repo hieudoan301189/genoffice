@@ -169,4 +169,8 @@ export const ms = {
   dvhWfUnrecordable: 'Tidak boleh dirakam: {command}',
   dvhWfConfirm:
     'Aliran kerja akan menjalankan {action}, melibatkan {count} objek:\n{summary}\n\nTeruskan?',
+  dvhWfBlocks: 'Blok',
+  dvhWfScript: 'Skrip',
+  dvhWfApplyScript: 'Guna skrip',
+  dvhWfLine: 'baris {line}',
 } satisfies Record<keyof typeof zh, string>

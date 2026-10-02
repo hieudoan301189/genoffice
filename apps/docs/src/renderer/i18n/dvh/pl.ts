@@ -166,4 +166,8 @@ export const pl = {
   dvhWfImport: 'Importuj przepływ…',
   dvhWfUnrecordable: 'Nie można nagrać: {command}',
   dvhWfConfirm: 'Przepływ wykona {action}, obejmując obiekty: {count}:\n{summary}\n\nKontynuować?',
+  dvhWfBlocks: 'Bloki',
+  dvhWfScript: 'Skrypt',
+  dvhWfApplyScript: 'Zastosuj skrypt',
+  dvhWfLine: 'wiersz {line}',
 } satisfies Record<keyof typeof zh, string>

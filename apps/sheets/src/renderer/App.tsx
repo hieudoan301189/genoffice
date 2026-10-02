@@ -302,6 +302,7 @@ import {
   createDvhPlannerSkill,
   type ActionRegistry,
 } from '@genoffice/dvh-actions'
+import { createDvhScriptSkill } from '@genoffice/dvh-script'
 import { installDvhTableWatch } from './dvh-tables'
 import { installDvhLivePublisher } from './dvh-live'
 import { isDvhDefinedName, newDvhId } from '@genoffice/dvh-model'
@@ -1235,6 +1236,24 @@ export function App({
             sheetsSagaParticipant(() => univerRef.current, sheetsAgentRegistry(), 'doc').restore(
               cp,
             ),
+          confirm: (lines) =>
+            window.confirm(
+              t('dvhConfirmPlan', {
+                summary: lines[0] ?? '',
+                steps: lines.slice(1, 13).join('\n'),
+              }),
+            ),
+        }),
+        // P9: repeatable work written as DVH-Script, run as one transaction
+        createDvhScriptSkill({
+          registry: sheetsAgentRegistry,
+          docId: () => dvhStateOf(lazyWorkbookRef.current)?.model?.docId ?? 'doc_unsaved',
+          participants: () => {
+            const docId = dvhStateOf(lazyWorkbookRef.current)?.model?.docId ?? 'doc_unsaved'
+            return new Map([
+              [docId, sheetsSagaParticipant(() => univerRef.current, sheetsAgentRegistry(), docId)],
+            ])
+          },
           confirm: (lines) =>
             window.confirm(
               t('dvhConfirmPlan', {

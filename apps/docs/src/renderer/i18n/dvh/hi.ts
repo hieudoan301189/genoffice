@@ -166,4 +166,8 @@ export const hi = {
   dvhWfUnrecordable: 'रिकॉर्ड नहीं हो सकता: {command}',
   dvhWfConfirm:
     'वर्कफ़्लो {action} चलाएगा, {count} ऑब्जेक्ट प्रभावित होंगे:\n{summary}\n\nजारी रखें?',
+  dvhWfBlocks: 'ब्लॉक',
+  dvhWfScript: 'स्क्रिप्ट',
+  dvhWfApplyScript: 'स्क्रिप्ट लागू करें',
+  dvhWfLine: 'पंक्ति {line}',
 } satisfies Record<keyof typeof zh, string>

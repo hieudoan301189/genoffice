@@ -32,6 +32,8 @@ const expr = z
   .string()
   .min(1)
   .max(2000)
+  // one line: DVH-Script (P9) prints every expression on its statement's line
+  .regex(/^[^\r\n]*$/, 'an expression must fit on one line')
   .refine((source) => exprError(source) === null, {
     error: (issue) => `bad expression: ${exprError(String(issue.input))}`,
   })
@@ -49,14 +51,20 @@ export type Step =
       action: string
       args: Record<string, Arg>
       /** the document the action runs in (default: the workflow's document) */
-      doc?: Arg
+      doc?: Arg | undefined
       /** stores the action's output in this variable */
-      assign?: string
+      assign?: string | undefined
     }
   | { kind: 'set'; variable: string; value: Arg }
-  | { kind: 'if'; branches: { when: string; steps: Step[] }[]; else?: Step[] }
-  | { kind: 'forEach'; variable: string; items: Arg; where?: string; steps: Step[] }
-  | { kind: 'try'; steps: Step[]; catch: Step[]; errorVariable?: string }
+  | { kind: 'if'; branches: { when: string; steps: Step[] }[]; else?: Step[] | undefined }
+  | {
+      kind: 'forEach'
+      variable: string
+      items: Arg
+      where?: string | undefined
+      steps: Step[]
+    }
+  | { kind: 'try'; steps: Step[]; catch: Step[]; errorVariable?: string | undefined }
   | { kind: 'transaction'; steps: Step[] }
   | { kind: 'log'; message: Arg }
 

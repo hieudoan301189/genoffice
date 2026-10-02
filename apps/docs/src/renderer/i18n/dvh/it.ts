@@ -169,4 +169,8 @@ export const it = {
   dvhWfUnrecordable: 'Non registrabile: {command}',
   dvhWfConfirm:
     'Il flusso eseguirà {action}, interessando {count} oggetti:\n{summary}\n\nContinuare?',
+  dvhWfBlocks: 'Blocchi',
+  dvhWfScript: 'Script',
+  dvhWfApplyScript: 'Applica script',
+  dvhWfLine: 'riga {line}',
 } satisfies Record<keyof typeof zh, string>

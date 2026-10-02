@@ -42,6 +42,7 @@ import { waitForFullContent } from '../phased-content'
 import { currentDocGeneration } from '../file-actions'
 import { createFilesSkill } from './files-skill'
 import { createDvhPlannerSkill, type ActionRegistry } from '@genoffice/dvh-actions'
+import { createDvhScriptSkill } from '@genoffice/dvh-script'
 import { createDocsDvhActions, docsSagaParticipant, type DocsActionHost } from '../dvh-actions'
 import { activeDvhDocs } from '../dvh-smart-data'
 import { createElectronTransport } from './transport'
@@ -762,20 +763,42 @@ export function AiPanel({
     const docId = () => activeDvhDocs()?.model?.docId ?? 'doc_unsaved'
     const ensure = () => (registry ??= createDocsDvhActions(host))
     const participant = () => docsSagaParticipant(host, ensure(), docId())
-    return createDvhPlannerSkill({
-      registry: ensure,
-      docId,
-      model: () => activeDvhDocs()?.model ?? null,
-      checkpoint: () => participant().checkpoint(),
-      restore: (cp) => participant().restore(cp),
-      confirm: (lines) =>
-        window.confirm(
-          tModule('dvhConfirmPlan', {
-            summary: lines[0] ?? '',
-            steps: lines.slice(1, 13).join('\n'),
-          }),
-        ),
-    })
+    return [
+      createDvhPlannerSkill({
+        registry: ensure,
+        docId,
+        model: () => activeDvhDocs()?.model ?? null,
+        checkpoint: () => participant().checkpoint(),
+        restore: (cp) => participant().restore(cp),
+        confirm: (lines) =>
+          window.confirm(
+            tModule('dvhConfirmPlan', {
+              summary: lines[0] ?? '',
+              steps: lines.slice(1, 13).join('\n'),
+            }),
+          ),
+      }),
+      // P9: repeatable work as DVH-Script, saved as a workflow or run as one transaction
+      createDvhScriptSkill({
+        registry: ensure,
+        docId,
+        participants: () => new Map([[docId(), participant()]]),
+        confirm: (lines) =>
+          window.confirm(
+            tModule('dvhConfirmPlan', {
+              summary: lines[0] ?? '',
+              steps: lines.slice(1, 13).join('\n'),
+            }),
+          ),
+        save: async (workflow) => {
+          await ensure().run(
+            'Workflow.Save',
+            { workflow },
+            { caller: 'ai', docId: docId(), permissions: new Set(['read', 'write']) },
+          )
+        },
+      }),
+    ]
   }
 
   const loopRef = useRef<AgentLoop<PmNode> | null>(null)
@@ -804,7 +827,7 @@ export function AiPanel({
           () => mediaAnalysisAvailable(settingsRef.current, gskLoggedInRef.current),
         ),
         createFilesSkill(availableAttachments),
-        dvhActionsSkill(),
+        ...dvhActionsSkill(),
       ]),
       captureSnapshot: () => editorRef.current.getJSON() as PmNode,
       events: {

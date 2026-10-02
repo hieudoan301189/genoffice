@@ -680,6 +680,9 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
   return registry
 }
 
+const MAX_WORKFLOW_DEPTH = 8
+let workflowDepth = 0
+
 /** The workflow stored in the open document by id or name. */
 function findWorkflow(ref: string): Workflow {
   const model = activeDvhDocs()?.model
@@ -725,6 +728,12 @@ function registerWorkflowActions(registry: ActionRegistry, host: DocsActionHost)
   const execute = async (input: z.infer<typeof runInput>, ctx: ActionContext, dryRun: boolean) => {
     const workflow = findWorkflow(input.workflow)
     const docId = ctx.docId
+    // a workflow may run another one, but not without end
+    if (workflowDepth >= MAX_WORKFLOW_DEPTH)
+      throw new Error(
+        `workflows nest deeper than ${MAX_WORKFLOW_DEPTH} (${workflow.name} calls itself?)`,
+      )
+    workflowDepth++
     const result = await runWorkflow(workflow, {
       params: paramsOf(workflow, input.params as Record<string, Json>, input.collection),
       participants: new Map([[docId, docsSagaParticipant(host, registry, docId)]]),
@@ -734,6 +743,8 @@ function registerWorkflowActions(registry: ActionRegistry, host: DocsActionHost)
       txId: ctx.txId,
       dryRun,
       ...(host.confirm ? { confirm: host.confirm } : {}),
+    }).finally(() => {
+      workflowDepth--
     })
     if (!result.ok)
       throw new Error(

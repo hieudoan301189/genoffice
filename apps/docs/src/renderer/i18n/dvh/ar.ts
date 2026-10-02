@@ -163,4 +163,8 @@ export const ar = {
   dvhWfImport: 'استيراد سير عمل…',
   dvhWfUnrecordable: 'لا يمكن تسجيله: {command}',
   dvhWfConfirm: 'سيشغّل سير العمل {action} ويؤثر في {count} كائن:\n{summary}\n\nمتابعة؟',
+  dvhWfBlocks: 'الكتل',
+  dvhWfScript: 'البرنامج النصي',
+  dvhWfApplyScript: 'تطبيق البرنامج النصي',
+  dvhWfLine: 'السطر {line}',
 } satisfies Record<keyof typeof zh, string>

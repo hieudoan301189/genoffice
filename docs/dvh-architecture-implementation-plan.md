@@ -457,6 +457,12 @@ gộp setter, bỏ chọn, triệt tiêu undo/redo, suy tham số từ bản ghi
 - **Nghiệm thu:** _Script_ (round-trip không mất action hay tham số); script không truy cập được hệ thống
   file hay mạng ngoài các action được phép.
 
+**Kết quả (02/10/2026):** chọn parser viết tay (Lezer generator không có trong repo). Package `dvh-script`:
+biên dịch ↔ in ngược Workflow Model với `parse(print(w)) == w` (kiểm trên 300 workflow sinh ngẫu nhiên), kiểm theo
+catalog, autocomplete, chạy sandbox qua engine P8 (caller `script`, giới hạn bước/thời gian), skill AI
+`propose_script` (check/save/run); Docs có trình soạn CodeMirror và debugger theo dòng –
+[báo cáo](phases/p9-dvh-script.md). Hai nghiệm thu đạt bằng vitest.
+
 ### P10. Project Data Model (ước lượng sau M2)
 
 - Kho cấp dự án đặt trong `project-store` (thư mục dự án). Tài liệu liên kết thẳng tới đối tượng dự

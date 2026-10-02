@@ -165,4 +165,8 @@ export const th = {
   dvhWfUnrecordable: 'บันทึกไม่ได้: {command}',
   dvhWfConfirm:
     'เวิร์กโฟลว์จะเรียกใช้ {action} ซึ่งมีผลกับ {count} ออบเจ็กต์:\n{summary}\n\nดำเนินการต่อหรือไม่?',
+  dvhWfBlocks: 'บล็อก',
+  dvhWfScript: 'สคริปต์',
+  dvhWfApplyScript: 'ใช้สคริปต์',
+  dvhWfLine: 'บรรทัด {line}',
 } satisfies Record<keyof typeof zh, string>

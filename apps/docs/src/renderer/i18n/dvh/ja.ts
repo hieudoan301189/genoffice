@@ -167,4 +167,8 @@ export const ja = {
   dvhWfUnrecordable: '記録できません：{command}',
   dvhWfConfirm:
     'ワークフローは {action} を実行し、{count} 個のオブジェクトに影響します：\n{summary}\n\n続行しますか？',
+  dvhWfBlocks: 'ブロック',
+  dvhWfScript: 'スクリプト',
+  dvhWfApplyScript: 'スクリプトを適用',
+  dvhWfLine: '{line} 行目',
 } satisfies Record<keyof typeof zh, string>

@@ -164,4 +164,8 @@ export const cs = {
   dvhWfImport: 'Importovat postup…',
   dvhWfUnrecordable: 'Nelze nahrát: {command}',
   dvhWfConfirm: 'Postup spustí {action} a ovlivní objektů: {count}:\n{summary}\n\nPokračovat?',
+  dvhWfBlocks: 'Bloky',
+  dvhWfScript: 'Skript',
+  dvhWfApplyScript: 'Použít skript',
+  dvhWfLine: 'řádek {line}',
 } satisfies Record<keyof typeof zh, string>

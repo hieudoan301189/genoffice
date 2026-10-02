@@ -18,6 +18,12 @@
     "dist:dir": "electron-vite build && electron-builder --dir"
   },
   "devDependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.0",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/lint": "^6.9.7",
+    "@codemirror/state": "^6.7.4",
+    "@codemirror/view": "^6.43.11",
     "@genoffice/agent-core": "*",
     "@genoffice/i18n": "*",
     "@genoffice/ai-provider": "*",
@@ -26,6 +32,7 @@
     "@genoffice/file-parse": "*",
     "@genoffice/project-store": "*",
     "@genoffice/ui": "*",
+    "@lezer/highlight": "^1.2.3",
     "@tiptap/core": "3.31.0",
     "@tiptap/extensions": "3.31.0",
     "@tiptap/pm": "3.31.0",
@@ -93,6 +100,7 @@
   "dependencies": {
     "@genoffice/dvh-actions": "*",
     "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-script": "*",
     "@genoffice/dvh-template": "*",
     "@genoffice/dvh-workflow": "*",
     "@genoffice/electron-utils": "*",

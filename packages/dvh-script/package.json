@@ -1,0 +1,27 @@
+{
+  "name": "@genoffice/dvh-script",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "DVH-Script: a VBA-like language compiled to the DVH Workflow Model and printed back from it, with catalog-aware checks and completions, a sandboxed runner and an agent skill for AI-written scripts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@genoffice/agent-core": "*",
+    "@genoffice/dvh-actions": "*",
+    "@genoffice/dvh-template": "*",
+    "@genoffice/dvh-workflow": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

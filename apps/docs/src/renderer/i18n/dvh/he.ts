@@ -163,4 +163,8 @@ export const he = {
   dvhWfImport: 'ייבוא תהליך…',
   dvhWfUnrecordable: 'לא ניתן להקליט: {command}',
   dvhWfConfirm: 'התהליך יריץ את {action} וישפיע על {count} אובייקטים:\n{summary}\n\nלהמשיך?',
+  dvhWfBlocks: 'בלוקים',
+  dvhWfScript: 'סקריפט',
+  dvhWfApplyScript: 'החלת הסקריפט',
+  dvhWfLine: 'שורה {line}',
 } satisfies Record<keyof typeof zh, string>

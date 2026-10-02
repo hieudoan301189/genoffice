@@ -16,6 +16,7 @@ export default defineConfig({
           '@genoffice/docx-engine',
           '@genoffice/dvh-actions',
           '@genoffice/dvh-model',
+          '@genoffice/dvh-script',
           '@genoffice/file-parse',
           '@genoffice/electron-utils',
           '@genoffice/i18n',

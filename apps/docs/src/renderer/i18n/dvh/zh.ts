@@ -162,4 +162,8 @@ export const zh = {
   dvhWfImport: '导入工作流…',
   dvhWfUnrecordable: '无法录制：{command}',
   dvhWfConfirm: '工作流将运行 {action}，影响 {count} 个对象：\n{summary}\n\n继续吗？',
+  dvhWfBlocks: '积木',
+  dvhWfScript: '脚本',
+  dvhWfApplyScript: '应用脚本',
+  dvhWfLine: '第 {line} 行',
 }

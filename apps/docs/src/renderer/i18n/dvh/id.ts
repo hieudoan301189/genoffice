@@ -166,4 +166,8 @@ export const id = {
   dvhWfUnrecordable: 'Tidak dapat direkam: {command}',
   dvhWfConfirm:
     'Alur kerja akan menjalankan {action}, memengaruhi {count} objek:\n{summary}\n\nLanjutkan?',
+  dvhWfBlocks: 'Blok',
+  dvhWfScript: 'Skrip',
+  dvhWfApplyScript: 'Terapkan skrip',
+  dvhWfLine: 'baris {line}',
 } satisfies Record<keyof typeof zh, string>

@@ -23,7 +23,9 @@ import {
   type Step,
   type Workflow,
 } from '@genoffice/dvh-workflow'
+import { lineOfPath, parseScript, printScript } from '@genoffice/dvh-script'
 import { useI18n } from '../i18n/locale'
+import { DvhScriptEditor } from './DvhScriptEditor'
 import { showToast } from './toast-bus'
 import type { DvhDocsState } from '../dvh-smart-data'
 import {
@@ -76,6 +78,10 @@ export function DvhWorkflowSection({
   const [params, setParams] = useState('{}')
   const [dataFrom, setDataFrom] = useState('')
   const [paused, setPaused] = useState<PauseInfo | null>(null)
+  /** P9: the draft as blocks or as DVH-Script */
+  const [view, setView] = useState<'blocks' | 'script'>('blocks')
+  const [scriptText, setScriptText] = useState('')
+  const [scriptLines, setScriptLines] = useState<Readonly<Record<string, number>>>({})
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const resume = useRef<((decision: PauseDecision) => void) | null>(null)
@@ -99,6 +105,8 @@ export function DvhWorkflowSection({
     setEditing(null)
     setBreakpoints(new Set())
     setParams(workflow ? defaultParams(workflow) : '{}')
+    setScriptText(workflow ? printScript(workflow) : '')
+    setScriptLines({})
     setMessage('')
   }
 
@@ -124,7 +132,28 @@ export function DvhWorkflowSection({
 
   const edit = (next: Workflow) => {
     setDraft(next)
+    setScriptText(printScript(next))
     setEditing(null)
+  }
+
+  /** Compiles the script into the draft; null (and the errors shown) when it does not parse. */
+  const applyScript = (): { workflow: Workflow; lines: Record<string, number> } | null => {
+    const parsed = parseScript(scriptText)
+    if (!parsed.ok) {
+      setMessage(parsed.errors.map((e) => `${e.line}:${e.column} ${e.message}`).join('\n'))
+      return null
+    }
+    setDraft(parsed.workflow)
+    setScriptLines(parsed.lines)
+    setMessage('')
+    return { workflow: parsed.workflow, lines: { ...parsed.lines } }
+  }
+
+  const switchView = (next: 'blocks' | 'script') => {
+    if (next === view) return
+    if (next === 'blocks' && !applyScript()) return
+    if (next === 'script' && draft) setScriptText(printScript(draft))
+    setView(next)
   }
 
   const applyStep = (path: string) => {
@@ -167,10 +196,13 @@ export function DvhWorkflowSection({
       setMessage(e instanceof Error ? e.message : String(e))
       return
     }
+    // a script runs as written: compile it first
+    const compiled = view === 'script' ? applyScript() : null
+    if (view === 'script' && !compiled) return
     setBusy(true)
     setMessage('')
     try {
-      const workflow = parseWorkflow(draft)
+      const workflow = compiled?.workflow ?? parseWorkflow(draft)
       const result = await runDocsWorkflow(workflow, {
         params: values,
         dryRun: mode === 'preview',
@@ -198,7 +230,15 @@ export function DvhWorkflowSection({
         const actions = mode === 'preview' ? result.previews.length : result.changeSets.length
         showToast(t('dvhWfDone', { steps: result.steps, actions }))
       } else {
-        lines.push(t('dvhWfFailed', { path: result.failedAt ?? '·', error: result.error ?? '' }))
+        const line = compiled ? lineOfPath(compiled.lines, result.failedAt) : null
+        lines.push(
+          t('dvhWfFailed', {
+            path: line
+              ? `${result.failedAt ?? '·'} (${t('dvhWfLine', { line })})`
+              : (result.failedAt ?? '·'),
+            error: result.error ?? '',
+          }),
+        )
       }
       setMessage(lines.join('\n'))
     } catch (e) {
@@ -242,10 +282,9 @@ export function DvhWorkflowSection({
   }
 
   const recording = docsRecorder.recording
-  const catalog =
-    docsUiRegistry()
-      ?.list()
-      .filter((a) => a.effect !== 'read') ?? []
+  // the whole catalog for the script editor; the block editor offers actions that change something
+  const catalog = docsUiRegistry()?.catalog() ?? []
+  const writeActions = catalog.filter((a) => a.effect !== 'read')
 
   return (
     <details className="dvh-docs-panel-section" data-section="workflows">
@@ -354,100 +393,140 @@ export function DvhWorkflowSection({
             aria-label={t('dvhWfName')}
             onChange={(event) => setDraft({ ...draft, name: event.target.value })}
           />
-          <ol className="dvh-docs-panel-blocks">
-            {walkSteps(draft.steps).map(({ path, step, depth }) => (
-              <li
-                key={path}
-                data-path={path}
-                data-kind={step.kind}
-                data-current={paused?.path === path ? 'true' : undefined}
-                style={{ marginInlineStart: `${depth * 12}px` }}
-              >
-                <label title={t('dvhWfBreakpoint')}>
-                  <input
-                    type="checkbox"
-                    aria-label={t('dvhWfBreakpoint')}
-                    checked={breakpoints.has(path)}
-                    onChange={(event) => {
-                      const next = new Set(breakpoints)
-                      if (event.target.checked) next.add(path)
-                      else next.delete(path)
-                      setBreakpoints(next)
-                    }}
-                  />
-                </label>
-                <code>{describeStep(step)}</code>
-                <span className="dvh-docs-panel-link-actions">
-                  <button
-                    type="button"
-                    aria-label={t('dvhWfMoveUp')}
-                    onClick={() => edit(moveStep(draft, path, -1))}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t('dvhWfMoveDown')}
-                    onClick={() => edit(moveStep(draft, path, 1))}
-                  >
-                    ↓
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(path)
-                      setStepJson(JSON.stringify(stepAt(draft, path), null, 2))
-                    }}
-                  >
-                    {t('dvhWfEdit')}
-                  </button>
-                  <button type="button" onClick={() => edit(wrapStep(draft, path, 'transaction'))}>
-                    {t('dvhWfWrapTx')}
-                  </button>
-                  <button type="button" onClick={() => edit(wrapStep(draft, path, 'try'))}>
-                    {t('dvhWfWrapTry')}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t('dvhWfRemove')}
-                    onClick={() => edit(removeStep(draft, path))}
-                  >
-                    ×
-                  </button>
-                </span>
-                {editing === path ? (
-                  <div className="dvh-docs-panel-new">
-                    <textarea
-                      value={stepJson}
-                      rows={6}
-                      aria-label={t('dvhWfEdit')}
-                      onChange={(event) => setStepJson(event.target.value)}
-                    />
-                    <button type="button" onClick={() => applyStep(path)}>
-                      {t('dvhWfApply')}
-                    </button>
-                  </div>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-          <div className="dvh-docs-panel-new">
-            <select
-              aria-label={t('dvhWfAddStep')}
-              value={newAction}
-              onChange={(event) => setNewAction(event.target.value)}
+          <div className="dvh-docs-panel-link-actions" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === 'blocks'}
+              onClick={() => switchView('blocks')}
             >
-              <option value="">{t('dvhWfAddStep')}</option>
-              {catalog.map((a) => (
-                <option key={a.name} value={a.name}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-            <button type="button" disabled={!newAction} onClick={addAction}>
-              +
+              {t('dvhWfBlocks')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={view === 'script'}
+              onClick={() => switchView('script')}
+            >
+              {t('dvhWfScript')}
             </button>
           </div>
+          {view === 'script' ? (
+            <>
+              <DvhScriptEditor
+                value={scriptText}
+                onChange={setScriptText}
+                catalog={catalog}
+                label={t('dvhWfScript')}
+                pausedLine={paused ? lineOfPath(scriptLines, paused.path) : null}
+              />
+              <div className="dvh-docs-panel-link-actions">
+                <button type="button" onClick={() => void applyScript()}>
+                  {t('dvhWfApplyScript')}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <ol className="dvh-docs-panel-blocks">
+                {walkSteps(draft.steps).map(({ path, step, depth }) => (
+                  <li
+                    key={path}
+                    data-path={path}
+                    data-kind={step.kind}
+                    data-current={paused?.path === path ? 'true' : undefined}
+                    style={{ marginInlineStart: `${depth * 12}px` }}
+                  >
+                    <label title={t('dvhWfBreakpoint')}>
+                      <input
+                        type="checkbox"
+                        aria-label={t('dvhWfBreakpoint')}
+                        checked={breakpoints.has(path)}
+                        onChange={(event) => {
+                          const next = new Set(breakpoints)
+                          if (event.target.checked) next.add(path)
+                          else next.delete(path)
+                          setBreakpoints(next)
+                        }}
+                      />
+                    </label>
+                    <code>{describeStep(step)}</code>
+                    <span className="dvh-docs-panel-link-actions">
+                      <button
+                        type="button"
+                        aria-label={t('dvhWfMoveUp')}
+                        onClick={() => edit(moveStep(draft, path, -1))}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={t('dvhWfMoveDown')}
+                        onClick={() => edit(moveStep(draft, path, 1))}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditing(path)
+                          setStepJson(JSON.stringify(stepAt(draft, path), null, 2))
+                        }}
+                      >
+                        {t('dvhWfEdit')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => edit(wrapStep(draft, path, 'transaction'))}
+                      >
+                        {t('dvhWfWrapTx')}
+                      </button>
+                      <button type="button" onClick={() => edit(wrapStep(draft, path, 'try'))}>
+                        {t('dvhWfWrapTry')}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={t('dvhWfRemove')}
+                        onClick={() => edit(removeStep(draft, path))}
+                      >
+                        ×
+                      </button>
+                    </span>
+                    {editing === path ? (
+                      <div className="dvh-docs-panel-new">
+                        <textarea
+                          value={stepJson}
+                          rows={6}
+                          aria-label={t('dvhWfEdit')}
+                          onChange={(event) => setStepJson(event.target.value)}
+                        />
+                        <button type="button" onClick={() => applyStep(path)}>
+                          {t('dvhWfApply')}
+                        </button>
+                      </div>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+              <div className="dvh-docs-panel-new">
+                <select
+                  aria-label={t('dvhWfAddStep')}
+                  value={newAction}
+                  onChange={(event) => setNewAction(event.target.value)}
+                >
+                  <option value="">{t('dvhWfAddStep')}</option>
+                  {writeActions.map((a) => (
+                    <option key={a.name} value={a.name}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" disabled={!newAction} onClick={addAction}>
+                  +
+                </button>
+              </div>
+            </>
+          )}
 
           <textarea
             value={params}

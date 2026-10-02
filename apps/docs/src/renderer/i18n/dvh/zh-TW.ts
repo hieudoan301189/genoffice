@@ -163,4 +163,8 @@ export const zhTW = {
   dvhWfImport: '匯入工作流程…',
   dvhWfUnrecordable: '無法錄製：{command}',
   dvhWfConfirm: '工作流程將執行 {action}，影響 {count} 個物件：\n{summary}\n\n繼續嗎？',
+  dvhWfBlocks: '區塊',
+  dvhWfScript: '指令碼',
+  dvhWfApplyScript: '套用指令碼',
+  dvhWfLine: '第 {line} 行',
 } satisfies Record<keyof typeof zh, string>

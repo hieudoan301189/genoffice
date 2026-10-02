@@ -165,4 +165,8 @@ export const ko = {
   dvhWfUnrecordable: '기록할 수 없음: {command}',
   dvhWfConfirm:
     '워크플로가 {action}을(를) 실행하여 개체 {count}개에 영향을 줍니다:\n{summary}\n\n계속할까요?',
+  dvhWfBlocks: '블록',
+  dvhWfScript: '스크립트',
+  dvhWfApplyScript: '스크립트 적용',
+  dvhWfLine: '{line}행',
 } satisfies Record<keyof typeof zh, string>

@@ -169,4 +169,8 @@ export const nl = {
   dvhWfUnrecordable: 'Kan niet worden opgenomen: {command}',
   dvhWfConfirm:
     'De workflow voert {action} uit en raakt {count} object(en):\n{summary}\n\nDoorgaan?',
+  dvhWfBlocks: 'Blokken',
+  dvhWfScript: 'Script',
+  dvhWfApplyScript: 'Script toepassen',
+  dvhWfLine: 'regel {line}',
 } satisfies Record<keyof typeof zh, string>
