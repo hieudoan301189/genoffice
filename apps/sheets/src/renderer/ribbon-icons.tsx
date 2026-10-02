@@ -223,10 +223,181 @@ const REFRESH_ICON = (
   </Icon>
 )
 
+/// DVH Tool commands (the Home group and the DVH tab), drawn to the same
+/// 24-canvas standard as the glyph icons below.
+export const DVH_TOOL_ICONS: Record<string, ReactElement> = {
+  upper: (
+    <Icon>
+      <path d="M3.5 18.5 7.5 6h1l4 12.5M5 14.5h6" />
+      <path d="M13.5 18.5 16.75 9h.5l3.25 9.5M14.75 15.5h4.5" />
+    </Icon>
+  ),
+  lower: (
+    <Icon>
+      <circle cx="7" cy="15.5" r="2.75" />
+      <path d="M9.75 12.75v5.75" />
+      <circle cx="16.5" cy="15.5" r="2.75" />
+      <path d="M19.25 12.75v5.75" />
+    </Icon>
+  ),
+  proper: (
+    <Icon>
+      <path d="M3.5 18.5 7.5 6h1l4 12.5M5 14.5h6" />
+      <circle cx="17" cy="15.5" r="2.75" />
+      <path d="M19.75 12.75v5.75" />
+    </Icon>
+  ),
+  firstChar: (
+    <Icon>
+      <path d="M3.5 18.5 7.5 6h1l4 12.5M5 14.5h6" />
+      <path d="M14 18.5h6.5" strokeDasharray="1.5 2" />
+    </Icon>
+  ),
+  joinFormat: (
+    <Icon>
+      <rect x="3.5" y="5" width="6.5" height="5" rx="1" />
+      <rect x="14" y="5" width="6.5" height="5" rx="1" />
+      <path d="M6.75 10v3.5h10.5V10M12 13.5V19M9.5 19h5" />
+    </Icon>
+  ),
+  findFormat: (
+    <Icon>
+      <circle cx="10" cy="10" r="5" />
+      <path d="m13.75 13.75 5.75 5.75" />
+      <path d="M8 12 10 7.5l2 4.5M8.75 10.5h2.5" />
+    </Icon>
+  ),
+  hidden: (
+    <Icon>
+      <path d="M3.5 12s3-5.5 8.5-5.5 8.5 5.5 8.5 5.5-3 5.5-8.5 5.5S3.5 12 3.5 12Z" />
+      <circle cx="12" cy="12" r="2.25" />
+      <path d="M4.5 19.5 19.5 4.5" />
+    </Icon>
+  ),
+  zeroHide: (
+    <Icon>
+      <ellipse cx="12" cy="12" rx="4.5" ry="6.5" />
+      <path d="M5 19 19 5" />
+    </Icon>
+  ),
+  readNumber: (
+    <Icon>
+      <path d="M4 7.5 5.75 6v6M4 12h3.5M9 7a1.75 1.75 0 1 1 2.75 1.5L9 12h3.25" />
+      <path d="M4 16.5h16M4 19.5h11" />
+    </Icon>
+  ),
+  centerAcross: (
+    <Icon>
+      <rect x="3" y="6.5" width="18" height="11" rx="1" strokeDasharray="2 2" />
+      <path d="M8 10.5h8M9.5 13.5h5" />
+    </Icon>
+  ),
+  justify: (
+    <Icon>
+      <path d="M4.75 5.5h14.5M4.75 10h14.5M4.75 14.5h14.5M4.75 19h9" />
+    </Icon>
+  ),
+  beautyBorder: (
+    <Icon>
+      <rect x="4" y="4" width="16" height="16" rx="0.5" strokeWidth="2.25" />
+      <path d="M4 12h16M12 4v16" />
+    </Icon>
+  ),
+  fitMerge: (
+    <Icon>
+      <rect x="4" y="6" width="16" height="12" rx="1" />
+      <path d="M12 2.75v6.5M10 4.75l2-2 2 2M12 21.25v-6.5M10 19.25l2 2 2-2" />
+    </Icon>
+  ),
+  shrink: (
+    <Icon>
+      <rect x="3" y="7" width="18" height="10" rx="1" />
+      <path d="M6.5 14.5 8.5 9.5l2 5M7.25 13h2.5M12.5 12h5M15.5 10l2 2-2 2" />
+    </Icon>
+  ),
+  borderSettings: (
+    <Icon>
+      <path d="M4 4h10M4 4v16h7M4 12h7" />
+      <circle cx="17" cy="17" r="2.25" />
+      <path d="M17 12.75v1.5M17 19.75v1.5M12.75 17h1.5M19.75 17h1.5M14 14l1 1M19 19l1 1M20 14l-1 1M15 19l-1 1" />
+    </Icon>
+  ),
+  indentDecrease: (
+    <Icon>
+      <path d="M11 6h9M11 10h9M11 14h9M4 18.5h16" />
+      <path d="M8 8 4.5 10 8 12" />
+    </Icon>
+  ),
+  indentIncrease: (
+    <Icon>
+      <path d="M11 6h9M11 10h9M11 14h9M4 18.5h16" />
+      <path d="M4.5 8 8 10l-3.5 2" />
+    </Icon>
+  ),
+  indentClear: (
+    <Icon>
+      <path d="M4 6h16M4 10h16M4 14h9M4 18h9" />
+      <path d="m16 14.5 4 4M20 14.5l-4 4" />
+    </Icon>
+  ),
+  refStyle: (
+    <Icon>
+      <path d="M8.5 6.5c-1.25-1-4.25-1-4.25 1.25S8.75 9.75 8.75 12s-3.25 2.5-4.75 1.25M6.5 4.5v11" />
+      <path d="M12 17h8.5M12 13.5h6M12 20.5h4.5" />
+    </Icon>
+  ),
+  roundAdd: (
+    <Icon>
+      <path d="M8 4.5C5.5 6.5 4.5 9 4.5 12s1 5.5 3.5 7.5M14 4.5c2.5 2 3.5 4.5 3.5 7.5s-1 5.5-3.5 7.5" />
+      <path d="M9 12h4M11 10v4M19 16.5v4M17 18.5h4" />
+    </Icon>
+  ),
+  roundRemove: (
+    <Icon>
+      <path d="M8 4.5C5.5 6.5 4.5 9 4.5 12s1 5.5 3.5 7.5M14 4.5c2.5 2 3.5 4.5 3.5 7.5s-1 5.5-3.5 7.5" />
+      <path d="M9 12h4M17 18.5h4" />
+    </Icon>
+  ),
+  copyVisible: (
+    <Icon>
+      <rect x="8.5" y="8.5" width="11" height="11" rx="1.5" />
+      <path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5" />
+      <path d="M10.75 14s1.5-2.25 3.25-2.25S17.25 14 17.25 14s-1.5 2.25-3.25 2.25S10.75 14 10.75 14Z" />
+    </Icon>
+  ),
+  pasteVisible: (
+    <Icon>
+      <path d="M9 4.5h6v2.5H9z" />
+      <path d="M9 5.75H6.5A1.5 1.5 0 0 0 5 7.25v11.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V7.25a1.5 1.5 0 0 0-1.5-1.5H15" />
+      <path d="M7.75 14s1.75-2.75 4.25-2.75S16.25 14 16.25 14s-1.75 2.75-4.25 2.75S7.75 14 7.75 14Z" />
+    </Icon>
+  ),
+  smartData: (
+    <Icon>
+      <ellipse cx="12" cy="6" rx="7" ry="2.5" />
+      <path d="M5 6v12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M5 12c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5" />
+    </Icon>
+  ),
+  functions: (
+    <Icon>
+      <path d="M11.5 4.5c-2 0-2.75 1-3 3l-1.5 10c-.25 2-1 3-3 3M5.5 10h6" />
+      <path d="m13.5 11 6 7.5M19.5 11l-6 7.5" />
+    </Icon>
+  ),
+  dvhSettings: (
+    <Icon>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v2.25M12 18.25v2.25M3.5 12h2.25M18.25 12h2.25M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18" />
+    </Icon>
+  ),
+}
+
 /// Icons keyed by the legacy glyph strings, so ribbon call sites stay
 /// unchanged; symbols without an entry render as plain text (letterforms
 /// such as $, ?, θ, ƒx are typography, not drawn icons).
 export const RIBBON_GLYPH_ICONS: Record<string, ReactElement> = {
+  // DVH tab: the DVH Tool icons under a dvh: prefix
+  ...Object.fromEntries(Object.entries(DVH_TOOL_ICONS).map(([id, icon]) => [`dvh:${id}`, icon])),
   // ---- alignment / rows / columns ----
   '≡': (
     <Icon>
@@ -671,6 +842,11 @@ export const RIBBON_GLYPH_ICONS: Record<string, ReactElement> = {
   '🕐': CLOCK_ICON,
   '🕒': CLOCK_ICON,
   '⟳': REFRESH_ICON,
+  '⇳': (
+    <Icon>
+      <path d="M12 3.75v16.5M8.5 7.25 12 3.75l3.5 3.5M8.5 16.75l3.5 3.5 3.5-3.5" />
+    </Icon>
+  ),
   '↻': REFRESH_ICON,
   '✕': (
     <Icon>

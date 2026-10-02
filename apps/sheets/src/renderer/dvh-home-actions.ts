@@ -4,6 +4,20 @@ import { beginUndoBatch } from './op-executor'
 import { changeTextIndent, type IndentPreset, type BorderPreset } from './dvh-home-presets'
 import { shrinkToFitFontSize, readSheetRangeMapped } from './univer-sync'
 import { lazySheetMeta } from './univer-state'
+import { handleDvhTool, type DvhToolPayload } from './dvh-tool-actions'
+
+/** Commands of dvh-tool-actions.ts (text case, visibility, formulas, visible copy). */
+const DVH_TOOL_ACTIONS = new Set([
+  'case',
+  'hidden',
+  'zero-hide',
+  'ref-style',
+  'round-add',
+  'round-remove',
+  'copy-visible',
+  'paste-visible',
+  'read-number',
+])
 
 // DVH-Excel Ribbon/AlignmentHandler.cs: toggle alignment and restore the prior style.
 // Commands use the normal sheet mutations so undo, dirty tracking and save apply.
@@ -25,13 +39,22 @@ export async function handleDvhHome(ctx: RibbonCommandContext, encoded: string):
     action: string
     payload?: IndentPreset | BorderPreset
   }
+  if (DVH_TOOL_ACTIONS.has(action)) {
+    await handleDvhTool(ctx, action, payload as unknown as DvhToolPayload)
+    return
+  }
   const fileFormulas = new Set<string>()
   const state = ctx.lazyWorkbookRef.current
   if (action.startsWith('indent-') && state) {
     const meta = lazySheetMeta(state, sheet.getSheetId())
     if (!meta) return
     const { startRow, endRow, startColumn, endColumn } = range.getRange()
-    const read = await readSheetRangeMapped(state, sheet.getSheetId(), { startRow, endRow, startColumn, endColumn }, meta)
+    const read = await readSheetRangeMapped(
+      state,
+      sheet.getSheetId(),
+      { startRow, endRow, startColumn, endColumn },
+      meta,
+    )
     if (ctx.lazyWorkbookRef.current !== state) return
     for (const cell of read?.screen.cells ?? [])
       if (cell.formula) fileFormulas.add(`${cell.row}:${cell.column}`)

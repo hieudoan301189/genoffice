@@ -231,6 +231,8 @@ export interface PageSetupJournalState {
   zoomScale?: number
   /// sheetView/@showFormulas: the sheet renders formulas instead of values.
   showFormulas?: boolean
+  /// sheetView/@showZeros: false hides zero values (DVH Tool "hide zeros").
+  showZeros?: boolean
   /// sheetView/@showRowColHeaders: row/column heading strips.
   showHeadings?: boolean
   /// A1 range to print, or null to clear the print area.

@@ -114,6 +114,8 @@ export interface LazyWorkbookState {
   /// Formulas-tab toggle, applied
   /// to the global raw-formula render key on sheet activation.
   readonly showFormulaSheets: Set<string>
+  /// Sheets that hide zero values (sheetView/@showZeros="0", DVH Tool).
+  readonly hideZeroSheets: Set<string>
   /// Small workbooks are fully loaded with formulas handed to Univer's engine
   /// for live recalculation; large ones stream cached values only.
   readonly formulaMode: boolean

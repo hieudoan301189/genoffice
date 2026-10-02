@@ -36,6 +36,7 @@ function state(): LazyWorkbookState {
     frozenStripKeys: new Map(),
     filterOrigins: new Map(),
     showFormulaSheets: new Set(),
+    hideZeroSheets: new Set(),
     formulaMode: false,
     editJournal: { cells: new Map(), structuralOps: new Map() },
     flags: { preloadComplete: false },

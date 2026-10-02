@@ -124,6 +124,7 @@ pub(crate) struct SheetDimensions {
     pub(crate) tab_color: Option<String>,
     pub(crate) show_grid_lines: bool,
     pub(crate) show_formulas: bool,
+    pub(crate) show_zeros: bool,
     pub(crate) show_row_col_headers: bool,
     pub(crate) right_to_left: bool,
     pub(crate) zoom_scale: Option<u16>,
@@ -170,6 +171,7 @@ pub(crate) fn read_sheet_dimensions(
     let mut tab_color = None;
     let mut show_grid_lines = true;
     let mut show_formulas = false;
+    let mut show_zeros = true;
     let mut show_row_col_headers = true;
     let mut right_to_left = false;
     let mut zoom_scale = None;
@@ -202,6 +204,9 @@ pub(crate) fn read_sheet_dimensions(
                 }
                 if let Some(value) = attribute_value(&reader, &element, b"showFormulas")? {
                     show_formulas = value == "1" || value == "true";
+                }
+                if let Some(value) = attribute_value(&reader, &element, b"showZeros")? {
+                    show_zeros = value != "0" && value != "false";
                 }
                 if let Some(value) = attribute_value(&reader, &element, b"showRowColHeaders")? {
                     show_row_col_headers = value != "0" && value != "false";
@@ -328,6 +333,7 @@ pub(crate) fn read_sheet_dimensions(
                     tab_color,
                     show_grid_lines,
                     show_formulas,
+                    show_zeros,
                     show_row_col_headers,
                     right_to_left,
                     zoom_scale,
@@ -374,6 +380,7 @@ pub(crate) fn read_sheet_dimensions(
                     tab_color,
                     show_grid_lines,
                     show_formulas,
+                    show_zeros,
                     show_row_col_headers,
                     right_to_left,
                     zoom_scale,

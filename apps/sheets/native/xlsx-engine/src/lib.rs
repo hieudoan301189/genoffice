@@ -249,6 +249,7 @@ impl WorkbookSessions {
                 tab_color: dimensions.tab_color,
                 show_grid_lines: dimensions.show_grid_lines,
                 show_formulas: dimensions.show_formulas,
+                show_zeros: dimensions.show_zeros,
                 show_row_col_headers: dimensions.show_row_col_headers,
                 right_to_left: dimensions.right_to_left,
                 zoom_scale: dimensions.zoom_scale,

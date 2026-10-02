@@ -241,6 +241,7 @@ function lazyState(fileSheetIds: string[], preloadComplete: boolean): LazyWorkbo
     flags: { preloadComplete },
     file: { sheets: fileSheetIds.map((id) => ({ id })) },
     showFormulaSheets: new Set<string>(),
+    hideZeroSheets: new Set(),
   } as unknown as LazyWorkbookState
 }
 

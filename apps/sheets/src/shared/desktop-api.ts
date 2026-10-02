@@ -106,6 +106,8 @@ const worksheetMetadataSchema = z
     showGridLines: z.boolean(),
     /// sheetView/@showFormulas — the sheet opens in formula view.
     showFormulas: z.boolean().optional(),
+    /// sheetView/@showZeros — false hides zero values (DVH Tool).
+    showZeros: z.boolean().optional(),
     /// sheetView/@showRowColHeaders — false hides the heading strips.
     showRowColHeaders: z.boolean().optional(),
     /// sheetView/@rightToLeft — the grid is mirrored (column A at the right).
@@ -1321,6 +1323,7 @@ export const workbookPageSetupStateSchema = z
     /// sheetView/@zoomScale, normal-view zoom percent.
     zoomScale: z.number().int().min(10).max(400).optional(),
     showFormulas: z.boolean().optional(),
+    showZeros: z.boolean().optional(),
     showHeadings: z.boolean().optional(),
     printArea: z.union([z.string().min(1).max(255), z.null()]).optional(),
     printTitles: z.union([z.string().regex(/^\d{1,7}:\d{1,7}$/), z.null()]).optional(),

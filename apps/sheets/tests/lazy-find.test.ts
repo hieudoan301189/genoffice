@@ -232,6 +232,7 @@ function state(overrides: FakeOverrides): LazyWorkbookState {
     frozenStripKeys: new Map(),
     filterOrigins: new Map(),
     showFormulaSheets: new Set(),
+    hideZeroSheets: new Set(),
     formulaMode: false,
     editJournal: {
       cells: overrides.journalCells ?? new Map(),

@@ -1,53 +1,68 @@
+/* DVH Tool group of the Home tab: icon-only buttons in columns of three, as in DVH-Tool */
 .dvh-home-tools {
-  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid var(--border);
   padding: 0 8px;
   flex-shrink: 0;
 }
 .dvh-home-buttons {
   display: grid;
-  grid-template-rows: repeat(3, 18px);
+  grid-template-rows: repeat(3, 24px);
   grid-auto-flow: column;
-  gap: 1px 6px;
+  gap: 1px 2px;
 }
 .dvh-home-buttons button {
-  text-align: left;
-  font-size: 11px;
-  line-height: 14px;
-  height: 18px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
   min-height: 0;
-  padding: 0 4px;
+  padding: 0;
   border: 0;
+  color: var(--text);
   background: transparent;
   border-radius: 3px;
 }
+.dvh-home-buttons button svg {
+  width: 17px;
+  height: 17px;
+}
 .dvh-home-buttons button:hover {
-  background: #e7f0fa;
+  background: var(--hover);
+}
+.dvh-home-buttons button[aria-pressed='true'] {
+  background: var(--accent-soft);
 }
 .dvh-home-caption {
   display: block;
   text-align: center;
   font-size: 11px;
-  color: #555;
+  color: var(--text-muted);
   margin-top: 1px;
 }
 .dvh-home-backdrop {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: #0004;
+  background: var(--color-bg-overlay);
   display: grid;
   place-items: center;
 }
 .dvh-home-dialog {
-  background: #fff;
-  color: #222;
-  border: 1px solid #ccc;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 24px;
   width: min(780px, 95vw);
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 8px 40px #0003;
+  box-shadow: var(--shadow-modal-strong);
+}
+.dvh-home-dialog.narrow {
+  width: min(440px, 95vw);
 }
 .dvh-home-dialog h2 {
   margin: 0 0 8px;
@@ -65,7 +80,7 @@
 .dvh-home-dialog fieldset {
   min-width: 0;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
 }
 .dvh-home-dialog label {
   display: grid;
@@ -73,17 +88,22 @@
   gap: 4px;
   font-size: 12px;
 }
+.dvh-home-dialog label.inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .dvh-home-dialog input,
 .dvh-home-dialog select {
-  background: #fff;
-  color: #222;
-  border: 1px solid #bbb;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   padding: 5px;
   min-width: 0;
 }
 .dvh-home-dialog pre {
-  background: #f3f6fa;
+  background: var(--surface-subtle);
   padding: 8px;
   font-size: 12px;
   overflow: auto;
@@ -108,11 +128,16 @@
   margin-top: 16px;
 }
 .dvh-home-dialog button {
-  border: 1px solid #bbb;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
   padding: 6px 10px;
-  background: #f5f7fa;
-  color: #222;
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+.dvh-home-dialog button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
 }
 
 /* DVH Smart Data panel (P1) */

@@ -283,6 +283,7 @@ import {
   installFormulaTextInterceptor,
   installFormulaViewInterceptor,
 } from './formula-view'
+import { installZeroViewInterceptor } from './zero-view'
 import { installCachedValueFallbackInterceptor } from './formula-cached-fallback'
 import { readLiveFunctionInfos } from './function-catalog'
 import { installSupportedFunctionProbe } from './function-registry-probe'
@@ -1783,6 +1784,8 @@ export function App({
     const tsvClipboardDisposable = installTsvClipboardFix(runtime)
     // Formula view: swap formula cells to their formula text per sheet.
     const formulaViewDisposable = installFormulaViewInterceptor(runtime, lazyWorkbookRef)
+    // DVH Tool: hide zero values per sheet (sheetView/@showZeros)
+    const zeroViewDisposable = installZeroViewInterceptor(runtime, lazyWorkbookRef)
     // Formula bar shows harvested formula text on streamed workbooks whose
     // closure gave up; display-only, the engine never sees it.
     const formulaTextDisposable = installFormulaTextInterceptor(runtime, lazyWorkbookRef)
@@ -3037,6 +3040,7 @@ export function App({
       filteredCopyDisposable.dispose()
       tsvClipboardDisposable.dispose()
       formulaViewDisposable.dispose()
+      zeroViewDisposable.dispose()
       formulaTextDisposable.dispose()
       formulaBarAutosizeDisposable.dispose()
       cachedValueDisposable.dispose()
@@ -3984,6 +3988,9 @@ export function App({
       restoredFilterSpans: new Map(),
       showFormulaSheets: new Set(
         selected.sheets.filter((sheet) => sheet.showFormulas).map((sheet) => sheet.id),
+      ),
+      hideZeroSheets: new Set(
+        selected.sheets.filter((sheet) => sheet.showZeros === false).map((sheet) => sheet.id),
       ),
       formulaMode: gridCellCount <= FORMULA_MODE_MAX_CELLS,
       editJournal: createEditJournal(),

@@ -83,6 +83,8 @@ pub struct SheetMetadata {
     pub show_grid_lines: bool,
     /// sheetView/@showFormulas: the sheet opens in formula view (#188).
     pub show_formulas: bool,
+    /// sheetView/@showZeros: false hides zero values (DVH Tool "hide zeros").
+    pub show_zeros: bool,
     /// sheetView/@showRowColHeaders: row/column heading strips.
     pub show_row_col_headers: bool,
     /// sheetView/@rightToLeft: the grid is mirrored (column A at the right).

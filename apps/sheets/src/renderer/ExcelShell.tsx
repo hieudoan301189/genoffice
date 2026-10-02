@@ -1,4 +1,5 @@
-import { DvhHomeTools } from './DvhHomeTools'
+import { DVH_TOOL_BUTTONS, DvhHomeTools } from './DvhHomeTools'
+import { DvhToolDialogs, openDvhToolDialog } from './DvhToolDialogs'
 import { AI_ENABLED } from '@genoffice/ui'
 import type { IFunctionInfo } from '@univerjs/engine-formula'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -65,7 +66,16 @@ import { useModalDialog } from './modal-dialog'
 
 // No File tab: file commands live in the macOS
 // application menu (File → Open/Save/Save As) and the toolbar icons.
-const ribbonTabs = ['Home', 'Insert', 'Page Layout', 'Formulas', 'Data', 'Review', 'View'] as const
+const ribbonTabs = [
+  'Home',
+  'Insert',
+  'Page Layout',
+  'Formulas',
+  'Data',
+  'Review',
+  'View',
+  'DVH',
+] as const
 
 /// 'Chart Design' is contextual: it exists only while a chart is selected,
 /// and appears without stealing the active tab.
@@ -81,6 +91,7 @@ const TAB_LABEL: Record<RibbonTab, StringKey> = {
   Data: 'appTabData',
   Review: 'appTabReview',
   View: 'appTabView',
+  DVH: 'dvhToolTab',
   'Chart Design': 'appTabChartDesign',
 }
 
@@ -840,6 +851,7 @@ export function ExcelShell({
           onClose={() => setShowGoalSeek(false)}
         />
       )}
+      <DvhToolDialogs onCommand={onCommand} />
       {insertFunctionCat !== null && (
         <InsertFunctionDialog
           targetLabel={onGetActiveCell()}
@@ -2368,6 +2380,64 @@ function Ribbon({
             { value: 'freeze-first-col', label: t('appFreezeFirstCol') },
             { value: 'unfreeze', label: t('appUnfreeze') },
           ])}
+        </RibbonGroup>
+      </div>
+    )
+  }
+
+  if (activeTab === 'DVH') {
+    // DVH tab: Smart Data, the DVH functions and every DVH Tool command, labelled
+    const tool = (id: string) => {
+      const b = DVH_TOOL_BUTTONS.find((x) => x.id === id)!
+      return (
+        <RibbonButton
+          key={id}
+          label={t(b.label)}
+          detail={t(b.tip)}
+          symbol={`dvh:${id}`}
+          onClick={() =>
+            b.run((action, payload) => onCommand(`dvh:${JSON.stringify({ action, payload })}`))
+          }
+        />
+      )
+    }
+    return (
+      <div className="ribbon" data-ribbon-body="">
+        <RibbonGroup label={t('dvhToolGroupData')}>
+          <RibbonButton
+            large
+            label={t('dvhSmartData')}
+            detail={t('dvhToolSmartDataTip')}
+            symbol="dvh:smartData"
+            onClick={() => openDvhToolDialog('smart-data')}
+          />
+          <RibbonButton
+            large
+            label={t('dvhToolFunctions')}
+            detail={t('dvhToolFunctionsTip')}
+            symbol="dvh:functions"
+            onClick={() => onCommand('insert-function-open:DVH Tool')}
+          />
+        </RibbonGroup>
+        <RibbonGroup label={t('dvhToolGroupText')}>
+          <div className="ribbon-rows">{['upper', 'lower', 'proper'].map(tool)}</div>
+          <div className="ribbon-rows">{['firstChar', 'readNumber'].map(tool)}</div>
+        </RibbonGroup>
+        <RibbonGroup label={t('dvhToolGroupView')}>
+          <div className="ribbon-rows">{['hidden', 'zeroHide'].map(tool)}</div>
+        </RibbonGroup>
+        <RibbonGroup label={t('dvhToolGroupFormat')}>
+          <div className="ribbon-rows">{['centerAcross', 'justify', 'beautyBorder'].map(tool)}</div>
+          <div className="ribbon-rows">{['fitMerge', 'shrink', 'borderSettings'].map(tool)}</div>
+          <div className="ribbon-rows">
+            {['indentIncrease', 'indentDecrease', 'indentClear'].map(tool)}
+          </div>
+        </RibbonGroup>
+        <RibbonGroup label={t('dvhToolGroupFormula')}>
+          <div className="ribbon-rows">{['refStyle', 'roundAdd', 'roundRemove'].map(tool)}</div>
+        </RibbonGroup>
+        <RibbonGroup label={t('dvhToolGroupCopy')}>
+          <div className="ribbon-rows">{['copyVisible', 'pasteVisible'].map(tool)}</div>
         </RibbonGroup>
       </div>
     )

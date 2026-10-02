@@ -31,6 +31,8 @@ export interface SheetPageSetupState {
   /// Normal-view zoom percent (10-400); 100 drops the attributes.
   readonly zoomScale?: number | undefined
   readonly showFormulas?: boolean | undefined
+  /// sheetView/@showZeros; true (the default) drops the attribute.
+  readonly showZeros?: boolean | undefined
   readonly showHeadings?: boolean | undefined
   readonly printArea?: string | null | undefined
   readonly printTitles?: string | null | undefined
@@ -341,6 +343,10 @@ export function applyPageSetupState(worksheetXml: string, state: SheetPageSetupS
   if (state.showFormulas !== undefined) {
     // showFormulas defaults to false; drop the attribute to restore it.
     xml = setSheetViewAttr(xml, 'showFormulas', state.showFormulas ? '1' : null)
+  }
+  if (state.showZeros !== undefined) {
+    // showZeros defaults to true; write "0" to hide zero values.
+    xml = setSheetViewAttr(xml, 'showZeros', state.showZeros ? null : '0')
   }
   if (state.zoomScale !== undefined) {
     // 100 is the default — drop the attributes. zoomScaleNormal keeps the

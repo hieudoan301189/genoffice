@@ -978,6 +978,7 @@ function parseWorkbookFile(input: unknown): WorkbookFile {
       tabColor: sheet.tabColor,
       showGridLines: sheet.showGridLines,
       showFormulas: sheet.showFormulas === true,
+      showZeros: sheet.showZeros !== false,
       showRowColHeaders: sheet.showRowColHeaders !== false,
       rightToLeft: sheet.rightToLeft === true,
       ...(typeof sheet.zoomScale === 'number' &&
@@ -2368,6 +2369,7 @@ function isPageSetupState(input: unknown): boolean {
     'printHeadings',
     'showGridlines',
     'showFormulas',
+    'showZeros',
     'showHeadings',
     'fitToPage',
   ]) {
