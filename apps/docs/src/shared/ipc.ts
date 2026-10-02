@@ -348,6 +348,12 @@ export interface DesktopApi {
   onOpenDocx(handler: (result: Exclude<OpenDocxResult, null>) => void): () => void
   /** File was renamed externally (renamed in the shell Home list) — pushes old and new paths; renderer syncs its save path and title bar */
   onRenamedDocx(handler: (paths: { oldPath: string; newPath: string }) => void): () => void
+  /** DVH Smart Data: read a linked workbook's model part; pick asks for the file
+   *  first. null when the user cancels the picker. */
+  dvhReadSource(request: {
+    path?: string
+    pick?: boolean
+  }): Promise<{ path: string; modelXml: string | null } | null>
   /** auto=true marks an autosave: an externally modified file then fails with
    *  reason 'external-modified' instead of prompting (manual saves get an
    *  Overwrite/Cancel dialog in the main process) */

@@ -1,0 +1,31 @@
+import type { zh } from './zh'
+
+export const de = {
+  dvhSmartData: 'Smart Data',
+  dvhSmartDataTip:
+    'Felder einfügen, die an die Smart Data des Dokuments gebunden sind, und mit einer Arbeitsmappe verknüpfen',
+  dvhPanelTitle: 'Smart-Data-Felder',
+  dvhColName: 'Feld',
+  dvhColValue: 'Wert',
+  dvhColUses: 'Verwendungen',
+  dvhInsert: 'Einfügen',
+  dvhEmpty: 'Noch keine Felder. Verknüpfen Sie eine Arbeitsmappe oder fügen Sie ein Feld hinzu.',
+  dvhNamePlaceholder: 'Feldname, z. B. Project.Name',
+  dvhValuePlaceholder: 'Wert',
+  dvhAddField: 'Hinzufügen und einfügen',
+  dvhErrName: 'Geben Sie einen noch nicht verwendeten Feldnamen ein.',
+  dvhLinks: 'Verknüpfungen',
+  dvhNoLinks: 'Noch keine Arbeitsmappe verknüpft.',
+  dvhLinkWorkbook: 'Arbeitsmappe verknüpfen…',
+  dvhUpdateFromSource: 'Aus Quelle aktualisieren',
+  dvhNoSourceModel: 'Diese Arbeitsmappe enthält keine Smart-Data-Felder.',
+  dvhSourceMissing: 'Verknüpfte Arbeitsmappe nicht gefunden: {path}',
+  dvhLinked: 'Verknüpfte Felder aus {name}: {count}.',
+  dvhUpdated: 'Aktualisierte Felder aus {name}: {count}.',
+  dvhLastSync: 'Letzte Aktualisierung: {time}',
+  dvhClose: 'Schließen',
+  dvhErrReadSource: 'Arbeitsmappe konnte nicht gelesen werden: {error}',
+  dvhStale: 'Die Arbeitsmappe wurde seit der letzten Aktualisierung geändert.',
+  dvhHistory: 'Verlauf',
+  dvhNoHistory: 'Noch keine Änderungen aufgezeichnet.',
+} satisfies Record<keyof typeof zh, string>

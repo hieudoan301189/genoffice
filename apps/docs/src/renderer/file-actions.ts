@@ -83,6 +83,7 @@ import { t, getLang } from './i18n/locale'
 import { isBlankDocument, parseHtmlFragment, replaceBlockRange } from './ai/protocol'
 import { carryDocSeen } from './ai/tools'
 import { isDocDirty, resetCrossDocEditState } from './doc-dirty'
+import { dvhDocsCustomXmlParts } from './dvh-smart-data'
 import { pruneUnreferencedNumbering } from './numbering-actions'
 import { applySectPrRewrites, type SectPrRewrite } from './sectpr-rewrite'
 import { createSaveSerializer } from './save-until-persisted'
@@ -786,6 +787,7 @@ export async function buildDocBytes(ctx: FileActionContext): Promise<Uint8Array 
     zoteroDocumentData: ctx.zoteroDocumentDataDirty ? ctx.zoteroDocumentData : undefined,
     themeFonts: ctx.themeFontsDirty && ctx.themeFonts ? ctx.themeFonts : undefined,
     themeColors: ctx.themeColorsDirty && ctx.themeColors ? ctx.themeColors : undefined,
+    customXmlParts: dvhDocsCustomXmlParts(doc.parsed, editor),
   })
   return bytes
 }

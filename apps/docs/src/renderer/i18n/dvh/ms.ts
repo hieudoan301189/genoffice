@@ -1,0 +1,31 @@
+import type { zh } from './zh'
+
+export const ms = {
+  dvhSmartData: 'Smart Data',
+  dvhSmartDataTip:
+    'Sisipkan medan yang terikat pada Smart Data dokumen dan pautkannya ke buku kerja',
+  dvhPanelTitle: 'Medan Smart Data',
+  dvhColName: 'Medan',
+  dvhColValue: 'Nilai',
+  dvhColUses: 'Penggunaan',
+  dvhInsert: 'Sisip',
+  dvhEmpty: 'Belum ada medan. Pautkan buku kerja atau tambah medan.',
+  dvhNamePlaceholder: 'Nama medan, cth. Project.Name',
+  dvhValuePlaceholder: 'Nilai',
+  dvhAddField: 'Tambah dan sisip',
+  dvhErrName: 'Masukkan nama medan yang belum digunakan.',
+  dvhLinks: 'Pautan',
+  dvhNoLinks: 'Belum ada buku kerja dipautkan.',
+  dvhLinkWorkbook: 'Pautkan buku kerja…',
+  dvhUpdateFromSource: 'Kemas kini daripada sumber',
+  dvhNoSourceModel: 'Buku kerja ini tiada medan Smart Data.',
+  dvhSourceMissing: 'Buku kerja terpaut tidak ditemui: {path}',
+  dvhLinked: 'Medan dipautkan daripada {name}: {count}.',
+  dvhUpdated: 'Medan dikemas kini daripada {name}: {count}.',
+  dvhLastSync: 'Kemas kini terakhir: {time}',
+  dvhClose: 'Tutup',
+  dvhErrReadSource: 'Tidak dapat membaca buku kerja: {error}',
+  dvhStale: 'Buku kerja telah berubah sejak kemas kini terakhir.',
+  dvhHistory: 'Sejarah',
+  dvhNoHistory: 'Belum ada perubahan direkodkan.',
+} satisfies Record<keyof typeof zh, string>

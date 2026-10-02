@@ -1,0 +1,31 @@
+import type { zh } from './zh'
+
+export const it = {
+  dvhSmartData: 'Smart Data',
+  dvhSmartDataTip:
+    'Inserisci campi associati allo Smart Data del documento e collegali a una cartella di lavoro',
+  dvhPanelTitle: 'Campi Smart Data',
+  dvhColName: 'Campo',
+  dvhColValue: 'Valore',
+  dvhColUses: 'Utilizzi',
+  dvhInsert: 'Inserisci',
+  dvhEmpty: 'Nessun campo. Collega una cartella di lavoro o aggiungi un campo.',
+  dvhNamePlaceholder: 'Nome del campo, ad es. Project.Name',
+  dvhValuePlaceholder: 'Valore',
+  dvhAddField: 'Aggiungi e inserisci',
+  dvhErrName: 'Immetti un nome di campo non ancora usato.',
+  dvhLinks: 'Collegamenti',
+  dvhNoLinks: 'Nessuna cartella di lavoro collegata.',
+  dvhLinkWorkbook: 'Collega cartella di lavoro…',
+  dvhUpdateFromSource: "Aggiorna dall'origine",
+  dvhNoSourceModel: 'Questa cartella di lavoro non contiene campi Smart Data.',
+  dvhSourceMissing: 'Cartella di lavoro collegata non trovata: {path}',
+  dvhLinked: 'Campi collegati da {name}: {count}.',
+  dvhUpdated: 'Campi aggiornati da {name}: {count}.',
+  dvhLastSync: 'Ultimo aggiornamento: {time}',
+  dvhClose: 'Chiudi',
+  dvhErrReadSource: 'Impossibile leggere la cartella di lavoro: {error}',
+  dvhStale: "La cartella di lavoro è cambiata dall'ultimo aggiornamento.",
+  dvhHistory: 'Cronologia',
+  dvhNoHistory: 'Nessuna modifica registrata.',
+} satisfies Record<keyof typeof zh, string>

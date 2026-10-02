@@ -24,6 +24,7 @@ import {
   writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
+import { readDvhSource } from './dvh-source'
 import { basename, dirname, extname, isAbsolute, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
@@ -3630,10 +3631,7 @@ export function registerAiIpc(): void {
   })
 
   // Legacy channel retained for old renderer bundles; DVH Office has no Genspark sign-in.
-  ipcMain.handle(
-    'ai:gsk-status',
-    (): GenSparkAccountStatus => ({ loggedIn: false }),
-  )
+  ipcMain.handle('ai:gsk-status', (): GenSparkAccountStatus => ({ loggedIn: false }))
 
   ipcMain.handle('ai:gsk-login', () => {
     throw new Error('DVH Office uses Gemini API key, not Genspark sign-in.')
@@ -4642,6 +4640,21 @@ export function registerDocsIpc(): void {
   ipcMain.handle('docs:recent', () =>
     readJson<string[]>(RECENT_PATH(), []).filter((p) => existsSync(p)),
   )
+
+  // DVH Smart Data: read a linked workbook's model part (pick = choose the file first)
+  ipcMain.handle('docs:dvh-read-source', async (event, request: unknown) => {
+    const { path, pick } = (request ?? {}) as { path?: unknown; pick?: unknown }
+    let target = typeof path === 'string' && path ? path : null
+    if (pick === true || target === null) {
+      const result = await openDialog(event, {
+        filters: [{ name: 'Excel', extensions: ['xlsx', 'xlsm'] }],
+        properties: ['openFile'],
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+      target = result.filePaths[0]!
+    }
+    return readDvhSource(target)
+  })
 
   ipcMain.handle('docs:pick-image', async (event) => {
     const result = await openDialog(event, {

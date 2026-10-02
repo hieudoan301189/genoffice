@@ -7,6 +7,7 @@ import { t } from '../i18n/locale'
 import { blockRangePositions, isTrackedDeleted, liveText } from './doc-utils'
 import { styleOpDefs, type AiStyleAccess } from './style-ops'
 import { fieldOpDefs } from './field-ops'
+import { dvhOpDefs } from './dvh-ops'
 import { tableOpDefs } from './table-ops'
 
 /**
@@ -145,6 +146,8 @@ export interface OpDef {
   hidden?: boolean
   validate(op: Op, where: string): string | null
   apply(op: Op, env: RunEnv): OpResult
+  /** state outside the document (DVH Smart Data model), written once the whole batch applied */
+  commit?(op: Op, ctx: OpContext): void
 }
 
 const REGISTRY = new Map<string, OpDef>()
@@ -1271,6 +1274,10 @@ for (const def of fieldOpDefs({ validateShape, matchTarget, markChanged })) {
   register(def)
 }
 
+for (const def of dvhOpDefs({ validateShape, matchTarget, markChanged })) {
+  register(def)
+}
+
 for (const def of tableOpDefs({
   validateShape,
   matchTarget,
@@ -1508,6 +1515,7 @@ export function executeOps(editor: Editor, ops: unknown, ctx: OpContext = {}): E
       editor.view.dispatch(tr)
     }
   }
+  for (const [op, def] of planned) def.commit?.(op, ctx)
   return { ok: true, results, summary: summarize(results), plan }
 }
 

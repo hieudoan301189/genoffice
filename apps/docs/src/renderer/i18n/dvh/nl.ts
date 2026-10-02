@@ -1,0 +1,31 @@
+import type { zh } from './zh'
+
+export const nl = {
+  dvhSmartData: 'Smart Data',
+  dvhSmartDataTip:
+    'Velden invoegen die aan de Smart Data van het document zijn gebonden en ze aan een werkmap koppelen',
+  dvhPanelTitle: 'Smart Data-velden',
+  dvhColName: 'Veld',
+  dvhColValue: 'Waarde',
+  dvhColUses: 'Gebruik',
+  dvhInsert: 'Invoegen',
+  dvhEmpty: 'Nog geen velden. Koppel een werkmap of voeg een veld toe.',
+  dvhNamePlaceholder: 'Veldnaam, bijv. Project.Name',
+  dvhValuePlaceholder: 'Waarde',
+  dvhAddField: 'Toevoegen en invoegen',
+  dvhErrName: 'Voer een veldnaam in die nog niet wordt gebruikt.',
+  dvhLinks: 'Koppelingen',
+  dvhNoLinks: 'Nog geen werkmap gekoppeld.',
+  dvhLinkWorkbook: 'Werkmap koppelen…',
+  dvhUpdateFromSource: 'Bijwerken vanuit bron',
+  dvhNoSourceModel: 'Deze werkmap bevat geen Smart Data-velden.',
+  dvhSourceMissing: 'Gekoppelde werkmap niet gevonden: {path}',
+  dvhLinked: 'Velden gekoppeld uit {name}: {count}.',
+  dvhUpdated: 'Velden bijgewerkt uit {name}: {count}.',
+  dvhLastSync: 'Laatst bijgewerkt: {time}',
+  dvhClose: 'Sluiten',
+  dvhErrReadSource: 'Kan de werkmap niet lezen: {error}',
+  dvhStale: 'De werkmap is gewijzigd sinds de laatste update.',
+  dvhHistory: 'Geschiedenis',
+  dvhNoHistory: 'Nog geen wijzigingen vastgelegd.',
+} satisfies Record<keyof typeof zh, string>

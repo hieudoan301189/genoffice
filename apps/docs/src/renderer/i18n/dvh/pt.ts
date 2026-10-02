@@ -1,0 +1,31 @@
+import type { zh } from './zh'
+
+export const pt = {
+  dvhSmartData: 'Smart Data',
+  dvhSmartDataTip:
+    'Inserir campos vinculados ao Smart Data do documento e associá-los a uma pasta de trabalho',
+  dvhPanelTitle: 'Campos do Smart Data',
+  dvhColName: 'Campo',
+  dvhColValue: 'Valor',
+  dvhColUses: 'Usos',
+  dvhInsert: 'Inserir',
+  dvhEmpty: 'Ainda não há campos. Vincule uma pasta de trabalho ou adicione um campo.',
+  dvhNamePlaceholder: 'Nome do campo, por ex. Project.Name',
+  dvhValuePlaceholder: 'Valor',
+  dvhAddField: 'Adicionar e inserir',
+  dvhErrName: 'Digite um nome de campo ainda não usado.',
+  dvhLinks: 'Vínculos',
+  dvhNoLinks: 'Nenhuma pasta de trabalho vinculada.',
+  dvhLinkWorkbook: 'Vincular pasta de trabalho…',
+  dvhUpdateFromSource: 'Atualizar da origem',
+  dvhNoSourceModel: 'Esta pasta de trabalho não tem campos do Smart Data.',
+  dvhSourceMissing: 'Pasta de trabalho vinculada não encontrada: {path}',
+  dvhLinked: 'Campos vinculados de {name}: {count}.',
+  dvhUpdated: 'Campos atualizados de {name}: {count}.',
+  dvhLastSync: 'Última atualização: {time}',
+  dvhClose: 'Fechar',
+  dvhErrReadSource: 'Não foi possível ler a pasta de trabalho: {error}',
+  dvhStale: 'A pasta de trabalho mudou desde a última atualização.',
+  dvhHistory: 'Histórico',
+  dvhNoHistory: 'Nenhuma alteração registrada.',
+} satisfies Record<keyof typeof zh, string>

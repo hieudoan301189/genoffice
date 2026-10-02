@@ -1,0 +1,31 @@
+import type { zh } from './zh'
+
+export const es = {
+  dvhSmartData: 'Smart Data',
+  dvhSmartDataTip:
+    'Insertar campos vinculados al Smart Data del documento y enlazarlos con un libro',
+  dvhPanelTitle: 'Campos de Smart Data',
+  dvhColName: 'Campo',
+  dvhColValue: 'Valor',
+  dvhColUses: 'Usos',
+  dvhInsert: 'Insertar',
+  dvhEmpty: 'Aún no hay campos. Vincule un libro o agregue un campo.',
+  dvhNamePlaceholder: 'Nombre del campo, p. ej. Project.Name',
+  dvhValuePlaceholder: 'Valor',
+  dvhAddField: 'Agregar e insertar',
+  dvhErrName: 'Escriba un nombre de campo que no esté en uso.',
+  dvhLinks: 'Vínculos',
+  dvhNoLinks: 'Aún no hay ningún libro vinculado.',
+  dvhLinkWorkbook: 'Vincular libro…',
+  dvhUpdateFromSource: 'Actualizar desde el origen',
+  dvhNoSourceModel: 'Este libro no tiene campos de Smart Data.',
+  dvhSourceMissing: 'No se encontró el libro vinculado: {path}',
+  dvhLinked: 'Campos vinculados de {name}: {count}.',
+  dvhUpdated: 'Campos actualizados desde {name}: {count}.',
+  dvhLastSync: 'Última actualización: {time}',
+  dvhClose: 'Cerrar',
+  dvhErrReadSource: 'No se pudo leer el libro: {error}',
+  dvhStale: 'El libro cambió desde la última actualización.',
+  dvhHistory: 'Historial',
+  dvhNoHistory: 'Aún no hay cambios registrados.',
+} satisfies Record<keyof typeof zh, string>

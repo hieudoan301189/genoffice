@@ -1,0 +1,193 @@
+/**
+ * The first DVH actions in Docs (P1; the unified Action Core is P4). They sit
+ * on the same primitives as the Smart Data panel and the apply_ops ops, so a
+ * field set by the panel, the agent, MCP or a future script records the same
+ * change set. The document's history part is written by dvh-smart-data; the
+ * change set a run returns is the caller's receipt of the same changes.
+ */
+import type { Editor } from '@tiptap/core'
+import { ActionRegistry, z, type ActionContext, type PreviewReport } from '@genoffice/dvh-actions'
+import { fieldText, scalarSchema, type DvhLink } from '@genoffice/dvh-model'
+import { executeOps, type Op } from './ai/ops'
+import {
+  activeDvhDocs,
+  fieldOccurrences,
+  findField,
+  linkSourcePaths,
+  sourceFromRead,
+  updateFromSource,
+  type DvhSource,
+} from './dvh-smart-data'
+
+export interface DocsActionHost {
+  editor(): Editor | null
+  filePath(): string | null
+  /** reads a workbook's model part (window.desktop.dvhReadSource in the app) */
+  readSource(path: string): Promise<{ path: string; modelXml: string | null } | null>
+}
+
+const preview = (objects: number, summary: string[], warnings: string[] = []): PreviewReport => ({
+  objects,
+  files: [],
+  summary,
+  warnings,
+})
+
+function requireField(ref: string) {
+  const field = findField(activeDvhDocs(), ref)
+  if (!field) throw new Error(`unknown field "${ref}"`)
+  return field
+}
+
+function runOps(host: DocsActionHost, ops: Op[], ctx: ActionContext): string {
+  const editor = host.editor()
+  if (!editor) throw new Error('no document is open')
+  const outcome = executeOps(editor, ops, { source: ctx.caller === 'ai' ? 'ai' : 'ui' })
+  if (!outcome.ok) throw new Error(outcome.error ?? 'the edit was rejected')
+  return outcome.summary
+}
+
+async function readLinked(host: DocsActionHost, link: DvhLink): Promise<DvhSource | null> {
+  for (const path of linkSourcePaths(link, host.filePath())) {
+    try {
+      const source = sourceFromRead(await host.readSource(path))
+      if (source && source.model.docId === link.source.docId) return source
+    } catch {
+      // moved or unreadable: try the next candidate
+    }
+  }
+  return null
+}
+
+const fieldRef = z.string().min(1).describe('field name such as Project.Name, or its id')
+
+export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
+  const registry = new ActionRegistry()
+
+  registry.register({
+    name: 'Data.ListFields',
+    group: 'Data',
+    summary: 'List the Smart Data fields of the document with their values and uses',
+    input: z.object({}).strict(),
+    effect: 'read',
+    preview: () => preview(0, []),
+    execute: () => {
+      const editor = host.editor()
+      const occurrences = editor ? fieldOccurrences(editor.state.doc) : []
+      return (activeDvhDocs()?.model?.fields ?? []).map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type,
+        value: f.value,
+        uses: occurrences.filter((o) => o.fieldId === f.id).length,
+      }))
+    },
+  })
+
+  registry.register({
+    name: 'Data.GetField',
+    group: 'Data',
+    summary: 'Read one Smart Data field',
+    input: z.object({ field: fieldRef }).strict(),
+    effect: 'read',
+    preview: () => preview(0, []),
+    execute: ({ field }) => ({ ...requireField(field) }),
+  })
+
+  registry.register({
+    name: 'Data.SetField',
+    group: 'Data',
+    summary: 'Set a Smart Data field; every occurrence in the document follows',
+    input: z.object({ field: fieldRef, value: scalarSchema }).strict(),
+    effect: 'write',
+    preview: ({ field, value }) => {
+      const f = requireField(field)
+      return preview(1, [`${f.name}: "${fieldText(f.value)}" → "${fieldText(value)}"`])
+    },
+    execute: ({ field, value }, ctx) => {
+      const f = requireField(field)
+      const before = f.value
+      const summary = runOps(host, [{ op: 'setSmartField', field: f.id, value }], ctx)
+      ctx.emit([{ objectId: f.id, path: 'value', before, after: value }])
+      return summary
+    },
+  })
+
+  registry.register({
+    name: 'Document.InsertField',
+    group: 'Document',
+    summary: 'Insert a Smart Data field into one paragraph (at its end unless afterText is given)',
+    input: z
+      .object({
+        field: fieldRef,
+        blockIndex: z.number().int().min(0),
+        afterText: z.string().min(1).optional(),
+        value: scalarSchema.optional(),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ field, blockIndex }) => preview(1, [`insert ${field} into block ${blockIndex}`]),
+    execute: ({ field, blockIndex, afterText, value }, ctx) => {
+      const summary = runOps(
+        host,
+        [
+          {
+            op: 'insertSmartField',
+            target: { blockIndexes: [blockIndex] },
+            field,
+            ...(afterText !== undefined ? { afterText } : {}),
+            ...(value !== undefined ? { value } : {}),
+          },
+        ],
+        ctx,
+      )
+      const inserted = requireField(field)
+      ctx.emit([{ objectId: inserted.id, path: 'occurrence', before: null, after: inserted.name }])
+      return summary
+    },
+  })
+
+  registry.register({
+    name: 'Link.Update',
+    group: 'Link',
+    summary: 'Pull field values from the linked workbooks into the document',
+    input: z.object({ linkId: z.string().min(1).optional() }).strict(),
+    effect: 'write',
+    preview: ({ linkId }) => {
+      const links = (activeDvhDocs()?.model?.links ?? []).filter((l) => !linkId || l.id === linkId)
+      return preview(
+        links.length,
+        links.map((l) => `update from ${l.source.path ?? l.source.relPath ?? l.source.docId}`),
+      )
+    },
+    execute: async ({ linkId }, ctx) => {
+      const dvh = activeDvhDocs()
+      const editor = host.editor()
+      if (!dvh?.model || !editor) throw new Error('no document is open')
+      const results: { linkId: string; updated: number | null }[] = []
+      for (const link of dvh.model.links.filter((l) => !linkId || l.id === linkId)) {
+        const source = await readLinked(host, link)
+        if (!source) {
+          results.push({ linkId: link.id, updated: null })
+          continue
+        }
+        const before = new Map(dvh.model.fields.map((f) => [f.id, f.value]))
+        const updated = updateFromSource(editor, dvh, link, source)
+        ctx.emit(
+          dvh.model.fields
+            .filter((f) => before.get(f.id) !== f.value)
+            .map((f) => ({
+              objectId: f.id,
+              path: 'value',
+              before: before.get(f.id),
+              after: f.value,
+            })),
+        )
+        results.push({ linkId: link.id, updated })
+      }
+      return results
+    },
+  })
+
+  return registry
+}

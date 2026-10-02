@@ -1127,6 +1127,26 @@ export function InsertTab({
 
       <div className="ribbon-group">
         <div className="ribbon-group-items">
+          {/* DVH Smart Data: the panel lives in App (it needs the document state) */}
+          <button
+            className="rb-big"
+            disabled={!hasDoc}
+            data-tip={t('dvhSmartDataTip')}
+            onClick={() => window.dispatchEvent(new CustomEvent('dvh:smart-data'))}
+          >
+            <span className="rb-big-icon">
+              <IconTable size={BIG} />
+            </span>
+            <span>{t('dvhSmartData')}</span>
+          </button>
+        </div>
+        <div className="ribbon-group-label">{t('dvhSmartData')}</div>
+      </div>
+
+      <div className="ribbon-sep" />
+
+      <div className="ribbon-group">
+        <div className="ribbon-group-items">
           {/* Word: Insert → Comment starts a new comment; the pane toggle stays on Review.
               Deliberately not gated on this tab's hasDoc (= canEdit): under the comments-only
               restriction the body is read-only yet commenting stays allowed, matching the

@@ -1,0 +1,161 @@
+/* DVH Smart Data panel (chrome only: semantic tokens, no document colors) */
+.dvh-docs-panel {
+  position: fixed;
+  top: 150px;
+  right: 16px;
+  z-index: 40;
+  width: min(460px, calc(100vw - 32px));
+  max-height: 65vh;
+  overflow: auto;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-modal-strong);
+  font-size: 12px;
+}
+
+.dvh-docs-panel-head,
+.dvh-docs-panel-subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dvh-docs-panel-head button {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.dvh-docs-panel-subhead span {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.dvh-docs-panel-section {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dvh-docs-panel-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.dvh-docs-panel-link-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dvh-docs-panel-muted,
+.dvh-docs-panel-empty {
+  color: var(--text-muted);
+}
+
+.dvh-docs-panel-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dvh-docs-panel-table th,
+.dvh-docs-panel-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+}
+
+.dvh-docs-panel-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.dvh-docs-panel-error {
+  color: var(--danger);
+}
+
+.dvh-docs-panel-new {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.dvh-docs-panel-new input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+
+.dvh-docs-panel button {
+  color: var(--text);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.dvh-docs-panel button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.dvh-docs-panel .dvh-docs-panel-head button {
+  border: none;
+  background: none;
+  padding: 0 4px;
+}
+
+.dvh-docs-panel-link-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.dvh-docs-panel-warn {
+  color: var(--danger);
+}
+
+.dvh-docs-panel-history summary {
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dvh-docs-panel-history ul {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dvh-docs-panel-history li {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dvh-docs-panel-diff {
+  padding-left: 12px;
+}
+
+.dvh-docs-panel-diff del {
+  color: var(--text-muted);
+}
+
+.dvh-docs-panel-diff ins {
+  text-decoration: none;
+  font-weight: 600;
+}

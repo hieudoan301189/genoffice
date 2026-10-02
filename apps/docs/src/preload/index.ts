@@ -96,6 +96,11 @@ const api: DesktopApi = {
   },
   saveDocx: (path: string, data: ArrayBuffer, auto?: boolean) =>
     ipcRenderer.invoke('docs:save', path, data, auto === true),
+  dvhReadSource: (request: { path?: string; pick?: boolean }) =>
+    ipcRenderer.invoke('docs:dvh-read-source', {
+      ...(typeof request.path === 'string' ? { path: request.path } : {}),
+      pick: request.pick === true,
+    }),
   writeRecoveryCopy: (path: string, data: ArrayBuffer) =>
     ipcRenderer.invoke('docs:write-recovery', path, data),
   onTeardown: (handler) => {
@@ -241,6 +246,12 @@ const projectApi: ProjectApi = {
 
 contextBridge.exposeInMainWorld('desktop', api)
 contextBridge.exposeInMainWorld('projectApi', projectApi)
+
+// Off by default. e2e drivers launch the BUILT app with GENOFFICE_DEBUG_HOOKS=1
+// so the renderer exposes window.__dvhActions (see DvhSmartDataPanel.tsx).
+if (process.env.GENOFFICE_DEBUG_HOOKS === '1') {
+  contextBridge.exposeInMainWorld('__genofficeDebugHooks', true)
+}
 
 // open documents dragged from the OS onto this tab as a new shell tab
 installDropOpenBridge()

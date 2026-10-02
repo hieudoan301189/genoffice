@@ -401,6 +401,7 @@ const WORD_COUNT_THROTTLE_MS = 400
 const MAX_FOLLOW_UP_PASSES = 6
 import { runHeadlessDocumentExport } from './headless-export'
 import { installMcpBridge } from './mcp-bridge'
+import { DvhSmartDataHost } from './components/DvhSmartDataPanel'
 import {
   clampDocsZoom,
   DOCS_ZOOM_MAX,
@@ -1123,6 +1124,11 @@ export function App() {
     : 624
   const [, forceRender] = useReducer((x: number) => x + 1, 0)
   const dirtyRef = useRef(false)
+  // DVH Smart Data model edits (link, update) live outside the editor content
+  const markDvhDirty = useCallback(() => {
+    dirtyRef.current = true
+    forceRender()
+  }, [])
   // serializes save(): overlapping saves (Cmd+S vs autosave timer vs blur) would
   // otherwise race on the write + reparse + setContent sequence
   const saveInFlightRef = useRef(false)
@@ -6775,6 +6781,12 @@ export function App() {
       className={`app ${readMode ? 'read-mode' : ''}${revisionDisplay !== 'all' ? ` rev-display-${revisionDisplay}` : ''}${revisionDisplay === 'all' && viewMode === 'print' ? ' rev-balloon' : ''}`}
     >
       <ToastHost />
+      <DvhSmartDataHost
+        editor={editor}
+        parsed={doc?.parsed ?? null}
+        filePath={doc?.filePath ?? null}
+        markDirty={markDvhDirty}
+      />
       {docCss && <style data-doc-css="">{docCss}</style>}
       {liveLineFactor != null && (
         <style data-doc-css="">{`.doc-page { --doc-line-factor:${liveLineFactor} }`}</style>

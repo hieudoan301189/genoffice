@@ -295,6 +295,7 @@ import {
   loadDvhSmartData,
   registerDvhSheetsContext,
 } from './dvh-smart-data'
+import { createSheetsDvhActions } from './dvh-actions'
 import { isDvhDefinedName } from '@genoffice/dvh-model'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
@@ -1735,8 +1736,10 @@ export function App({
     // value at install time — even when IFERROR/ISERROR would otherwise
     // swallow the #NAME? into the fallback literal.
     const functionProbeDisposable = installSupportedFunctionProbe(runtime)
-    const dvhFunctionsDisposable = installDvhPureFunctions(runtime,
-      () => lazyWorkbookRef.current?.flags.preloadComplete ?? true)
+    const dvhFunctionsDisposable = installDvhPureFunctions(
+      runtime,
+      () => lazyWorkbookRef.current?.flags.preloadComplete ?? true,
+    )
     // DVH functions that return formats (DVH.Font, DVH.FillColor, DVH.Table...):
     // an interceptor paints them, save bakes them into real cell styles.
     const dvhFormatChannelDisposable = installFormulaFormatChannel(runtime)
@@ -2028,7 +2031,9 @@ export function App({
               (entry) => entry.formula && /^=DVH\./i.test(entry.formula),
             )
             if (formulas.length === 0) continue
-            const addresses = formulas.map((entry) => `${columnLabel(entry.column)}${entry.row + 1}`)
+            const addresses = formulas.map(
+              (entry) => `${columnLabel(entry.column)}${entry.row + 1}`,
+            )
             try {
               const cells = readCellsImpl(readContext(), addresses, sheetId)
               for (let i = 0; i < formulas.length; i++) {
@@ -3989,6 +3994,7 @@ export function App({
     if ((window as unknown as Record<string, unknown>).__genofficeDebugHooks === true) {
       ;(window as unknown as Record<string, unknown>).__genofficeDebug = {
         univerAPI: univerRef.current?.univerAPI,
+        dvhActions: createSheetsDvhActions(),
       }
     }
     setRevision(0)
@@ -4766,15 +4772,17 @@ export function App({
     const names = univerDefinedNames(univerRef.current)
       .filter((defined) => !isDvhDefinedName(defined.getName()))
       .map((defined) => {
-      const localSheetId = defined.getLocalSheetId()
-      const scoped = localSheetId !== undefined && localSheetId !== 'AllDefaultWorkbook'
-      return {
-        name: defined.getName(),
-        ref: defined.getFormulaOrRefString(),
-        scopeSheetId: scoped ? localSheetId : null,
-        scopeLabel: scoped ? (sheetNames.get(localSheetId) ?? localSheetId) : t('appScopeWorkbook'),
-      }
-    })
+        const localSheetId = defined.getLocalSheetId()
+        const scoped = localSheetId !== undefined && localSheetId !== 'AllDefaultWorkbook'
+        return {
+          name: defined.getName(),
+          ref: defined.getFormulaOrRefString(),
+          scopeSheetId: scoped ? localSheetId : null,
+          scopeLabel: scoped
+            ? (sheetNames.get(localSheetId) ?? localSheetId)
+            : t('appScopeWorkbook'),
+        }
+      })
     return { names, sheets, activeSheetId }
   }
 

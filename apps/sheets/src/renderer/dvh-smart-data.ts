@@ -171,14 +171,19 @@ export function inferFieldType(value: Scalar | undefined): FieldType {
   return 'text'
 }
 
-function record(dvh: DvhSheetState, action: string, changes: ChangeSet['changes']): void {
+function record(
+  dvh: DvhSheetState,
+  action: string,
+  changes: ChangeSet['changes'],
+  source: ChangeSet['source'] = 'ui',
+): void {
   if (!dvh.model || changes.length === 0) return
   dvh.pending.push({
     id: newDvhId('r').replace(/^r_/, 'cs_'),
     txId: newDvhId('r').replace(/^r_/, 'tx_'),
     docId: dvh.model.docId,
     at: new Date().toISOString(),
-    source: 'ui',
+    source,
     action,
     changes,
   })
@@ -188,7 +193,14 @@ function record(dvh: DvhSheetState, action: string, changes: ChangeSet['changes'
 export function createField(
   runtime: UniverRuntime,
   dvh: DvhSheetState,
-  options: { name: string; sheetName: string; row: number; column: number; type?: FieldType },
+  options: {
+    name: string
+    sheetName: string
+    row: number
+    column: number
+    type?: FieldType
+    source?: ChangeSet['source']
+  },
 ): DvhField {
   const name = options.name.trim()
   if (!name) throw new Error('empty field name')
@@ -206,9 +218,12 @@ export function createField(
   }
   installName(runtime, fieldDefinedName(field.id), formula)
   dvh.model.fields.push(field)
-  record(dvh, 'Spreadsheet.BindField', [
-    { objectId: field.id, path: '', before: null, after: { ...field, binding: formula } },
-  ])
+  record(
+    dvh,
+    'Spreadsheet.BindField',
+    [{ objectId: field.id, path: '', before: null, after: { ...field, binding: formula } }],
+    options.source,
+  )
   return field
 }
 
@@ -239,6 +254,38 @@ export function newlyBrokenBindings(runtime: UniverRuntime | null, dvh: DvhSheet
     ])
   }
   return broken
+}
+
+/**
+ * Sets a field: writes its bound cell (an ordinary, undoable cell edit) and
+ * the model value. A field whose cell was deleted keeps only the model value.
+ */
+export function setBoundFieldValue(
+  runtime: UniverRuntime,
+  dvh: DvhSheetState,
+  fieldId: string,
+  value: Scalar,
+  source: ChangeSet['source'] = 'ui',
+): DvhField {
+  const binding = dvhBindings(runtime, dvh).find((b) => b.field.id === fieldId)
+  if (!binding) throw new Error(`unknown field ${fieldId}`)
+  const target = !binding.broken && binding.formula ? splitBindingFormula(binding.formula) : null
+  if (target) {
+    const sheet = runtime.univerAPI.getActiveWorkbook()?.getSheetByName(target.sheet)
+    sheet?.getRange(target.cell).setValue(value ?? '')
+  }
+  const field = binding.field
+  if (field.value !== value) {
+    const before = field.value
+    field.value = value
+    record(
+      dvh,
+      'Data.SetField',
+      [{ objectId: field.id, path: 'value', before, after: value }],
+      source,
+    )
+  }
+  return field
 }
 
 /** Pulls each bound field's value from its cell; records changes. */

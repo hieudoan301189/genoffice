@@ -8,6 +8,9 @@
 import { z, type ZodType } from 'zod'
 import type { ChangeSet } from '@genoffice/dvh-model'
 
+/** the schema builder action inputs are written with, so apps need no zod dependency of their own */
+export { z }
+
 export type ActionEffect = 'read' | 'write' | 'bulk' | 'destructive' | 'external'
 export type ActionCaller = 'ui' | 'ai' | 'workflow' | 'script' | 'extension'
 export type ActionGroup =

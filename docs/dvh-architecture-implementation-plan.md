@@ -238,6 +238,11 @@ Công việc:
 - Mở bằng Word thấy giá trị trong content control; Excel mở không báo lỗi.
 - Đổi giao diện sáng/tối, file xuất ra giống hệt nhau (CLAUDE.md quy tắc 4).
 
+**Kết quả (02/10/2026):** đạt các tiêu chí nghiệm thu chính – [báo cáo](phases/p1-smart-data.md).
+Sheets gắn ô vào Field, Docs chèn Field có `w:dataBinding` và cập nhật từ nguồn sau khi ô gắn dời từ B5
+sang D10. Word thấy 5/5 control gắn dữ liệu, Excel mở bình thường. Collection `WorkItems` chuyển sang P2
+(làm cùng DVH.Table). Bảng Smart Data dùng chung và màn lịch sử ở Sheets làm khi P2 thêm bảng.
+
 ### P2. DVH.Table MVP (4–6 tuần) → Mốc M1
 
 **Mục tiêu:** một DVH.Table tạo từ `WorkItems` (header, border, fill, bold, number format) hiển thị
