@@ -28,4 +28,13 @@ export const nl = {
   dvhStale: 'De werkmap is gewijzigd sinds de laatste update.',
   dvhHistory: 'Geschiedenis',
   dvhNoHistory: 'Nog geen wijzigingen vastgelegd.',
+  dvhCollections: 'Verzamelingen',
+  dvhNoCollections: 'Geen verzamelingen. Koppel een werkmap met verzamelingen.',
+  dvhRowCount: 'Rijen: {count}',
+  dvhInsertTable: 'Tabel invoegen',
+  dvhTables: 'Tabellen',
+  dvhStyleSource: 'Bronopmaak behouden',
+  dvhStyleDestination: 'Tabelstijl gebruiken',
+  dvhRefresh: 'Vernieuwen',
+  dvhTableEditedConfirm: 'Tabel "{name}" is met de hand bewerkt. Vervangen door de brongegevens?',
 } satisfies Record<keyof typeof zh, string>

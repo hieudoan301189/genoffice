@@ -27,4 +27,13 @@ export const hi = {
   dvhStale: 'पिछले अपडेट के बाद वर्कबुक बदल गई है।',
   dvhHistory: 'इतिहास',
   dvhNoHistory: 'अभी कोई परिवर्तन दर्ज नहीं है।',
+  dvhCollections: 'संग्रह',
+  dvhNoCollections: 'कोई संग्रह नहीं। संग्रह वाली वर्कबुक लिंक करें।',
+  dvhRowCount: 'पंक्तियाँ: {count}',
+  dvhInsertTable: 'तालिका डालें',
+  dvhTables: 'तालिकाएँ',
+  dvhStyleSource: 'स्रोत स्वरूपण रखें',
+  dvhStyleDestination: 'तालिका शैली उपयोग करें',
+  dvhRefresh: 'रीफ़्रेश',
+  dvhTableEditedConfirm: 'तालिका "{name}" हाथ से संपादित हुई है। क्या इसे स्रोत डेटा से बदलें?',
 } satisfies Record<keyof typeof zh, string>

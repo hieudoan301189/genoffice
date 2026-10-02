@@ -3073,6 +3073,8 @@ export const DocTable = Node.create({
       tblLookEdited: { default: false },
       /** SDT shell JSON when the table is a content-control member (chrome hit-testing) */
       sdtShell: { default: null as string | null },
+      /** w:sdtPr of the DVH table control (dvh:t:<id>) this table renders; save wraps it again */
+      dvhTable: { default: null as string | null },
       /** RTL table (tblPr w:bidiVisual): columns right to left */
       bidiVisual: { default: false },
       /** alt text (tblPr w:tblCaption / w:tblDescription) */
@@ -3090,6 +3092,7 @@ export const DocTable = Node.create({
   renderHTML({ node }) {
     const attrs: Record<string, string> = { class: 'doc-table' }
     if (node.attrs.docxIndex !== null) attrs['data-idx'] = String(node.attrs.docxIndex)
+    if (node.attrs.dvhTable) attrs['data-dvh-table'] = ''
     if (node.attrs.tblStyleId) attrs['data-tbl-style'] = String(node.attrs.tblStyleId)
     const autoFit = node.attrs.tblAutoFit as 'contents' | 'window' | 'fixed'
     // Imported auto-layout tables may carry a display-only expanded width from

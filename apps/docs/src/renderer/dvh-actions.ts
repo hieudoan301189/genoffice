@@ -7,7 +7,7 @@
  */
 import type { Editor } from '@tiptap/core'
 import { ActionRegistry, z, type ActionContext, type PreviewReport } from '@genoffice/dvh-actions'
-import { fieldText, scalarSchema, type DvhLink } from '@genoffice/dvh-model'
+import { dvhCellStyleSchema, fieldText, scalarSchema, type DvhLink } from '@genoffice/dvh-model'
 import { executeOps, type Op } from './ai/ops'
 import {
   activeDvhDocs,
@@ -15,9 +15,15 @@ import {
   findField,
   linkSourcePaths,
   sourceFromRead,
-  updateFromSource,
   type DvhSource,
 } from './dvh-smart-data'
+import {
+  createDocTable,
+  insertDocTable,
+  refreshDocTable,
+  setDocTableStyle,
+  updateLinkFromSource,
+} from './dvh-tables'
 
 export interface DocsActionHost {
   editor(): Editor | null
@@ -164,7 +170,10 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
       const dvh = activeDvhDocs()
       const editor = host.editor()
       if (!dvh?.model || !editor) throw new Error('no document is open')
-      const results: { linkId: string; updated: number | null }[] = []
+      const results: {
+        linkId: string
+        updated: { fields: number; tables: number; editedTables: readonly string[] } | null
+      }[] = []
       for (const link of dvh.model.links.filter((l) => !linkId || l.id === linkId)) {
         const source = await readLinked(host, link)
         if (!source) {
@@ -172,7 +181,7 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
           continue
         }
         const before = new Map(dvh.model.fields.map((f) => [f.id, f.value]))
-        const updated = updateFromSource(editor, dvh, link, source)
+        const updated = updateLinkFromSource(editor, dvh, link, source)
         ctx.emit(
           dvh.model.fields
             .filter((f) => before.get(f.id) !== f.value)
@@ -186,6 +195,90 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
         results.push({ linkId: link.id, updated })
       }
       return results
+    },
+  })
+
+  registry.register({
+    name: 'Document.InsertTable',
+    group: 'Document',
+    summary:
+      'Insert a DVH.Table showing a linked collection, after the block at blockIndex (default: after the caret)',
+    input: z
+      .object({
+        collection: z.string().min(1).describe('collection name or id'),
+        name: z.string().min(1).optional(),
+        mode: z.enum(['source', 'destination']).optional(),
+        afterBlockIndex: z.number().int().min(-1).optional(),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ collection }) => preview(1, [`insert a table of ${collection}`]),
+    execute: ({ collection, name, mode, afterBlockIndex }, ctx) => {
+      const dvh = activeDvhDocs()
+      const editor = host.editor()
+      if (!dvh || !editor) throw new Error('no document is open')
+      const source = ctx.caller === 'ai' ? 'ai' : 'ui'
+      const table = createDocTable(
+        dvh,
+        { collectionId: collection, ...(name ? { name } : {}), mode },
+        source,
+      )
+      insertDocTable(editor, dvh, table, { afterBlockIndex, source })
+      ctx.emit([{ objectId: table.id, path: '', before: null, after: table.name }])
+      return { id: table.id, name: table.name }
+    },
+  })
+
+  registry.register({
+    name: 'Table.Refresh',
+    group: 'Table',
+    summary: 'Rebuild a table from its collection; hand edits inside it need force',
+    input: z.object({ table: z.string().min(1), force: z.boolean().optional() }).strict(),
+    effect: 'write',
+    preview: ({ table }) => preview(1, [`refresh ${table}`]),
+    execute: ({ table, force }, ctx) => {
+      const dvh = activeDvhDocs()
+      const editor = host.editor()
+      if (!dvh || !editor) throw new Error('no document is open')
+      const result = refreshDocTable(editor, dvh, table, {
+        force,
+        source: ctx.caller === 'ai' ? 'ai' : 'ui',
+      })
+      if (result.needsConfirm) {
+        throw new Error(
+          `table ${table} was edited by hand; run again with force: true to overwrite`,
+        )
+      }
+      ctx.emit([{ objectId: table, path: 'render', before: null, after: result.refreshed }])
+      return result
+    },
+  })
+
+  registry.register({
+    name: 'Table.SetStyle',
+    group: 'Table',
+    summary: 'Choose source or destination style and the destination header/body styles',
+    input: z
+      .object({
+        table: z.string().min(1),
+        mode: z.enum(['source', 'destination']).optional(),
+        header: dvhCellStyleSchema.optional(),
+        body: dvhCellStyleSchema.optional(),
+        bandFill: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ table, mode }) => preview(1, [`style ${table}${mode ? ` → ${mode}` : ''}`]),
+    execute: ({ table, ...style }, ctx) => {
+      const dvh = activeDvhDocs()
+      if (!dvh) throw new Error('no document is open')
+      const before = dvh.model?.tables.find((tb) => tb.id === table || tb.name === table)?.style
+      const updated = setDocTableStyle(dvh, table, style, ctx.caller === 'ai' ? 'ai' : 'ui')
+      ctx.emit([{ objectId: updated.id, path: 'style', before, after: updated.style }])
+      return updated.style
     },
   })
 

@@ -96,6 +96,7 @@ const api: DesktopApi = {
   },
   saveDocx: (path: string, data: ArrayBuffer, auto?: boolean) =>
     ipcRenderer.invoke('docs:save', path, data, auto === true),
+  dvhSystemLocale: () => ipcRenderer.invoke('docs:dvh-system-locale'),
   dvhReadSource: (request: { path?: string; pick?: boolean }) =>
     ipcRenderer.invoke('docs:dvh-read-source', {
       ...(typeof request.path === 'string' ? { path: request.path } : {}),

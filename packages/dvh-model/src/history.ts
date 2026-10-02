@@ -82,9 +82,14 @@ function canonical(value: unknown): string {
 
 /** 64-bit FNV-1a of the canonical model, hex; synchronous so renderers can call it. */
 export function modelHash(model: DvhModel): string {
+  return contentHash(model)
+}
+
+/** 64-bit FNV-1a of any JSON value in canonical form (key order does not matter), hex. */
+export function contentHash(value: unknown): string {
   let hash = 0xcbf29ce484222325n
   const prime = 0x100000001b3n
-  for (const byte of new TextEncoder().encode(canonical(model))) {
+  for (const byte of new TextEncoder().encode(canonical(value))) {
     hash ^= BigInt(byte)
     hash = (hash * prime) & 0xffffffffffffffffn
   }

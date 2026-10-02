@@ -17,4 +17,25 @@ export const fr = {
   dvhUnboundToast: 'Le champ « {name} » a perdu sa cellule ; liez-le à nouveau.',
   dvhClose: 'Fermer',
   dvhBound: 'Champ « {name} » lié à {cell}.',
+  dvhCollections: 'Collections',
+  dvhCollectionFromSelection: 'Créer une collection depuis la sélection',
+  dvhCollectionNamePlaceholder: 'Nom de la collection, p. ex. WorkItems',
+  dvhErrSelectRange:
+    'Sélectionnez une plage dont la première ligne contient les titres de colonnes.',
+  dvhErrCollectionName: 'Saisissez un nom de collection inutilisé.',
+  dvhColRange: 'Plage',
+  dvhColRows: 'Lignes',
+  dvhInsertTable: 'Insérer le tableau dans la cellule sélectionnée',
+  dvhTables: 'Tableaux',
+  dvhStyleSource: 'Conserver la mise en forme source',
+  dvhStyleDestination: 'Utiliser le style du tableau',
+  dvhRefresh: 'Actualiser',
+  dvhTableManagedToast:
+    'Le tableau « {name} » est géré par DVH : Actualiser remplace ce que vous y saisissez.',
+  dvhTableEditedConfirm:
+    'Le tableau « {name} » a été modifié à la main. Le remplacer par les données source ?',
+  dvhTableRendered: 'Tableau « {name} » affiché en {cell} (lignes : {rows}).',
+  dvhNoCollections: 'Aucune collection.',
+  dvhNoTables: 'Aucun tableau.',
+  dvhErrSelectAnchor: 'Sélectionnez la cellule où le tableau doit commencer.',
 } satisfies Record<keyof typeof zh, string>

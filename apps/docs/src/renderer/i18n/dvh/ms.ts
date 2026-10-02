@@ -28,4 +28,14 @@ export const ms = {
   dvhStale: 'Buku kerja telah berubah sejak kemas kini terakhir.',
   dvhHistory: 'Sejarah',
   dvhNoHistory: 'Belum ada perubahan direkodkan.',
+  dvhCollections: 'Koleksi',
+  dvhNoCollections: 'Tiada koleksi. Pautkan buku kerja yang mempunyai koleksi.',
+  dvhRowCount: 'Baris: {count}',
+  dvhInsertTable: 'Sisip jadual',
+  dvhTables: 'Jadual',
+  dvhStyleSource: 'Kekalkan format sumber',
+  dvhStyleDestination: 'Guna gaya jadual',
+  dvhRefresh: 'Segar semula',
+  dvhTableEditedConfirm:
+    'Jadual "{name}" telah disunting secara manual. Gantikan dengan data sumber?',
 } satisfies Record<keyof typeof zh, string>

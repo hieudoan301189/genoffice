@@ -27,4 +27,13 @@ export const th = {
   dvhStale: 'เวิร์กบุ๊กมีการเปลี่ยนแปลงหลังการอัปเดตล่าสุด',
   dvhHistory: 'ประวัติ',
   dvhNoHistory: 'ยังไม่มีการบันทึกการเปลี่ยนแปลง',
+  dvhCollections: 'คอลเลกชัน',
+  dvhNoCollections: 'ไม่มีคอลเลกชัน ลิงก์เวิร์กบุ๊กที่มีคอลเลกชัน',
+  dvhRowCount: 'แถว: {count}',
+  dvhInsertTable: 'แทรกตาราง',
+  dvhTables: 'ตาราง',
+  dvhStyleSource: 'คงรูปแบบต้นฉบับ',
+  dvhStyleDestination: 'ใช้สไตล์ตาราง',
+  dvhRefresh: 'รีเฟรช',
+  dvhTableEditedConfirm: 'ตาราง "{name}" ถูกแก้ไขด้วยมือ ต้องการแทนที่ด้วยข้อมูลต้นฉบับหรือไม่',
 } satisfies Record<keyof typeof zh, string>

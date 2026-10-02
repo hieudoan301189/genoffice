@@ -27,4 +27,13 @@ export const he = {
   dvhStale: 'חוברת העבודה השתנתה מאז העדכון האחרון.',
   dvhHistory: 'היסטוריה',
   dvhNoHistory: 'עדיין לא נרשמו שינויים.',
+  dvhCollections: 'אוספים',
+  dvhNoCollections: 'אין אוספים. קשר חוברת עבודה שיש בה אוספים.',
+  dvhRowCount: 'שורות: {count}',
+  dvhInsertTable: 'הוסף טבלה',
+  dvhTables: 'טבלאות',
+  dvhStyleSource: 'שמור על עיצוב המקור',
+  dvhStyleDestination: 'השתמש בסגנון הטבלה',
+  dvhRefresh: 'רענן',
+  dvhTableEditedConfirm: 'הטבלה "{name}" נערכה ידנית. להחליף אותה בנתוני המקור?',
 } satisfies Record<keyof typeof zh, string>

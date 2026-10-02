@@ -201,7 +201,7 @@ import {
 } from './parse-package'
 import { parseSdtBlock, sdtMeta, sdtTableXml, splitSdtParts } from './parse-sdt'
 import { sdtCheckboxControl } from './checkbox-control'
-import { dvhFieldSdtPr } from './smart-field'
+import { dvhFieldSdtPr, dvhTableSdtPrFromXml } from './smart-field'
 import { parseStyles, runBorderOf } from './parse-styles'
 import {
   VML_PICT_RID_RE,
@@ -850,11 +850,13 @@ async function buildBlock(
     // it saves byte-identical; cell-text edits patch inside the sdt shell.
     const tblXml = sdtTableXml(xml)
     if (tblXml) {
+      const tableSdtPr = dvhTableSdtPrFromXml(xml)
       return {
         ...base,
         type: 'table',
         ...tableSummary(tblXml),
         table: extractTable(tblXml, ctx, el.start),
+        ...(tableSdtPr ? { tableSdtPr } : {}),
       }
     }
     const sdtResult = parseSdtBlock(xml)

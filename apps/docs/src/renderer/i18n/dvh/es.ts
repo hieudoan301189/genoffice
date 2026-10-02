@@ -28,4 +28,14 @@ export const es = {
   dvhStale: 'El libro cambió desde la última actualización.',
   dvhHistory: 'Historial',
   dvhNoHistory: 'Aún no hay cambios registrados.',
+  dvhCollections: 'Colecciones',
+  dvhNoCollections: 'No hay colecciones. Vincule un libro que tenga colecciones.',
+  dvhRowCount: 'Filas: {count}',
+  dvhInsertTable: 'Insertar tabla',
+  dvhTables: 'Tablas',
+  dvhStyleSource: 'Mantener formato de origen',
+  dvhStyleDestination: 'Usar estilo de tabla',
+  dvhRefresh: 'Actualizar',
+  dvhTableEditedConfirm:
+    'La tabla "{name}" se editó a mano. ¿Reemplazarla con los datos de origen?',
 } satisfies Record<keyof typeof zh, string>

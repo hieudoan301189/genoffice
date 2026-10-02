@@ -27,4 +27,14 @@ export const fr = {
   dvhStale: 'Le classeur a changé depuis la dernière mise à jour.',
   dvhHistory: 'Historique',
   dvhNoHistory: 'Aucune modification enregistrée.',
+  dvhCollections: 'Collections',
+  dvhNoCollections: 'Aucune collection. Liez un classeur qui en contient.',
+  dvhRowCount: 'Lignes : {count}',
+  dvhInsertTable: 'Insérer un tableau',
+  dvhTables: 'Tableaux',
+  dvhStyleSource: 'Conserver la mise en forme source',
+  dvhStyleDestination: 'Utiliser le style du tableau',
+  dvhRefresh: 'Actualiser',
+  dvhTableEditedConfirm:
+    'Le tableau « {name} » a été modifié à la main. Le remplacer par les données source ?',
 } satisfies Record<keyof typeof zh, string>

@@ -27,4 +27,14 @@ export const pl = {
   dvhStale: 'Skoroszyt zmienił się od ostatniej aktualizacji.',
   dvhHistory: 'Historia',
   dvhNoHistory: 'Brak zarejestrowanych zmian.',
+  dvhCollections: 'Kolekcje',
+  dvhNoCollections: 'Brak kolekcji. Połącz skoroszyt, który je zawiera.',
+  dvhRowCount: 'Wiersze: {count}',
+  dvhInsertTable: 'Wstaw tabelę',
+  dvhTables: 'Tabele',
+  dvhStyleSource: 'Zachowaj formatowanie źródła',
+  dvhStyleDestination: 'Użyj stylu tabeli',
+  dvhRefresh: 'Odśwież',
+  dvhTableEditedConfirm:
+    'Tabela „{name}” została zmieniona ręcznie. Zastąpić ją danymi źródłowymi?',
 } satisfies Record<keyof typeof zh, string>

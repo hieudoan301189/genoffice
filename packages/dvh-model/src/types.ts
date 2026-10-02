@@ -25,6 +25,30 @@ export const dvhFieldSchema = z
   .strict()
 export type DvhField = z.infer<typeof dvhFieldSchema>
 
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/)
+export const cellAlignSchema = z.enum(['left', 'center', 'right'])
+
+/**
+ * The cell formatting a DVH table carries between Sheets and Docs: the part
+ * both can render. Colors are document data (`#RRGGBB`), never theme tokens.
+ */
+export const dvhCellStyleSchema = z
+  .object({
+    bold: z.boolean().optional(),
+    italic: z.boolean().optional(),
+    color: hexColorSchema.optional(),
+    fill: hexColorSchema.optional(),
+    align: cellAlignSchema.optional(),
+    /** points */
+    fontSize: z.number().positive().optional(),
+    border: z
+      .object({ color: hexColorSchema, width: z.enum(['thin', 'medium']) })
+      .strict()
+      .optional(),
+  })
+  .strict()
+export type DvhCellStyle = z.infer<typeof dvhCellStyleSchema>
+
 export const dvhColumnSchema = z
   .object({
     id: z.string().min(1),
@@ -32,6 +56,11 @@ export const dvhColumnSchema = z
     title: z.string(),
     type: fieldTypeSchema,
     numFmt: z.string().optional(),
+    /** source formatting of the body cells and of the title cell (Keep Source Style) */
+    style: dvhCellStyleSchema.optional(),
+    headerStyle: dvhCellStyleSchema.optional(),
+    /** source column width in pixels */
+    width: z.number().positive().optional(),
   })
   .strict()
 export type DvhColumn = z.infer<typeof dvhColumnSchema>
@@ -45,6 +74,69 @@ export const dvhCollectionSchema = z
   })
   .strict()
 export type DvhCollection = z.infer<typeof dvhCollectionSchema>
+
+export const tableTotalSchema = z.enum(['none', 'sum', 'count', 'avg', 'min', 'max'])
+export type TableTotal = z.infer<typeof tableTotalSchema>
+
+export const dvhTableColumnSchema = z
+  .object({
+    id: z.string().min(1),
+    /** the collection column shown here (by id); absent for embedded data */
+    columnId: z.string().min(1).optional(),
+    title: z.string(),
+    numFmt: z.string().optional(),
+    align: cellAlignSchema.optional(),
+    /** relative width weight */
+    width: z.number().positive().optional(),
+    total: tableTotalSchema.optional(),
+  })
+  .strict()
+export type DvhTableColumn = z.infer<typeof dvhTableColumnSchema>
+
+/**
+ * A DVH.Table (P2): which data, which columns, and how it looks wherever it is
+ * rendered. `source` style keeps the collection's own formatting, `destination`
+ * applies the table's style (or the defaults) to every cell.
+ */
+export const dvhTableSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    source: z.union([
+      z.object({ collectionId: z.string().min(1) }).strict(),
+      z.object({ rows: z.array(z.array(scalarSchema)) }).strict(),
+    ]),
+    columns: z.array(dvhTableColumnSchema).min(1),
+    /** header rows above the column titles; each cell spans consecutive columns */
+    headerGroups: z
+      .array(z.array(z.object({ title: z.string(), span: z.number().int().min(1) }).strict()))
+      .optional(),
+    totalRow: z.object({ label: z.string() }).strict().optional(),
+    style: z
+      .object({
+        mode: z.enum(['source', 'destination']),
+        header: dvhCellStyleSchema.optional(),
+        body: dvhCellStyleSchema.optional(),
+        total: dvhCellStyleSchema.optional(),
+        /** fill of every second body row */
+        bandFill: hexColorSchema.optional(),
+      })
+      .strict(),
+    layout: z
+      .object({
+        repeatHeader: z.boolean(),
+        keepRowsTogether: z.boolean(),
+        widths: z.enum(['auto', 'page']),
+      })
+      .strict(),
+    /**
+     * What this document last rendered (hash of the cells as its renderer reads
+     * them back): a refresh that finds other content asks before overwriting.
+     */
+    lastRender: z.object({ hash: z.string(), at: z.string() }).strict().optional(),
+  })
+  .strict()
+export type DvhTable = z.infer<typeof dvhTableSchema>
 
 export const dvhLinkSchema = z
   .object({
@@ -76,13 +168,15 @@ export const dvhModelSchema = z
     schemaVersion: z.literal(1),
     fields: z.array(dvhFieldSchema),
     collections: z.array(dvhCollectionSchema),
+    /** P2; absent in P1 files */
+    tables: z.array(dvhTableSchema).default([]),
     links: z.array(dvhLinkSchema),
   })
   .strict()
 export type DvhModel = z.infer<typeof dvhModelSchema>
 
 export function emptyModel(docId: string): DvhModel {
-  return { docId, schemaVersion: 1, fields: [], collections: [], links: [] }
+  return { docId, schemaVersion: 1, fields: [], collections: [], tables: [], links: [] }
 }
 
 /** A field value as text (what a bound content control or cell shows). */

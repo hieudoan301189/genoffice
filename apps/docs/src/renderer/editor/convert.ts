@@ -19,6 +19,7 @@ import {
   type TextboxSizePatch,
   patchTextboxParas,
   generateTableModelXml,
+  wrapDvhTable,
   symbolGlyph,
   symbolPuaChar,
   type Block,
@@ -759,6 +760,7 @@ function blockToPmNode(
       )
       // content-control member tables need the shell for chrome hit-testing
       if (block.sdtShell) node.attrs = { ...node.attrs, sdtShell: JSON.stringify(block.sdtShell) }
+      if (block.tableSdtPr) node.attrs = { ...node.attrs, dvhTable: block.tableSdtPr }
       return node
     }
     default:
@@ -1994,6 +1996,9 @@ export function pmDocToSavePlan(inputDoc: PmNode, originalBlocks: Block[]): Save
       saveBlocks.push(revision ? { ...block, revision } : block)
     }
     if (node.type === 'docTable') {
+      // a DVH.Table keeps its dvh:t content control when the table is regenerated
+      const dvhSdtPr = node.attrs?.dvhTable as string | null | undefined
+      const dvhTableXml = (xml: string) => (dvhSdtPr ? wrapDvhTable(xml, dvhSdtPr) : xml)
       const idx = node.attrs?.docxIndex as number | null
       const original =
         idx !== null && idx !== undefined && !usedIndexes.has(idx)
@@ -2031,12 +2036,12 @@ export function pmDocToSavePlan(inputDoc: PmNode, originalBlocks: Block[]): Save
           changedCount++
           pushBlock({
             kind: 'xml',
-            xml: generateTableModelXml(model, original.originalXml ?? undefined),
+            xml: dvhTableXml(generateTableModelXml(model, original.originalXml ?? undefined)),
           })
         }
       } else {
         changedCount++
-        pushBlock({ kind: 'xml', xml: generateTableModelXml(model) })
+        pushBlock({ kind: 'xml', xml: dvhTableXml(generateTableModelXml(model)) })
       }
       continue
     }

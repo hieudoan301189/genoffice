@@ -27,4 +27,13 @@ export const en = {
   dvhStale: 'The workbook changed since the last update.',
   dvhHistory: 'History',
   dvhNoHistory: 'No changes recorded yet.',
+  dvhCollections: 'Collections',
+  dvhNoCollections: 'No collections. Link a workbook that has collections.',
+  dvhRowCount: 'Rows: {count}',
+  dvhInsertTable: 'Insert table',
+  dvhTables: 'Tables',
+  dvhStyleSource: 'Keep source style',
+  dvhStyleDestination: 'Use table style',
+  dvhRefresh: 'Refresh',
+  dvhTableEditedConfirm: 'Table "{name}" was edited by hand. Replace it with the source data?',
 } satisfies Record<keyof typeof zh, string>

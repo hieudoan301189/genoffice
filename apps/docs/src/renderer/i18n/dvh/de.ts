@@ -28,4 +28,13 @@ export const de = {
   dvhStale: 'Die Arbeitsmappe wurde seit der letzten Aktualisierung geändert.',
   dvhHistory: 'Verlauf',
   dvhNoHistory: 'Noch keine Änderungen aufgezeichnet.',
+  dvhCollections: 'Sammlungen',
+  dvhNoCollections: 'Keine Sammlungen. Verknüpfen Sie eine Arbeitsmappe mit Sammlungen.',
+  dvhRowCount: 'Zeilen: {count}',
+  dvhInsertTable: 'Tabelle einfügen',
+  dvhTables: 'Tabellen',
+  dvhStyleSource: 'Quellformat beibehalten',
+  dvhStyleDestination: 'Tabellenformat verwenden',
+  dvhRefresh: 'Aktualisieren',
+  dvhTableEditedConfirm: 'Tabelle „{name}“ wurde von Hand geändert. Durch die Quelldaten ersetzen?',
 } satisfies Record<keyof typeof zh, string>

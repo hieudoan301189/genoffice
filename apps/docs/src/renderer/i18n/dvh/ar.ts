@@ -27,4 +27,13 @@ export const ar = {
   dvhStale: 'تغيّر المصنف منذ آخر تحديث.',
   dvhHistory: 'السجل',
   dvhNoHistory: 'لا توجد تغييرات مسجلة بعد.',
+  dvhCollections: 'المجموعات',
+  dvhNoCollections: 'لا توجد مجموعات. اربط مصنفًا يحتوي على مجموعات.',
+  dvhRowCount: 'الصفوف: {count}',
+  dvhInsertTable: 'إدراج جدول',
+  dvhTables: 'الجداول',
+  dvhStyleSource: 'الاحتفاظ بتنسيق المصدر',
+  dvhStyleDestination: 'استخدام نمط الجدول',
+  dvhRefresh: 'تحديث',
+  dvhTableEditedConfirm: 'تم تعديل الجدول "{name}" يدويًا. هل تريد استبداله ببيانات المصدر؟',
 } satisfies Record<keyof typeof zh, string>

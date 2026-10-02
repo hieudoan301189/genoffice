@@ -27,4 +27,13 @@ export const ja = {
   dvhStale: '前回の更新後にブックが変更されました。',
   dvhHistory: '履歴',
   dvhNoHistory: '変更履歴はまだありません。',
+  dvhCollections: 'コレクション',
+  dvhNoCollections: 'コレクションはありません。コレクションを含むブックをリンクしてください。',
+  dvhRowCount: '行数: {count}',
+  dvhInsertTable: '表を挿入',
+  dvhTables: '表',
+  dvhStyleSource: '元の書式を保持',
+  dvhStyleDestination: '表のスタイルを使用',
+  dvhRefresh: '更新',
+  dvhTableEditedConfirm: '表「{name}」は手動で編集されています。ソースのデータで置き換えますか?',
 } satisfies Record<keyof typeof zh, string>

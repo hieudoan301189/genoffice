@@ -27,4 +27,13 @@ export const zhTW = {
   dvhStale: '活頁簿在上次更新後已變更。',
   dvhHistory: '歷程記錄',
   dvhNoHistory: '尚無變更記錄。',
+  dvhCollections: '資料集',
+  dvhNoCollections: '尚無資料集。請連結含有資料集的活頁簿。',
+  dvhRowCount: '列數：{count}',
+  dvhInsertTable: '插入表格',
+  dvhTables: '表格',
+  dvhStyleSource: '保留來源格式',
+  dvhStyleDestination: '使用表格樣式',
+  dvhRefresh: '重新整理',
+  dvhTableEditedConfirm: '表格「{name}」已被手動修改。要以來源資料取代嗎？',
 } satisfies Record<keyof typeof zh, string>

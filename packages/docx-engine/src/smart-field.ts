@@ -24,3 +24,27 @@ export function dvhFieldId(sdtPrXml: string): string | null {
   const m = /<w:tag\s+w:val="dvh:f:([^"]+)"/.exec(sdtPrXml)
   return m ? m[1]! : null
 }
+
+export const DVH_TABLE_TAG_PREFIX = 'dvh:t:'
+
+/**
+ * The w:sdtPr of a block content control tagged `dvh:t:<tableId>` (a rendered
+ * DVH.Table), sliced from the raw `<w:sdt>` XML; null for any other control.
+ */
+export function dvhTableSdtPrFromXml(sdtXml: string): string | null {
+  const m = /^<w:sdt>\s*(<w:sdtPr>[\s\S]*?<\/w:sdtPr>)/.exec(sdtXml.trim())
+  if (!m || !/<w:tag\s+w:val="dvh:t:[^"]+"/.test(m[1]!)) return null
+  return m[1]!
+}
+
+/** The table id (`t_…`) a DVH table control's w:sdtPr declares, or null. */
+export function dvhTableId(sdtPrXml: string): string | null {
+  const m = /<w:tag\s+w:val="dvh:t:([^"]+)"/.exec(sdtPrXml)
+  return m ? m[1]! : null
+}
+
+/** Wraps a generated `<w:tbl>` in the DVH table control again (no-op when already wrapped). */
+export function wrapDvhTable(tableXml: string, sdtPrXml: string): string {
+  if (tableXml.trimStart().startsWith('<w:sdt')) return tableXml
+  return `<w:sdt>${sdtPrXml}<w:sdtContent>${tableXml}</w:sdtContent></w:sdt>`
+}

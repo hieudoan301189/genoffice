@@ -27,4 +27,13 @@ export const ru = {
   dvhStale: 'Книга изменилась после последнего обновления.',
   dvhHistory: 'История',
   dvhNoHistory: 'Изменений пока нет.',
+  dvhCollections: 'Коллекции',
+  dvhNoCollections: 'Коллекций нет. Свяжите книгу, в которой они есть.',
+  dvhRowCount: 'Строк: {count}',
+  dvhInsertTable: 'Вставить таблицу',
+  dvhTables: 'Таблицы',
+  dvhStyleSource: 'Сохранить исходное форматирование',
+  dvhStyleDestination: 'Использовать стиль таблицы',
+  dvhRefresh: 'Обновить',
+  dvhTableEditedConfirm: 'Таблица «{name}» изменена вручную. Заменить её данными источника?',
 } satisfies Record<keyof typeof zh, string>

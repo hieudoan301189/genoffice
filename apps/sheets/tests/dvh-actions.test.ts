@@ -13,6 +13,11 @@ describe('DVH actions (Sheets)', () => {
       'Data.GetField:read',
       'Data.SetField:write',
       'Spreadsheet.BindField:write',
+      'Data.CreateCollection:write',
+      'Table.Create:write',
+      'Table.Render:write',
+      'Table.Refresh:write',
+      'Table.SetStyle:write',
     ])
   })
 

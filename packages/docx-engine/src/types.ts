@@ -1585,6 +1585,8 @@ export interface Block {
   imageBorder?: { color: string; widthPt: number }
   /** editable structure (type === 'table'); untouched original XML still saves byte-identically */
   table?: TableModel
+  /** w:sdtPr of the DVH table control (`dvh:t:<id>`) wrapping this table; a regenerated table is wrapped again */
+  tableSdtPr?: string
   /** display-only rendering for field passthrough paragraphs (TOC lines etc.) */
   fieldDisplay?: FieldDisplay
   /** true for body-trailing elements (w:sectPr) that are never shown in the editor */

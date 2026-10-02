@@ -27,4 +27,13 @@ export const id = {
   dvhStale: 'Buku kerja berubah sejak pembaruan terakhir.',
   dvhHistory: 'Riwayat',
   dvhNoHistory: 'Belum ada perubahan yang dicatat.',
+  dvhCollections: 'Koleksi',
+  dvhNoCollections: 'Tidak ada koleksi. Tautkan buku kerja yang memiliki koleksi.',
+  dvhRowCount: 'Baris: {count}',
+  dvhInsertTable: 'Sisipkan tabel',
+  dvhTables: 'Tabel',
+  dvhStyleSource: 'Pertahankan format sumber',
+  dvhStyleDestination: 'Gunakan gaya tabel',
+  dvhRefresh: 'Segarkan',
+  dvhTableEditedConfirm: 'Tabel "{name}" diedit secara manual. Ganti dengan data sumber?',
 } satisfies Record<keyof typeof zh, string>

@@ -271,6 +271,12 @@ Công việc:
 - Lưu và mở lại không đổi ID hay link; Word mở bảng bình thường.
 - 1.000 dòng render trong ngưỡng thời gian chốt từ S4.
 
+**Kết quả (02/10/2026):** đạt các tiêu chí M1 – [báo cáo](phases/p2-dvh-table.md). Collection từ vùng có
+tiêu đề; DVH.Table hiển thị đúng dữ liệu và style ở Sheets (một lần ghi, chỉ dịch ô trong cột của bảng)
+và Docs (bảng trong control `dvh:t:<id>`, lặp tiêu đề). Thêm/bớt dòng nguồn được theo ở cả hai phía; sửa
+tay phải xác nhận trước khi ghi đè. 1.000 dòng: 255–328 ms. Còn lại: Refresh đổi cột, gom một Undo (P4),
+Mapped/Hybrid (sau P6).
+
 ### Nhánh song song T1. Hàm DVH trả về định dạng (3–5 tuần, sau S5)
 
 S5 đạt (01/10/2026, [báo cáo](spikes/s5-format-functions.md)). Kênh định dạng, `DVH.Font`,

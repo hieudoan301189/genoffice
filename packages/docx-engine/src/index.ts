@@ -8,7 +8,14 @@ export {
 } from './font-table'
 export { decodeEntities } from './parse-xml-text'
 export { sdtCheckboxGlyphs, sdtCheckboxIsChecked } from './checkbox-control'
-export { DVH_FIELD_TAG_PREFIX, dvhFieldId } from './smart-field'
+export {
+  DVH_FIELD_TAG_PREFIX,
+  DVH_TABLE_TAG_PREFIX,
+  dvhFieldId,
+  dvhTableId,
+  dvhTableSdtPrFromXml,
+  wrapDvhTable,
+} from './smart-field'
 export {
   customXmlItemPropsXml,
   readCustomXmlPart,

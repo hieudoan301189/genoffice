@@ -28,4 +28,13 @@ export const pt = {
   dvhStale: 'A pasta de trabalho mudou desde a última atualização.',
   dvhHistory: 'Histórico',
   dvhNoHistory: 'Nenhuma alteração registrada.',
+  dvhCollections: 'Coleções',
+  dvhNoCollections: 'Não há coleções. Vincule uma pasta de trabalho que tenha coleções.',
+  dvhRowCount: 'Linhas: {count}',
+  dvhInsertTable: 'Inserir tabela',
+  dvhTables: 'Tabelas',
+  dvhStyleSource: 'Manter formatação de origem',
+  dvhStyleDestination: 'Usar estilo da tabela',
+  dvhRefresh: 'Atualizar',
+  dvhTableEditedConfirm: 'A tabela "{name}" foi editada à mão. Substituí-la pelos dados de origem?',
 } satisfies Record<keyof typeof zh, string>

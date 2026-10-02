@@ -348,6 +348,8 @@ export interface DesktopApi {
   onOpenDocx(handler: (result: Exclude<OpenDocxResult, null>) => void): () => void
   /** File was renamed externally (renamed in the shell Home list) — pushes old and new paths; renderer syncs its save path and title bar */
   onRenamedDocx(handler: (paths: { oldPath: string; newPath: string }) => void): () => void
+  /** OS regional locale (e.g. vi-VN): DVH tables format numbers with it, as Excel does */
+  dvhSystemLocale(): Promise<string>
   /** DVH Smart Data: read a linked workbook's model part; pick asks for the file
    *  first. null when the user cancels the picker. */
   dvhReadSource(request: {

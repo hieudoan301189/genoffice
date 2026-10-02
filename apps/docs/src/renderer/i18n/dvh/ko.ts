@@ -27,4 +27,13 @@ export const ko = {
   dvhStale: '마지막 업데이트 이후 통합 문서가 변경되었습니다.',
   dvhHistory: '기록',
   dvhNoHistory: '기록된 변경 내용이 없습니다.',
+  dvhCollections: '컬렉션',
+  dvhNoCollections: '컬렉션이 없습니다. 컬렉션이 있는 통합 문서를 연결하세요.',
+  dvhRowCount: '행: {count}',
+  dvhInsertTable: '표 삽입',
+  dvhTables: '표',
+  dvhStyleSource: '원본 서식 유지',
+  dvhStyleDestination: '표 스타일 사용',
+  dvhRefresh: '새로 고침',
+  dvhTableEditedConfirm: '표 "{name}"이(가) 직접 수정되었습니다. 원본 데이터로 바꿀까요?',
 } satisfies Record<keyof typeof zh, string>

@@ -26,4 +26,13 @@ export const zh = {
   dvhStale: '工作簿已在上次更新后更改。',
   dvhHistory: '历史记录',
   dvhNoHistory: '尚无更改记录。',
+  dvhCollections: '数据集',
+  dvhNoCollections: '暂无数据集。请链接含有数据集的工作簿。',
+  dvhRowCount: '行数：{count}',
+  dvhInsertTable: '插入表格',
+  dvhTables: '表格',
+  dvhStyleSource: '保留源格式',
+  dvhStyleDestination: '使用表格样式',
+  dvhRefresh: '刷新',
+  dvhTableEditedConfirm: '表格“{name}”已被手动修改。是否用源数据替换？',
 }

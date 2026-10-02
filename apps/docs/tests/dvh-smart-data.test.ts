@@ -148,7 +148,7 @@ describe('Docs Smart Data', () => {
       path: 'D:\\Work\\boq.xlsx',
       model: workbookModel('Dự án B'),
     })
-    expect(changed).toBe(2)
+    expect(changed).toEqual({ fields: 2, collections: [] })
     expect(fieldOccurrences(editor.state.doc).map((o) => o.text)).toEqual(['Dự án B', 'Dự án B'])
     expect(link.lastSync?.revision).toBe(1)
     const parts = dvhDocsCustomXmlParts(parsed, editor)!
@@ -256,6 +256,9 @@ describe('Smart Data ops and actions', () => {
       'Data.SetField',
       'Document.InsertField',
       'Link.Update',
+      'Document.InsertTable',
+      'Table.Refresh',
+      'Table.SetStyle',
     ])
   })
 })

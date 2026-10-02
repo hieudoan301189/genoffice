@@ -27,4 +27,13 @@ export const cs = {
   dvhStale: 'Sešit se od poslední aktualizace změnil.',
   dvhHistory: 'Historie',
   dvhNoHistory: 'Zatím nebyly zaznamenány žádné změny.',
+  dvhCollections: 'Kolekce',
+  dvhNoCollections: 'Žádné kolekce. Propojte sešit, který je obsahuje.',
+  dvhRowCount: 'Řádky: {count}',
+  dvhInsertTable: 'Vložit tabulku',
+  dvhTables: 'Tabulky',
+  dvhStyleSource: 'Zachovat formát zdroje',
+  dvhStyleDestination: 'Použít styl tabulky',
+  dvhRefresh: 'Aktualizovat',
+  dvhTableEditedConfirm: 'Tabulka „{name}“ byla upravena ručně. Nahradit ji zdrojovými daty?',
 } satisfies Record<keyof typeof zh, string>

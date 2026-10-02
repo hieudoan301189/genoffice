@@ -67,6 +67,7 @@ const acceptance: DvhModel = {
       ],
     },
   ],
+  tables: [],
   links: [],
 }
 const inventory: DvhModel = {
@@ -97,6 +98,7 @@ const inventory: DvhModel = {
     },
   ],
   collections: [],
+  tables: [],
   links: [
     {
       id: 'l_fromsheet0000001',

@@ -1,6 +1,14 @@
 import JSZip from 'jszip'
 import { describe, expect, it } from 'vitest'
-import { dvhFieldId, parseDocx, saveDocx, type Run, type SaveBlock } from '../src/index'
+import {
+  dvhFieldId,
+  dvhTableId,
+  parseDocx,
+  saveDocx,
+  wrapDvhTable,
+  type Run,
+  type SaveBlock,
+} from '../src/index'
 import { buildDocx } from './helpers/build-docx'
 
 // Spike S2: a DVH Smart Field (run-level w:sdt tagged dvh:f:<id>, bound to the
@@ -120,5 +128,38 @@ describe('DVH Smart Field runs', () => {
     const doc = await parseDocx(await buildDocx({ bodyXml: OTHER_SDT_P }))
     const runs = doc.blocks.find((b) => !b.hidden)!.runs!
     expect(runs.some((run) => run.sdtFieldXml)).toBe(false)
+  })
+})
+
+// P2: a rendered DVH.Table is a docx table inside a block control tagged dvh:t:<id>
+describe('DVH table controls', () => {
+  const TABLE_PR =
+    '<w:sdtPr><w:alias w:val="Bảng KL"/><w:tag w:val="dvh:t:t_workitems"/><w:id w:val="77"/></w:sdtPr>'
+  const tbl =
+    '<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/></w:tblPr><w:tblGrid><w:gridCol w:w="4680"/><w:gridCol w:w="4680"/></w:tblGrid>' +
+    `<w:tr><w:tc><w:p>${r('Mã')}</w:p></w:tc><w:tc><w:p>${r('Khối lượng')}</w:p></w:tc></w:tr>` +
+    `<w:tr><w:tc><w:p>${r('AB.1')}</w:p></w:tc><w:tc><w:p>${r('120,50')}</w:p></w:tc></w:tr></w:tbl>`
+  const wrapped = `<w:sdt>${TABLE_PR}<w:sdtContent>${tbl}</w:sdtContent></w:sdt>`
+
+  it('parse gives the table block its dvh:t sdtPr; other table controls get none', async () => {
+    const doc = await parseDocx(await buildDocx({ bodyXml: wrapped + `<w:p>${r('x')}</w:p>` }))
+    const table = doc.blocks.find((b) => b.type === 'table')!
+    expect(table.tableSdtPr).toBe(TABLE_PR)
+    expect(dvhTableId(table.tableSdtPr!)).toBe('t_workitems')
+    const other = await parseDocx(
+      await buildDocx({ bodyXml: wrapped.replace('dvh:t:t_workitems', 'report-table') }),
+    )
+    expect(other.blocks.find((b) => b.type === 'table')!.tableSdtPr).toBeUndefined()
+  })
+
+  it('an untouched table keeps its control byte for byte; wrapDvhTable rewraps generated XML once', async () => {
+    const bytes = await buildDocx({ bodyXml: wrapped })
+    const doc = await parseDocx(bytes)
+    const blocks: SaveBlock[] = doc.blocks
+      .filter((b) => !b.hidden)
+      .map((b) => ({ kind: 'original', docxIndex: b.docxIndex! }))
+    expect(await documentXml(await saveDocx(doc, blocks))).toContain(wrapped)
+    expect(wrapDvhTable(tbl, TABLE_PR)).toBe(wrapped)
+    expect(wrapDvhTable(wrapped, TABLE_PR)).toBe(wrapped)
   })
 })

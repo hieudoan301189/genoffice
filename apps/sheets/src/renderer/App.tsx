@@ -296,6 +296,7 @@ import {
   registerDvhSheetsContext,
 } from './dvh-smart-data'
 import { createSheetsDvhActions } from './dvh-actions'
+import { installDvhTableWatch } from './dvh-tables'
 import { isDvhDefinedName } from '@genoffice/dvh-model'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
@@ -1753,6 +1754,7 @@ export function App({
       notify: (message) => showToast(message, 'error'),
     })
     const dvhBindingWatchDisposable = installDvhBindingWatch(runtime)
+    const dvhTableWatchDisposable = installDvhTableWatch(runtime)
     // Excel-parity number-format display: empty sections, text section,
     // _/* padding, General digit fitting, 1904 date-system serial shift.
     const numberFormatFixDisposable = installNumberFormatFix(
@@ -2982,6 +2984,7 @@ export function App({
       dvhFormatChannelDisposable.dispose()
       dvhContextDisposable.dispose()
       dvhBindingWatchDisposable.dispose()
+      dvhTableWatchDisposable.dispose()
       numberFormatFixDisposable.dispose()
       errorAlignDisposable.dispose()
       cellFilenameDisposable.dispose()

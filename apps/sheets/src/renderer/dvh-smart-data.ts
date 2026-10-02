@@ -35,6 +35,7 @@ import { ICommandService } from '@univerjs/core'
 import { RemoveColMutation, RemoveRowMutation, RemoveSheetMutation } from '@univerjs/sheets'
 
 import type { WorkbookDvhParts, WorkbookDvhState } from '../shared/desktop-api'
+import { syncCollections } from './dvh-tables'
 import { t } from './i18n/locale'
 import { univerDefinedNames } from './univer-sync'
 import { journalSuppression, type LazyWorkbookState, type UniverRuntime } from './univer-state'
@@ -60,6 +61,11 @@ interface DefinedNameBuilderHost {
   newDefinedNameBuilder(): { load(param: Record<string, unknown>): { build(): unknown } }
   insertDefinedNameBuilder(param: unknown): void
   deleteDefinedName?(name: string): boolean
+}
+
+/** Installs (or replaces) a hidden DVH name as a workbook-scoped system name. */
+export function installDvhName(runtime: UniverRuntime, name: string, formula: string): void {
+  installName(runtime, name, formula)
 }
 
 function installName(runtime: UniverRuntime, name: string, formula: string): void {
@@ -187,6 +193,16 @@ function record(
     action,
     changes,
   })
+}
+
+/** Records a change set made by another DVH module (collections, tables). */
+export function recordDvhChange(
+  dvh: DvhSheetState,
+  action: string,
+  changes: ChangeSet['changes'],
+  source: ChangeSet['source'] = 'ui',
+): void {
+  record(dvh, action, changes, source)
 }
 
 /** Creates a field bound to one cell (`Sheet!$B$5`); returns the new field. */
@@ -318,10 +334,14 @@ export function collectDvhState(
   state: LazyWorkbookState,
 ): WorkbookDvhState | null {
   const dvh = dvhStateOf(state)
-  const names = dvhNames(runtime)
-  if (!dvh && names.length === 0) return null
-  if (!dvh || !runtime) return { names, customXmlParts: [] }
+  if (!dvh || !runtime) {
+    const names = dvhNames(runtime)
+    return names.length === 0 ? null : { names, customXmlParts: [] }
+  }
   syncFieldValues(runtime, dvh)
+  // may grow or shrink a collection range: read the names afterwards
+  syncCollections(runtime, dvh)
+  const names = dvhNames(runtime)
   const customXmlParts: WorkbookDvhState['customXmlParts'] = []
   if (dvh.model && dvh.pending.length > 0) {
     dvh.modelStoreItemId ??= newStoreItemId()

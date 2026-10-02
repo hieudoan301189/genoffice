@@ -28,4 +28,14 @@ export const it = {
   dvhStale: "La cartella di lavoro è cambiata dall'ultimo aggiornamento.",
   dvhHistory: 'Cronologia',
   dvhNoHistory: 'Nessuna modifica registrata.',
+  dvhCollections: 'Raccolte',
+  dvhNoCollections: 'Nessuna raccolta. Collega una cartella di lavoro che ne contiene.',
+  dvhRowCount: 'Righe: {count}',
+  dvhInsertTable: 'Inserisci tabella',
+  dvhTables: 'Tabelle',
+  dvhStyleSource: 'Mantieni formattazione di origine',
+  dvhStyleDestination: 'Usa stile tabella',
+  dvhRefresh: 'Aggiorna',
+  dvhTableEditedConfirm:
+    'La tabella "{name}" è stata modificata a mano. Sostituirla con i dati di origine?',
 } satisfies Record<keyof typeof zh, string>

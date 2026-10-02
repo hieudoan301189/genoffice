@@ -6852,9 +6852,19 @@ body.docs-crop-active .doc-protected[data-doc-protected='image'] .doc-img-wrap {
   border-radius: 2px;
 }
 
+/* a rendered DVH.Table: a marker beside the table, never part of the page */
+.doc-table[data-dvh-table] {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
 @media print {
   .doc-dvh-field {
     background: none;
+  }
+
+  .doc-table[data-dvh-table] {
+    outline: none;
   }
 }
 

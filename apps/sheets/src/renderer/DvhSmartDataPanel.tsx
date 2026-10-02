@@ -9,6 +9,7 @@ import {
   dvhStateOf,
   removeField,
 } from './dvh-smart-data'
+import { DvhTablesSection } from './DvhTablesSection'
 
 /** Smart Data fields of the open workbook: list, bind the selected cell, remove. */
 export function DvhSmartDataPanel({ onClose }: { onClose: () => void }) {
@@ -122,6 +123,7 @@ export function DvhSmartDataPanel({ onClose }: { onClose: () => void }) {
         </button>
       </div>
       {error ? <p className="dvh-smart-data-error">{error}</p> : null}
+      <DvhTablesSection onChange={() => setTick((n) => n + 1)} />
     </div>
   )
 }

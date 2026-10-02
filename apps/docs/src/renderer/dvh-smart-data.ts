@@ -21,6 +21,7 @@ import {
   fieldSdtPrXml,
   fieldText,
   fieldValueFromText,
+  contentHash,
   HISTORY_NS,
   MODEL_NS,
   modelHash,
@@ -312,6 +313,12 @@ export function linkSource(dvh: DvhDocsState, source: DvhSource, docPath: string
       Object.assign(existing, { name: field.name, type: field.type, value: field.value })
     else model.fields.push({ ...field, access: 'readwrite' })
   }
+  for (const collection of source.model.collections) {
+    model.collections = [
+      ...model.collections.filter((c) => c.id !== collection.id),
+      structuredClone(collection),
+    ]
+  }
   const relPath = relativeFromDocument(source.path, docPath)
   const link: DvhLink = {
     id: model.links.find((l) => l.source.docId === source.model.docId)?.id ?? newDvhId('l'),
@@ -321,7 +328,10 @@ export function linkSource(dvh: DvhDocsState, source: DvhSource, docPath: string
       path: source.path,
       objectId: '*',
     },
-    targets: source.model.fields.map((f) => f.id),
+    targets: [
+      ...source.model.fields.map((f) => f.id),
+      ...source.model.collections.map((c) => c.id),
+    ],
     update: 'manual',
     lastSync: { revision: 0, hash: modelHash(source.model), at: new Date().toISOString() },
   }
@@ -349,16 +359,44 @@ export function linkIsStale(link: DvhLink, source: DvhSource): boolean {
   return link.lastSync?.hash !== modelHash(source.model)
 }
 
-/** Pulls the linked workbook's field values into the model and every occurrence. */
+export interface SourceUpdate {
+  /** field occurrences whose text changed */
+  readonly fields: number
+  /** collections whose columns or rows changed (their tables need a refresh) */
+  readonly collections: readonly string[]
+}
+
+/**
+ * Pulls the linked workbook's field values into the model and every field
+ * occurrence, and its collections into the model (tables are refreshed by the
+ * caller, see dvh-tables updateLinkFromSource).
+ */
 export function updateFromSource(
   editor: Editor,
   dvh: DvhDocsState,
   link: DvhLink,
   source: DvhSource,
-): number {
-  if (!dvh.model) return 0
+): SourceUpdate {
+  if (!dvh.model) return { fields: 0, collections: [] }
   const incoming = new Map(source.model.fields.map((f) => [f.id, f]))
   const changes: ChangeSet['changes'] = []
+  const updatedCollections: string[] = []
+  for (const next of source.model.collections) {
+    if (!link.targets.includes(next.id)) continue
+    const current = dvh.model.collections.find((c) => c.id === next.id)
+    if (current && contentHash(current) === contentHash(next)) continue
+    changes.push({
+      objectId: next.id,
+      path: 'rows',
+      before: current?.rows.length ?? null,
+      after: next.rows.length,
+    })
+    dvh.model.collections = [
+      ...dvh.model.collections.filter((c) => c.id !== next.id),
+      structuredClone(next),
+    ]
+    updatedCollections.push(next.id)
+  }
   const texts = new Map<string, string>()
   for (const field of dvh.model.fields) {
     const next = link.targets.includes(field.id) ? incoming.get(field.id) : undefined
@@ -377,7 +415,17 @@ export function updateFromSource(
   const tr = editor.state.tr
   const changed = replaceFieldTexts(tr, texts)
   if (tr.docChanged) editor.view.dispatch(tr)
-  return changed
+  return { fields: changed, collections: updatedCollections }
+}
+
+/** Records a change set made by another DVH module (tables); the document becomes dirty. */
+export function recordDvhDocsChange(
+  dvh: DvhDocsState,
+  action: string,
+  changes: ChangeSet['changes'],
+  source: ChangeSet['source'] = 'ui',
+): void {
+  record(dvh, action, changes, source, true)
 }
 
 /** The history to show: what the file holds plus this session's change sets, newest first. */

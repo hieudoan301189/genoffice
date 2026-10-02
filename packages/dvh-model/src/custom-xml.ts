@@ -65,7 +65,11 @@ export function serializeModelXml(model: DvhModel): string {
       )
     })
     .join('')
-  const objects = JSON.stringify({ collections: model.collections, links: model.links })
+  const objects = JSON.stringify({
+    collections: model.collections,
+    tables: model.tables,
+    links: model.links,
+  })
   return (
     XML_DECL +
     `<dvh:model xmlns:dvh="${MODEL_NS}" docId="${escapeXml(model.docId)}" schemaVersion="${model.schemaVersion}">` +
@@ -108,6 +112,7 @@ export function parseModelXml(xml: string): DvhModel {
     schemaVersion: Number(attr(root[0], 'schemaVersion') ?? 1),
     fields,
     collections: objects.collections ?? [],
+    tables: objects.tables ?? [],
     links: objects.links ?? [],
   })
 }

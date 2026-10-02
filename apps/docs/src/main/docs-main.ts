@@ -4641,6 +4641,9 @@ export function registerDocsIpc(): void {
     readJson<string[]>(RECENT_PATH(), []).filter((p) => existsSync(p)),
   )
 
+  // DVH tables format numbers like Excel does: by the OS regional settings, not the UI language
+  ipcMain.handle('docs:dvh-system-locale', () => app.getSystemLocale() || app.getLocale())
+
   // DVH Smart Data: read a linked workbook's model part (pick = choose the file first)
   ipcMain.handle('docs:dvh-read-source', async (event, request: unknown) => {
     const { path, pick } = (request ?? {}) as { path?: unknown; pick?: unknown }

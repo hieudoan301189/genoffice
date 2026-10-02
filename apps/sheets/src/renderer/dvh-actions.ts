@@ -5,7 +5,7 @@
  * receipt of the same changes.
  */
 import { ActionRegistry, z, type ActionContext, type PreviewReport } from '@genoffice/dvh-actions'
-import { fieldText, scalarSchema } from '@genoffice/dvh-model'
+import { dvhCellStyleSchema, fieldText, scalarSchema } from '@genoffice/dvh-model'
 import {
   boundCellValue,
   createField,
@@ -16,6 +16,14 @@ import {
   setBoundFieldValue,
   splitBindingFormula,
 } from './dvh-smart-data'
+import {
+  createCollection,
+  createTable,
+  parseRectFormula,
+  rectFormula,
+  renderTableInSheet,
+  setTableStyle,
+} from './dvh-tables'
 
 const preview = (objects: number, summary: string[]): PreviewReport => ({
   objects,
@@ -139,6 +147,138 @@ export function createSheetsDvhActions(): ActionRegistry {
         { objectId: field.id, path: '', before: null, after: { ...field, binding: cell } },
       ])
       return field
+    },
+  })
+
+  registry.register({
+    name: 'Data.CreateCollection',
+    group: 'Data',
+    summary: 'Make a range whose first row holds the column titles into a collection',
+    input: z
+      .object({
+        name: z.string().min(1),
+        range: z.string().min(2).describe('A1:C10 or Sheet1!A1:C10'),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ name, range }) => preview(1, [`collection ${name} from ${range}`]),
+    execute: ({ name, range }, actx) => {
+      const { ctx, runtime, dvh } = session()
+      const activeSheet =
+        runtime.univerAPI.getActiveWorkbook()?.getActiveSheet().getSheetName() ?? ''
+      const rect = parseRectFormula(
+        range.includes('!') ? range : `${quoteSheetName(activeSheet)}!${range}`,
+      )
+      if (!rect || rect.rows < 2) throw new Error(`not a range with a title row: ${range}`)
+      const collection = createCollection(runtime, dvh, { name, rect, source: callerSource(actx) })
+      ctx.markPending()
+      actx.emit([{ objectId: collection.id, path: '', before: null, after: { name, range } }])
+      return {
+        id: collection.id,
+        columns: collection.columns.map((c) => c.title),
+        rows: collection.rows.length,
+      }
+    },
+  })
+
+  registry.register({
+    name: 'Table.Create',
+    group: 'Table',
+    summary: 'Define a DVH.Table showing every column of a collection',
+    input: z
+      .object({
+        name: z.string().min(1),
+        collection: z.string().min(1).describe('collection name or id'),
+        mode: z.enum(['source', 'destination']).optional(),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ name, collection }) => preview(1, [`table ${name} from ${collection}`]),
+    execute: ({ name, collection, mode }, actx) => {
+      const { ctx, dvh } = session()
+      const table = createTable(dvh, {
+        name,
+        collectionId: collection,
+        mode,
+        source: callerSource(actx),
+      })
+      ctx.markPending()
+      actx.emit([{ objectId: table.id, path: '', before: null, after: { name, collection } }])
+      return { id: table.id, name: table.name }
+    },
+  })
+
+  registry.register({
+    name: 'Table.Render',
+    group: 'Table',
+    summary: 'Render a table starting at a cell (values and styles in one write)',
+    input: z.object({ table: z.string().min(1), cell: cellRef }).strict(),
+    effect: 'write',
+    preview: ({ table, cell }) => preview(1, [`render ${table} at ${cell}`]),
+    execute: ({ table, cell }, actx) => {
+      const { ctx, runtime, dvh } = session()
+      const activeSheet =
+        runtime.univerAPI.getActiveWorkbook()?.getActiveSheet().getSheetName() ?? ''
+      const result = renderTableInSheet(runtime, dvh, table, {
+        anchor: parseCellRef(cell, activeSheet),
+        source: callerSource(actx),
+      })
+      ctx.markPending()
+      actx.emit([
+        { objectId: table, path: 'render', before: null, after: rectFormula(result.rect) },
+      ])
+      return { range: rectFormula(result.rect), rows: result.rows }
+    },
+  })
+
+  registry.register({
+    name: 'Table.Refresh',
+    group: 'Table',
+    summary: 'Re-render a table from its collection; hand edits inside it need force',
+    input: z.object({ table: z.string().min(1), force: z.boolean().optional() }).strict(),
+    effect: 'write',
+    preview: ({ table }) => preview(1, [`refresh ${table}`]),
+    execute: ({ table, force }, actx) => {
+      const { ctx, runtime, dvh } = session()
+      const result = renderTableInSheet(runtime, dvh, table, { force, source: callerSource(actx) })
+      if (result.needsConfirm) {
+        throw new Error(
+          `table ${table} was edited by hand; run again with force: true to overwrite`,
+        )
+      }
+      ctx.markPending()
+      actx.emit([
+        { objectId: table, path: 'render', before: null, after: rectFormula(result.rect) },
+      ])
+      return { range: rectFormula(result.rect), rows: result.rows }
+    },
+  })
+
+  registry.register({
+    name: 'Table.SetStyle',
+    group: 'Table',
+    summary: 'Choose source or destination style and the destination header/body styles',
+    input: z
+      .object({
+        table: z.string().min(1),
+        mode: z.enum(['source', 'destination']).optional(),
+        header: dvhCellStyleSchema.optional(),
+        body: dvhCellStyleSchema.optional(),
+        bandFill: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/)
+          .optional(),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ table, mode }) => preview(1, [`style ${table}${mode ? ` → ${mode}` : ''}`]),
+    execute: ({ table, ...style }, actx) => {
+      const { ctx, dvh } = session()
+      const before = dvh.model?.tables.find((tb) => tb.id === table || tb.name === table)?.style
+      const updated = setTableStyle(dvh, table, style, callerSource(actx))
+      ctx.markPending()
+      actx.emit([{ objectId: updated.id, path: 'style', before, after: updated.style }])
+      return updated.style
     },
   })
 

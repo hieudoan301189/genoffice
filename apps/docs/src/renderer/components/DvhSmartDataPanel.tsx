@@ -17,9 +17,10 @@ import {
   setActiveDvhDocs,
   setDvhModelChangeListener,
   sourceFromRead,
-  updateFromSource,
   type DvhSource,
 } from '../dvh-smart-data'
+import { refreshDocTable, setDvhNumberLocale, updateLinkFromSource } from '../dvh-tables'
+import { DvhDocsTablesSection } from './DvhDocsTablesSection'
 import './dvh-smart-data.css'
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
@@ -71,6 +72,13 @@ export function DvhSmartDataHost({
       current = false
     }
   }, [parsed])
+
+  useEffect(() => {
+    void window.desktop
+      .dvhSystemLocale?.()
+      .then(setDvhNumberLocale)
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     setDvhModelChangeListener(markDirty)
@@ -172,13 +180,14 @@ export function DvhSmartDataPanel({
       const read = await window.desktop.dvhReadSource({ pick: true })
       if (!read) return
       const source = sourceFromRead(read)
-      if (!source || source.model.fields.length === 0) {
+      const objects = source ? source.model.fields.length + source.model.collections.length : 0
+      if (!source || objects === 0) {
         setError(t('dvhNoSourceModel'))
         return
       }
       linkSource(dvh, source, filePath)
       setError('')
-      showToast(t('dvhLinked', { count: source.model.fields.length, name: fileName(read.path) }))
+      showToast(t('dvhLinked', { count: objects, name: fileName(read.path) }))
       await checkLinks()
     } catch (e) {
       setError(t('dvhErrReadSource', { error: e instanceof Error ? e.message : String(e) }))
@@ -198,10 +207,16 @@ export function DvhSmartDataPanel({
         setError(t('dvhSourceMissing', { path: link.source.path ?? link.source.relPath ?? '' }))
         return
       }
-      const changed = updateFromSource(editor, dvh, link, source)
+      const result = updateLinkFromSource(editor, dvh, link, source)
+      let tables = result.tables
+      for (const tableId of result.editedTables) {
+        const table = dvh.model?.tables.find((tb) => tb.id === tableId)
+        if (!table || !window.confirm(t('dvhTableEditedConfirm', { name: table.name }))) continue
+        tables += refreshDocTable(editor, dvh, tableId, { force: true, source: 'link' }).refreshed
+      }
       setStatus((s) => ({ ...s, [link.id]: 'current' }))
       setError('')
-      showToast(t('dvhUpdated', { count: changed, name: fileName(source.path) }))
+      showToast(t('dvhUpdated', { count: result.fields + tables, name: fileName(source.path) }))
     } finally {
       setBusy(false)
       repaint()
@@ -338,6 +353,8 @@ export function DvhSmartDataPanel({
         </div>
         {error ? <p className="dvh-docs-panel-error">{error}</p> : null}
       </div>
+
+      <DvhDocsTablesSection editor={editor} dvh={dvh} onChange={repaint} />
 
       <details className="dvh-docs-panel-section dvh-docs-panel-history">
         <summary>{t('dvhHistory')}</summary>

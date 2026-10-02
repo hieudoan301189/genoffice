@@ -189,3 +189,16 @@
   border: 1px solid var(--border-strong);
   border-radius: 4px;
 }
+
+.dvh-smart-data-subhead {
+  margin: 12px 0 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.dvh-smart-data select {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
