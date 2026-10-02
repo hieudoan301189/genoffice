@@ -229,3 +229,59 @@
 .dvh-docs-panel-pre {
   white-space: pre-wrap;
 }
+
+/* P8: workflows */
+.dvh-docs-panel-value {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.dvh-docs-panel-value:hover,
+.dvh-docs-panel-value:focus {
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.dvh-docs-panel-workflow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.dvh-docs-panel-workflow textarea {
+  width: 100%;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.dvh-docs-panel-steps,
+.dvh-docs-panel-blocks {
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: 12px;
+}
+
+.dvh-docs-panel-blocks li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dvh-docs-panel-blocks li[data-current='true'] {
+  background: var(--accent-soft);
+}
+
+.dvh-docs-panel-blocks code {
+  flex: 1 1 160px;
+  overflow-wrap: anywhere;
+}

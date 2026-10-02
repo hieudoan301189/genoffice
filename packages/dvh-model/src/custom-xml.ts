@@ -73,6 +73,7 @@ export function serializeModelXml(model: DvhModel): string {
     tables: model.tables,
     links: model.links,
     ...(model.conditions ? { conditions: model.conditions } : {}),
+    ...(model.workflows ? { workflows: model.workflows } : {}),
   })
   return (
     XML_DECL +
@@ -126,6 +127,7 @@ export function parseModelXml(xml: string): DvhModel {
     tables: objects.tables ?? [],
     links: objects.links ?? [],
     ...(objects.conditions ? { conditions: objects.conditions } : {}),
+    ...(objects.workflows ? { workflows: objects.workflows } : {}),
   })
 }
 

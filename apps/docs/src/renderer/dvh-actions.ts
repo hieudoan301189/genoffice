@@ -8,6 +8,7 @@
 import type { Editor } from '@tiptap/core'
 import {
   ActionRegistry,
+  defaultPermissions,
   localParticipant,
   registerOpFamily,
   z,
@@ -25,6 +26,17 @@ import {
   type DvhLink,
   type DvhModel,
 } from '@genoffice/dvh-model'
+import {
+  loadWorkflows,
+  parseWorkflow,
+  recordsOf,
+  removeWorkflow,
+  runWorkflow,
+  storeWorkflow,
+  walkSteps,
+  type Json,
+  type Workflow,
+} from '@genoffice/dvh-workflow'
 import { executeOps, opCatalog, type Op } from './ai/ops'
 import { allChangeSets, applyHistoryWrite, restoreObject, revertTransaction } from './dvh-history'
 import {
@@ -36,6 +48,8 @@ import {
 import {
   withDvhTransaction,
   activeDvhDocs,
+  ensureModel,
+  recordDvhDocsChange,
   fieldOccurrences,
   findField,
   linkSourcePaths,
@@ -57,6 +71,8 @@ export interface DocsActionHost {
   readSource(path: string): Promise<{ path: string; modelXml: string | null } | null>
   /** the document's current bytes (the template of Document.Generate) */
   buildBytes?(): Promise<Uint8Array | null>
+  /** asks the user before a workflow step that needs confirmation (absent: refused) */
+  confirm?(name: string, preview: PreviewReport): Promise<boolean> | boolean
 }
 
 const preview = (objects: number, summary: string[], warnings: string[] = []): PreviewReport => ({
@@ -660,7 +676,166 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
     },
   })
 
+  registerWorkflowActions(registry, host)
   return registry
+}
+
+/** The workflow stored in the open document by id or name. */
+function findWorkflow(ref: string): Workflow {
+  const model = activeDvhDocs()?.model
+  const found = model
+    ? loadWorkflows(model).workflows.find((w) => w.id === ref || w.name === ref)
+    : undefined
+  if (!found) throw new Error(`no workflow "${ref}" in this document`)
+  return found
+}
+
+/**
+ * Workflows stored with the document (P8): list, save, delete and run them.
+ * A run's steps go through this same registry as caller `workflow`, so they
+ * share the run's txId, are never recorded, and roll back as a whole when one
+ * fails. Started by the user, a workflow may do what the user may (each
+ * destructive or external step is still confirmed); started by the agent or a
+ * script, it gets their read + write permissions only.
+ */
+function registerWorkflowActions(registry: ActionRegistry, host: DocsActionHost): void {
+  const paramsOf = (workflow: Workflow, params?: Record<string, Json>, collection?: string) => {
+    const out: Record<string, Json> = { ...params }
+    if (collection) {
+      const coll = activeDvhDocs()?.model?.collections.find(
+        (c) => c.id === collection || c.name === collection,
+      )
+      if (!coll) throw new Error(`unknown collection ${collection}`)
+      const list = workflow.params.find((p) => p.type === 'list')
+      if (!list) throw new Error(`workflow ${workflow.name} has no list parameter for the records`)
+      out[list.name] = recordsOf(coll)
+    }
+    return out
+  }
+  const runInput = z
+    .object({
+      workflow: z.string().min(1).describe('workflow id or name'),
+      params: z.record(z.string(), z.json()).optional(),
+      collection: z
+        .string()
+        .optional()
+        .describe("collection id or name whose records fill the workflow's list parameter"),
+    })
+    .strict()
+  const execute = async (input: z.infer<typeof runInput>, ctx: ActionContext, dryRun: boolean) => {
+    const workflow = findWorkflow(input.workflow)
+    const docId = ctx.docId
+    const result = await runWorkflow(workflow, {
+      params: paramsOf(workflow, input.params as Record<string, Json>, input.collection),
+      participants: new Map([[docId, docsSagaParticipant(host, registry, docId)]]),
+      docId,
+      caller: 'workflow',
+      permissions: defaultPermissions(ctx.caller === 'ui' ? 'ui' : 'workflow'),
+      txId: ctx.txId,
+      dryRun,
+      ...(host.confirm ? { confirm: host.confirm } : {}),
+    })
+    if (!result.ok)
+      throw new Error(
+        `workflow ${workflow.name} stopped${result.failedAt ? ` at step ${result.failedAt}` : ''}: ${result.error}`,
+      )
+    return result
+  }
+
+  registry.register({
+    name: 'Workflow.List',
+    group: 'Workflow',
+    summary: 'List the workflows stored in this document with their parameters',
+    input: z.object({}).strict(),
+    effect: 'read',
+    preview: () => preview(0, []),
+    execute: () => {
+      const model = activeDvhDocs()?.model
+      return model
+        ? loadWorkflows(model).workflows.map((w) => ({
+            id: w.id,
+            name: w.name,
+            params: w.params,
+            steps: w.steps.length,
+          }))
+        : []
+    },
+  })
+
+  registry.register({
+    name: 'Workflow.Run',
+    group: 'Workflow',
+    summary:
+      'Run a stored workflow (one transaction: rolled back as a whole if a step fails); collection fills its list parameter with records',
+    input: runInput,
+    effect: 'write',
+    preview: async (input, ctx) => {
+      const result = await execute(input, ctx, true)
+      return {
+        objects: result.previews.reduce((n, p) => n + p.preview.objects, 0),
+        files: result.previews.flatMap((p) => p.preview.files),
+        summary: result.previews.map((p) => `${p.action}: ${p.preview.summary.join('; ')}`),
+        warnings: result.previews.flatMap((p) => p.preview.warnings),
+      }
+    },
+    execute: async (input, ctx) => {
+      const result = await execute(input, ctx, false)
+      return { steps: result.steps, actions: result.changeSets.length, log: result.log.length }
+    },
+  })
+
+  registry.register({
+    name: 'Workflow.Save',
+    group: 'Workflow',
+    summary:
+      'Store a workflow (dvh-workflow v1 JSON) in this document, replacing one with the same id',
+    input: z.object({ workflow: z.json() }).strict(),
+    effect: 'write',
+    preview: ({ workflow }) => {
+      const parsed = parseWorkflow(workflow)
+      return preview(1, [`save workflow ${parsed.name} (${parsed.steps.length} step(s))`])
+    },
+    execute: ({ workflow }, ctx) => {
+      const parsed = parseWorkflow(workflow)
+      const missing = [
+        ...new Set(
+          walkSteps(parsed.steps).flatMap(({ step }) =>
+            step.kind === 'action' && !registry.has(step.action) ? [step.action] : [],
+          ),
+        ),
+      ]
+      if (missing.length) throw new Error(`unknown action(s): ${missing.join(', ')}`)
+      const dvh = activeDvhDocs()
+      if (!dvh) throw new Error('no document is open')
+      const ready = ensureModel(dvh)
+      const before = ready.model.workflows?.find((w) => w.id === parsed.id)?.name ?? null
+      ready.model = storeWorkflow(ready.model, parsed)
+      recordDvhDocsChange(dvh, 'Workflow.Save', [
+        { objectId: parsed.id, path: '', before, after: parsed.name },
+      ])
+      ctx.emit([{ objectId: parsed.id, path: '', before, after: parsed.name }])
+      return { id: parsed.id }
+    },
+  })
+
+  registry.register({
+    name: 'Workflow.Delete',
+    group: 'Workflow',
+    summary: 'Remove a workflow from this document',
+    input: z.object({ workflow: z.string().min(1) }).strict(),
+    effect: 'destructive',
+    preview: ({ workflow }) => preview(1, [`delete workflow ${findWorkflow(workflow).name}`]),
+    execute: ({ workflow }, ctx) => {
+      const found = findWorkflow(workflow)
+      const dvh = activeDvhDocs()!
+      dvh.model = removeWorkflow(dvh.model!, found.id)
+      recordDvhDocsChange(dvh, 'Workflow.Delete', [
+        { objectId: found.id, path: '', before: found.name, after: null },
+      ])
+      ctx.emit([{ objectId: found.id, path: '', before: found.name, after: null }])
+      return { id: found.id }
+    },
+  })
 }
 
 /** What a saga restores a document to: its content and its Smart Data. */

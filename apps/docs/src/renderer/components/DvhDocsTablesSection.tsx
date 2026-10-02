@@ -8,6 +8,7 @@ import {
   setDocTableStyle,
   tableOccurrences,
 } from '../dvh-tables'
+import { announceUi } from '../dvh-workflow'
 
 /** Linked collections (insert as a DVH.Table) and the tables already in the document. */
 export function DvhDocsTablesSection({
@@ -28,21 +29,26 @@ export function DvhDocsTablesSection({
     if (!dvh) return
     const table = createDocTable(dvh, { collectionId })
     insertDocTable(editor, dvh, table)
+    announceUi('Document.InsertTable', { collection: collectionId })
     onChange()
   }
 
   const refresh = (tableId: string, tableName: string) => {
     if (!dvh) return
+    let force = false
     if (refreshDocTable(editor, dvh, tableId).needsConfirm) {
       if (!window.confirm(t('dvhTableEditedConfirm', { name: tableName }))) return
       refreshDocTable(editor, dvh, tableId, { force: true })
+      force = true
     }
+    announceUi('Table.Refresh', { table: tableId, ...(force ? { force } : {}) })
     onChange()
   }
 
   const changeMode = (tableId: string, tableName: string, mode: 'source' | 'destination') => {
     if (!dvh) return
     setDocTableStyle(dvh, tableId, { mode })
+    announceUi('Table.SetStyle', { table: tableId, mode })
     refresh(tableId, tableName)
   }
 

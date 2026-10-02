@@ -18,6 +18,7 @@ import {
   type DvhDocsState,
 } from '../dvh-smart-data'
 import { restoreObject, revertTransaction } from '../dvh-history'
+import { noteUnrecordable } from '../dvh-workflow'
 
 const HISTORY_ROWS = 30
 /** compaction is offered from this share of the limit on */
@@ -143,6 +144,8 @@ export function DvhHistorySection({
 
   const restore = (cs: ChangeSet) => {
     if (!dvh || !focus) return
+    // a restore names one past change set: replaying it elsewhere means nothing
+    noteUnrecordable(t('dvhRestoreHere'))
     try {
       restoreObject(editor, dvh, cs.id, focus)
     } catch (e) {
@@ -153,6 +156,7 @@ export function DvhHistorySection({
 
   const revert = (cs: ChangeSet) => {
     if (!dvh) return
+    noteUnrecordable(t('dvhRevertTx'))
     try {
       let outcome = revertTransaction(editor, dvh, cs.txId)
       if (outcome.conflicts.length > 0) {

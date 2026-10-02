@@ -10,6 +10,13 @@ import {
   wrapInCondition,
   wrapInRepeat,
 } from '../dvh-template-designer'
+import { announceUi, noteUnrecordable } from '../dvh-workflow'
+
+/** The top-level block range of the selection (the blocks a section wraps). */
+const selectedBlocks = (editor: Editor) => ({
+  fromBlock: editor.state.selection.$from.index(0),
+  toBlock: editor.state.selection.$to.index(0),
+})
 
 type Release = 'none' | 'strip' | 'all'
 
@@ -89,6 +96,11 @@ export function DvhTemplateSection({
     else {
       setCondId(result.id)
       setMessage('')
+      announceUi('Template.SetCondition', {
+        expr: condExpr,
+        ...(condName ? { name: condName } : {}),
+        id: result.id,
+      })
     }
     onChange()
   }
@@ -96,21 +108,37 @@ export function DvhTemplateSection({
   const wrapIf = () => {
     const condition = conditions.find((c) => c.id === condId)
     if (!condition) return
+    const blocks = selectedBlocks(editor)
     if (!wrapInCondition(editor, condition)) setMessage(t('dvhWrapRefused'))
+    else announceUi('Template.WrapSection', { ...blocks, kind: 'if', condition: condition.id })
     onChange()
   }
 
   const wrapRepeat = () => {
     if (!dvh || !collection) return
+    const blocks = selectedBlocks(editor)
     if (!wrapInRepeat(editor, dvh, collection.id, repeatFilter || undefined))
       setMessage(t('dvhWrapRefused'))
+    else
+      announceUi('Template.WrapSection', {
+        ...blocks,
+        kind: 'repeat',
+        collection: collection.id,
+        ...(repeatFilter ? { condition: repeatFilter } : {}),
+      })
     onChange()
   }
 
   const insertColumn = () => {
     if (!dvh || !collection) return
     const column = collection.columns.find((c) => c.id === columnId) ?? collection.columns[0]
-    if (column) insertColumnControl(editor, dvh, collection.id, column.id)
+    const blockIndex = editor.state.selection.$from.index(0)
+    if (column && insertColumnControl(editor, dvh, collection.id, column.id))
+      announceUi('Template.InsertColumn', {
+        collection: collection.id,
+        column: column.id,
+        blockIndex,
+      })
     onChange()
   }
 
@@ -165,11 +193,20 @@ export function DvhTemplateSection({
         return
       }
       showToast(t('dvhBatchDone', { count: result.count, path: result.output }))
+      announceUi('Document.Generate', {
+        ...(batchCollection ? { collection: batchCollection } : {}),
+        ...(filter.trim() ? { filter } : {}),
+        nameRule,
+        format,
+        output,
+        release,
+      })
       setMessage(result.warnings.slice(0, 5).join('\n'))
     })
 
   const convert = () =>
     run(async () => {
+      noteUnrecordable(t('dvhConvertDvhTool'))
       const data = await bytes()
       if (!data) return
       const result = await window.desktop.dvhConvertTemplate(data, fileName)
@@ -186,6 +223,7 @@ export function DvhTemplateSection({
 
   const importQlcl = () =>
     run(async () => {
+      noteUnrecordable(t('dvhQlclImport'))
       if (!dvh) return
       const result = await window.desktop.dvhQlclImport(dvh.model)
       if (!result) return

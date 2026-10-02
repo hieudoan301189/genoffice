@@ -281,6 +281,13 @@ describe('Smart Data ops and actions', () => {
       'File.ExportPDF',
       'File.Package',
     ])
-    expect(names.slice(17).every((name) => name.startsWith('Document.'))).toBe(true)
+    expect(names.slice(17, -4).every((name) => name.startsWith('Document.'))).toBe(true)
+    // P8 workflows stored in the document
+    expect(names.slice(-4)).toEqual([
+      'Workflow.List',
+      'Workflow.Run',
+      'Workflow.Save',
+      'Workflow.Delete',
+    ])
   })
 })

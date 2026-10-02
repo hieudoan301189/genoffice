@@ -151,8 +151,28 @@ export interface RegistryOptions {
   around?<T>(ctx: ActionContext, run: () => Promise<T>): Promise<T>
 }
 
+/**
+ * One completed action, as the registry announces it (P8): the semantic event
+ * stream the workflow recorder listens to instead of mouse and keyboard.
+ */
+export interface ActionEvent {
+  readonly name: string
+  readonly group: ActionGroup
+  readonly effect: ActionEffect
+  /** the validated input */
+  readonly input: unknown
+  readonly caller: ActionCaller
+  readonly docId: string
+  readonly txId: string
+  readonly output: unknown
+  readonly changeSet?: ChangeSet
+}
+
+export type ActionListener = (event: ActionEvent) => void
+
 export class ActionRegistry {
   private readonly actions = new Map<string, ActionDescriptor<never, unknown>>()
+  private readonly listeners = new Set<ActionListener>()
 
   constructor(private readonly options: RegistryOptions = {}) {}
 
@@ -161,6 +181,47 @@ export class ActionRegistry {
       throw new Error(`action ${action.name} is already registered`)
     this.actions.set(action.name, action as unknown as ActionDescriptor<never, unknown>)
     return () => this.actions.delete(action.name)
+  }
+
+  /** Listens to every completed (not dry-run) action; returns the unsubscribe. */
+  subscribe(listener: ActionListener): () => void {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
+  }
+
+  /**
+   * Announces a UI command that ran through its own code path but means
+   * exactly this catalog action (P8: "semantic events"), so the recorder sees
+   * it as if the action had run. The input is validated — what is recorded can
+   * be replayed — and nothing is executed. False when the name or input is not
+   * one the catalog accepts.
+   */
+  announceUi(name: string, input: unknown, docId: string): boolean {
+    const action = this.actions.get(name)
+    if (!action) return false
+    const parsed = (action.input as ZodType).safeParse(input)
+    if (!parsed.success) return false
+    this.announce({
+      name,
+      group: action.group,
+      effect: action.effect,
+      input: parsed.data,
+      caller: 'ui',
+      docId,
+      txId: nextId('tx'),
+      output: undefined,
+    })
+    return true
+  }
+
+  private announce(event: ActionEvent): void {
+    for (const listener of [...this.listeners]) {
+      try {
+        listener(event)
+      } catch {
+        // a failing listener never fails the action it observes
+      }
+    }
   }
 
   has(name: string): boolean {
@@ -234,7 +295,20 @@ export class ActionRegistry {
     }
     const execute = async () => action.execute(parsed.data, ctx)
     const output = this.options.around ? await this.options.around(ctx, execute) : await execute()
-    if (changes.length === 0) return { preview, output }
+    const event = {
+      name,
+      group: action.group,
+      effect: action.effect,
+      input: parsed.data,
+      caller: options.caller,
+      docId: options.docId,
+      txId: ctx.txId,
+      output,
+    }
+    if (changes.length === 0) {
+      this.announce(event)
+      return { preview, output }
+    }
     const changeSet: ChangeSet = {
       id: nextId('cs'),
       txId: ctx.txId,
@@ -244,6 +318,7 @@ export class ActionRegistry {
       action: name,
       changes,
     }
+    this.announce({ ...event, changeSet })
     return { preview, output, changeSet }
   }
 }

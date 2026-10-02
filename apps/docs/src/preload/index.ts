@@ -153,6 +153,9 @@ const api: DesktopApi = {
     ipcRenderer.invoke('docs:dvh-convert-template', data, String(name)),
   dvhQlclImport: (into: unknown) => ipcRenderer.invoke('docs:dvh-qlcl-import', into),
   dvhQlclExport: (model: unknown) => ipcRenderer.invoke('docs:dvh-qlcl-export', model),
+  dvhWorkflowExport: (json: string, fileName: string) =>
+    ipcRenderer.invoke('docs:dvh-workflow-export', json, fileName),
+  dvhWorkflowImport: () => ipcRenderer.invoke('docs:dvh-workflow-import'),
   dvhPackage: (paths: string[]) =>
     ipcRenderer.invoke('docs:dvh-package', Array.isArray(paths) ? paths : []),
   dvhExportPdf: (path: string) => ipcRenderer.invoke('docs:dvh-export-pdf', String(path)),

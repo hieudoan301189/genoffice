@@ -31,6 +31,7 @@ export default defineConfig({
           '@genoffice/dvh-actions',
           '@genoffice/dvh-model',
           '@genoffice/dvh-template',
+          '@genoffice/dvh-workflow',
           '@genoffice/electron-utils',
           '@genoffice/font-metrics',
           '@genoffice/xlsx-gateway',

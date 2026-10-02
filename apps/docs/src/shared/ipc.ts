@@ -427,6 +427,10 @@ export interface DesktopApi {
   dvhQlclImport(into: DvhModel | null): Promise<{ path: string; model: DvhModel } | null>
   /** P6: Smart Data written as a QLCL workbook; the saved path */
   dvhQlclExport(model: DvhModel): Promise<string | null>
+  /** P8: saves a workflow (dvh-workflow JSON) into a project folder */
+  dvhWorkflowExport(json: string, fileName: string): Promise<string | null>
+  /** P8: picks a workflow file; the renderer validates it */
+  dvhWorkflowImport(): Promise<{ path: string; text: string } | null>
   /** File.Package: files zipped with an index */
   dvhPackage(paths: string[]): Promise<{ path: string; count: number } | null>
   /** File.ExportPDF: a docx on disk exported to PDF next to it (headless renderer) */

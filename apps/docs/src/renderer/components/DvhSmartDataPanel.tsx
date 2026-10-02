@@ -4,7 +4,6 @@ import type { ParsedDocFull } from '@genoffice/docx-engine'
 import { fieldText, newDvhId, type DvhLink } from '@genoffice/dvh-model'
 import { useI18n } from '../i18n/locale'
 import { showToast } from './toast-bus'
-import { createDocsDvhActions } from '../dvh-actions'
 import {
   activeDvhDocs,
   dvhDocsStateOf,
@@ -40,6 +39,8 @@ import {
 import { DvhDocsTablesSection } from './DvhDocsTablesSection'
 import { DvhHistorySection } from './DvhHistorySection'
 import { DvhTemplateSection } from './DvhTemplateSection'
+import { DvhWorkflowSection } from './DvhWorkflowSection'
+import { announceUi, installDocsUiActions, noteUnrecordable, runUiAction } from '../dvh-workflow'
 import './dvh-smart-data.css'
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
@@ -71,8 +72,30 @@ export function DvhSmartDataHost({
   buildBytes?: () => Promise<Uint8Array | null>
 }) {
   const [open, setOpen] = useState(false)
-  const live = useRef({ editor, filePath })
-  live.current = { editor, filePath }
+  const { t } = useI18n()
+  const live = useRef({ editor, filePath, buildBytes, t })
+  live.current = { editor, filePath, buildBytes, t }
+
+  // one action registry for the UI: the recorder listens to it (P8)
+  useEffect(() => {
+    const registry = installDocsUiActions({
+      editor: () => live.current.editor,
+      filePath: () => live.current.filePath,
+      readSource: (path) => window.desktop.dvhReadSource({ path }),
+      buildBytes: () => live.current.buildBytes?.() ?? Promise.resolve(null),
+      confirm: (action, preview) =>
+        window.confirm(
+          live.current.t('dvhWfConfirm', {
+            action,
+            count: preview.objects,
+            summary: preview.summary.join('\n'),
+          }),
+        ),
+    })
+    // e2e drivers reach the same registry the UI and the recorder use
+    const w = window as unknown as Record<string, unknown>
+    if (w.__genofficeDebugHooks === true) w.__dvhActions = registry
+  }, [])
 
   // automatic links run for the open document whether or not the panel is open
   useEffect(
@@ -135,15 +158,6 @@ export function DvhSmartDataHost({
   useEffect(() => {
     const toggle = () => setOpen((value) => !value)
     window.addEventListener('dvh:smart-data', toggle)
-    // e2e drivers reach the action registry the agent will use (P4 wires it to the agent)
-    const w = window as unknown as Record<string, unknown>
-    if (w.__genofficeDebugHooks === true) {
-      w.__dvhActions = createDocsDvhActions({
-        editor: () => live.current.editor,
-        filePath: () => live.current.filePath,
-        readSource: (path) => window.desktop.dvhReadSource({ path }),
-      })
-    }
     return () => window.removeEventListener('dvh:smart-data', toggle)
   }, [])
 
@@ -218,6 +232,7 @@ export function DvhSmartDataPanel({
 
   const linkWorkbook = async () => {
     if (!dvh || busy) return
+    noteUnrecordable(t('dvhLinkWorkbook'))
     setBusy(true)
     try {
       const read = await window.desktop.dvhReadSource({ pick: true })
@@ -275,6 +290,7 @@ export function DvhSmartDataPanel({
         setLinkStatus(link.id, declined ? 'edited' : 'current')
       setError('')
       showToast(t('dvhUpdated', { count: result.fields + tables, name: fileName(source.path) }))
+      announceUi('Link.Update', { linkId: link.id })
     } finally {
       setBusy(false)
       repaint()
@@ -298,6 +314,7 @@ export function DvhSmartDataPanel({
 
   const writeBack = async (link: DvhLink) => {
     if (busy) return
+    noteUnrecordable(t('dvhWriteBack'))
     setBusy(true)
     try {
       reportWrite(await writeBackLink(link.id), link)
@@ -309,6 +326,7 @@ export function DvhSmartDataPanel({
 
   const settle = async (link: DvhLink, fieldId: string, keep: 'mine' | 'source') => {
     if (busy) return
+    noteUnrecordable(t(keep === 'mine' ? 'dvhKeepMine' : 'dvhKeepSource'))
     setBusy(true)
     try {
       reportWrite(await resolveConflict(link.id, fieldId, keep), link)
@@ -323,6 +341,7 @@ export function DvhSmartDataPanel({
   /** Points the link at another copy of its workbook: same docId, or one carrying every linked object. */
   const changeSource = async (link: DvhLink, picked?: string) => {
     if (!dvh || busy) return
+    noteUnrecordable(t('dvhChangeSource'))
     setBusy(true)
     try {
       const read = picked
@@ -367,6 +386,7 @@ export function DvhSmartDataPanel({
 
   const changeMode = (link: DvhLink, mode: LinkUpdateMode) => {
     if (!dvh) return
+    noteUnrecordable(t('dvhUpdateMode'))
     setLinkUpdateMode(dvh, link.id, mode)
     refreshAutoWatch()
     // switching to on-open/automatic catches up right away
@@ -378,6 +398,7 @@ export function DvhSmartDataPanel({
     if (!dvh) return
     const label = fileName(link.source.path ?? link.source.relPath ?? link.source.docId)
     if (!window.confirm(t('dvhUnlinkConfirm', { name: label }))) return
+    noteUnrecordable(t('dvhUnlink'))
     unlinkSource(editor, dvh, link.id)
     refreshAutoWatch()
     repaint()
@@ -386,6 +407,8 @@ export function DvhSmartDataPanel({
   const insert = (fieldId: string) => {
     const field = dvh?.model?.fields.find((f) => f.id === fieldId)
     if (!dvh || !field) return
+    // a caret position does not replay: Document.InsertField names a paragraph instead
+    noteUnrecordable(t('dvhInsert'))
     insertSmartField(editor, dvh, field)
     repaint()
   }
@@ -397,6 +420,7 @@ export function DvhSmartDataPanel({
       setError(t('dvhErrName'))
       return
     }
+    noteUnrecordable(t('dvhAddField'))
     insertSmartField(editor, dvh, {
       id: newDvhId('f'),
       name: trimmed,
@@ -407,6 +431,25 @@ export function DvhSmartDataPanel({
     setName('')
     setValue('')
     setError('')
+    repaint()
+  }
+
+  /** Sets a field's value through the Action Core (Data.SetField: undoable, recorded). */
+  const commitValue = async (fieldId: string, text: string) => {
+    const field = fields.find((f) => f.id === fieldId)
+    if (!field || text === (shownText.get(field.id) ?? fieldText(field.value))) return
+    const value =
+      text === ''
+        ? null
+        : field.type === 'number' && Number.isFinite(Number(text))
+          ? Number(text)
+          : text
+    try {
+      await runUiAction('Data.SetField', { field: field.id, value })
+      setError('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
     repaint()
   }
 
@@ -576,7 +619,19 @@ export function DvhSmartDataPanel({
               {fields.map((field) => (
                 <tr key={field.id} data-field-id={field.id}>
                   <td>{field.name}</td>
-                  <td>{shownText.get(field.id) ?? fieldText(field.value)}</td>
+                  <td>
+                    <input
+                      key={shownText.get(field.id) ?? fieldText(field.value)}
+                      className="dvh-docs-panel-value"
+                      defaultValue={shownText.get(field.id) ?? fieldText(field.value)}
+                      aria-label={field.name}
+                      readOnly={field.access === 'read'}
+                      onBlur={(event) => void commitValue(field.id, event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') event.currentTarget.blur()
+                      }}
+                    />
+                  </td>
                   <td>{uses.get(field.id) ?? 0}</td>
                   <td>
                     <button type="button" onClick={() => insert(field.id)}>
@@ -621,6 +676,8 @@ export function DvhSmartDataPanel({
         {...(buildBytes ? { buildBytes } : {})}
         onChange={repaint}
       />
+
+      <DvhWorkflowSection dvh={dvh} onChange={repaint} />
 
       <DvhHistorySection
         editor={editor}

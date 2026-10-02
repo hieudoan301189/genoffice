@@ -37,6 +37,7 @@ import {
   runBatch,
   type BatchOutput,
 } from './dvh-batch'
+import { workflowFromJson, workflowToJson } from '@genoffice/dvh-workflow'
 import {
   convertDvhToolTemplate,
   exportQlclWorkbook,
@@ -4912,6 +4913,30 @@ export function registerDocsIpc(): void {
     if (picked.canceled || !picked.filePath) return null
     await atomicWriteFile(picked.filePath, Buffer.from(await exportQlclWorkbook(parsed.data)))
     return picked.filePath
+  })
+
+  // P8: workflows kept as files in a project folder
+  ipcMain.handle('docs:dvh-workflow-export', async (event, json: unknown, fileName: unknown) => {
+    if (typeof json !== 'string' || typeof fileName !== 'string') return null
+    // only a valid workflow is written
+    const text = workflowToJson(workflowFromJson(json))
+    const picked = await saveDialog(event, {
+      title: tm('dlgSaveAs'),
+      defaultPath: saveAsSuggestion(null, fileName),
+      filters: [{ name: 'DVH Workflow', extensions: ['json'] }],
+    })
+    if (picked.canceled || !picked.filePath) return null
+    await atomicWriteFile(picked.filePath, Buffer.from(text, 'utf8'))
+    return picked.filePath
+  })
+  ipcMain.handle('docs:dvh-workflow-import', async (event) => {
+    const picked = await openDialog(event, {
+      filters: [{ name: 'DVH Workflow', extensions: ['json'] }],
+      properties: ['openFile'],
+    })
+    if (picked.canceled || picked.filePaths.length === 0) return null
+    const path = picked.filePaths[0]!
+    return { path, text: await readFile(path, 'utf8') }
   })
 
   // File.Package and File.ExportPDF actions

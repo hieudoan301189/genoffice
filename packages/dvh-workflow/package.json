@@ -1,0 +1,26 @@
+{
+  "name": "@genoffice/dvh-workflow",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "DVH Workflow Engine and Recorder: workflows of actions with ForEach/If/Try/Transaction, parameters, variables and safe expressions; step-by-step runs with breakpoints, a log and rollback; a recorder over the Action Core event stream",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@genoffice/dvh-actions": "*",
+    "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-template": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

@@ -436,6 +436,12 @@ và chính sách riêng tư cho Field/cột; skill `dvh-planner` thay `dvh_run` 
 - Workflow lưu trong `customXml` của mẫu hoặc trong thư mục dự án. Có trình sửa dạng khối.
 - **Nghiệm thu:** _Recorder_ (đổi bố cục giao diện, workflow vẫn chạy); chạy lại với bộ dữ liệu khác.
 
+**Kết quả (02/10/2026):** package `dvh-workflow` (model theo đường dẫn bước, engine có giao dịch lồng nhau,
+từng bước/breakpoint, nhật ký, giới hạn); Recorder trên dòng sự kiện `ActionRegistry.subscribe`/`announceUi` với
+gộp setter, bỏ chọn, triệt tiêu undo/redo, suy tham số từ bản ghi đang chọn; workflow lưu trong customXml hoặc
+`.dvhflow.json`; Docs có mục "Quy trình" (ghi, sửa dạng khối, chạy/gỡ lỗi) và action `Workflow.*` –
+[báo cáo](phases/p8-workflow.md). Hai nghiệm thu đạt bằng vitest.
+
 ### P9. DVH-Script (6–8 tuần)
 
 - Đặc tả v0, cú pháp gần VBA: gán biến, `If/ElseIf/Else/End If`, `For Each … Next`, gọi action theo

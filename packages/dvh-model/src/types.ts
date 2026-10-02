@@ -217,6 +217,16 @@ export const dvhConditionSchema = z
   .strict()
 export type DvhCondition = z.infer<typeof dvhConditionSchema>
 
+/**
+ * A workflow stored with a template (P8). The model keeps only its identity;
+ * the steps are validated by @genoffice/dvh-workflow when it is loaded, so a
+ * newer workflow format never makes the document's model unreadable.
+ */
+export const dvhStoredWorkflowSchema = z
+  .object({ id: z.string().min(1), name: z.string() })
+  .catchall(z.unknown())
+export type DvhStoredWorkflow = z.infer<typeof dvhStoredWorkflowSchema>
+
 export const dvhModelSchema = z
   .object({
     docId: z.string().min(1),
@@ -228,6 +238,8 @@ export const dvhModelSchema = z
     links: z.array(dvhLinkSchema),
     /** P6; absent in documents that are not Smart Templates (keeps their hashes) */
     conditions: z.array(dvhConditionSchema).optional(),
+    /** P8; absent unless the document carries workflows */
+    workflows: z.array(dvhStoredWorkflowSchema).optional(),
   })
   .strict()
 export type DvhModel = z.infer<typeof dvhModelSchema>
