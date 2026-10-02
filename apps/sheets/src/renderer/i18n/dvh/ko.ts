@@ -36,4 +36,6 @@ export const ko = {
   dvhNoCollections: '아직 컬렉션이 없습니다.',
   dvhNoTables: '아직 표가 없습니다.',
   dvhErrSelectAnchor: '표를 시작할 셀을 선택하세요.',
+  dvhConfirmAction:
+    'AI가 {action} 실행을 요청합니다(개체 {count}개에 영향):\n{summary}\n\n계속할까요?',
 } satisfies Record<keyof typeof zh, string>

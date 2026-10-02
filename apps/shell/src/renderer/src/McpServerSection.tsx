@@ -72,6 +72,8 @@ export function McpServerSection({ t }: { t: TFunc }) {
   const [saving, setSaving] = useState(false)
   const [background, setBackground] = useState(false)
   const [logging, setLogging] = useState(false)
+  const [threshold, setThreshold] = useState('50')
+  const savedThreshold = useRef('50')
   const [logs, setLogs] = useState<string[]>([])
   const logViewRef = useRef<HTMLPreElement | null>(null)
 
@@ -82,6 +84,10 @@ export function McpServerSection({ t }: { t: TFunc }) {
     savedPort.current = String(s.port)
     setBackground(s.background)
     setLogging(s.logging)
+    if (typeof s.confirmThreshold === 'number') {
+      setThreshold(String(s.confirmThreshold))
+      savedThreshold.current = String(s.confirmThreshold)
+    }
     setError(s.error ?? '')
   }
 
@@ -105,6 +111,7 @@ export function McpServerSection({ t }: { t: TFunc }) {
     port?: number
     background?: boolean
     logging?: boolean
+    confirmThreshold?: number
   }) => {
     setSaving(true)
     void window.aiOffice
@@ -113,6 +120,7 @@ export function McpServerSection({ t }: { t: TFunc }) {
         port: patch.port ?? (Number(port) || 3093),
         background: patch.background ?? background,
         logging: patch.logging ?? logging,
+        confirmThreshold: patch.confirmThreshold ?? Number(savedThreshold.current),
       })
       .then(takeStatus)
       .catch(() => {})
@@ -193,6 +201,34 @@ export function McpServerSection({ t }: { t: TFunc }) {
             if (String(next) === savedPort.current) return
             // persisted while the server is off too, so the port is set before it starts
             apply({ port: next })
+          }}
+        />
+      </div>
+      <div className="set-field">
+        <div className="set-field-text">
+          <div className="set-field-stack">
+            <label className="set-field-label" htmlFor="set-mcp-confirm">
+              {t('setMcpConfirmThreshold')}
+            </label>
+            <div className="set-field-desc">{t('setMcpConfirmThresholdDesc')}</div>
+          </div>
+        </div>
+        <input
+          id="set-mcp-confirm"
+          className="set-input"
+          type="number"
+          min={0}
+          max={100000}
+          value={threshold}
+          onChange={(e) => setThreshold(e.target.value)}
+          onBlur={() => {
+            const next = Number(threshold)
+            if (!Number.isInteger(next) || next < 0 || next > 100000) {
+              setThreshold(savedThreshold.current)
+              return
+            }
+            if (String(next) === savedThreshold.current) return
+            apply({ confirmThreshold: next })
           }}
         />
       </div>

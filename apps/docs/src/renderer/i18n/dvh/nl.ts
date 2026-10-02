@@ -66,4 +66,5 @@ export const nl = {
   dvhUseThis: 'Deze gebruiken',
   dvhHistoryFor: 'Geschiedenis van {name}',
   dvhHistoryAll: 'Alles tonen',
+  dvhConfirmAction: 'De AI wil {action} uitvoeren op {count} object(en):\n{summary}\n\nDoorgaan?',
 } satisfies Record<keyof typeof zh, string>

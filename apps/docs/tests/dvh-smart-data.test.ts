@@ -250,7 +250,12 @@ describe('Smart Data ops and actions', () => {
     expect(list.output).toEqual([
       expect.objectContaining({ name: 'Item.Name', value: 'Thân', uses: 1 }),
     ])
-    expect(registry.catalog().map((a) => a.name)).toEqual([
+    expect(
+      registry
+        .catalog()
+        .map((a) => a.name)
+        .slice(0, 8),
+    ).toEqual([
       'Data.ListFields',
       'Data.GetField',
       'Data.SetField',
@@ -260,5 +265,12 @@ describe('Smart Data ops and actions', () => {
       'Table.Refresh',
       'Table.SetStyle',
     ])
+    // P4: the editor's op system follows as Document.* actions
+    expect(
+      registry
+        .catalog()
+        .slice(8)
+        .every((a) => a.name.startsWith('Document.')),
+    ).toBe(true)
   })
 })

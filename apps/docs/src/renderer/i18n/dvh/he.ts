@@ -63,4 +63,5 @@ export const he = {
   dvhUseThis: 'שימוש בזו',
   dvhHistoryFor: 'היסטוריה של {name}',
   dvhHistoryAll: 'הצגת הכול',
+  dvhConfirmAction: 'ה-AI רוצה להפעיל את {action} על {count} אובייקטים:\n{summary}\n\nלהמשיך?',
 } satisfies Record<keyof typeof zh, string>

@@ -63,4 +63,6 @@ export const th = {
   dvhUseThis: 'ใช้ไฟล์นี้',
   dvhHistoryFor: 'ประวัติของ {name}',
   dvhHistoryAll: 'แสดงทั้งหมด',
+  dvhConfirmAction:
+    'AI ต้องการเรียกใช้ {action} ซึ่งกระทบ {count} วัตถุ:\n{summary}\n\nดำเนินการต่อหรือไม่',
 } satisfies Record<keyof typeof zh, string>

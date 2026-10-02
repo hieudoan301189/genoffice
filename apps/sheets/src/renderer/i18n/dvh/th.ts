@@ -35,4 +35,6 @@ export const th = {
   dvhNoCollections: 'ยังไม่มีคอลเลกชัน',
   dvhNoTables: 'ยังไม่มีตาราง',
   dvhErrSelectAnchor: 'เลือกเซลล์ที่ตารางจะเริ่มต้น',
+  dvhConfirmAction:
+    'AI ต้องการเรียกใช้ {action} ซึ่งกระทบ {count} วัตถุ:\n{summary}\n\nดำเนินการต่อหรือไม่',
 } satisfies Record<keyof typeof zh, string>

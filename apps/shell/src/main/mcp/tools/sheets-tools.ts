@@ -53,7 +53,7 @@ export interface SheetsControl {
   /** run one command in that tab and resolve its result */
   runCommand: (
     wcId: number,
-    command: 'apply_ops' | 'read_sheet' | 'save_sheet',
+    command: 'apply_ops' | 'read_sheet' | 'save_sheet' | 'dvh_actions',
     payload: unknown,
   ) => Promise<unknown>
 }

@@ -63,4 +63,5 @@ export const zhTW = {
   dvhUseThis: '使用此檔案',
   dvhHistoryFor: '{name} 的歷程',
   dvhHistoryAll: '顯示全部',
+  dvhConfirmAction: 'AI 要求執行 {action}，影響 {count} 個物件：\n{summary}\n\n要繼續嗎？',
 } satisfies Record<keyof typeof zh, string>

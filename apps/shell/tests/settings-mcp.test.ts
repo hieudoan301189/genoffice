@@ -160,6 +160,7 @@ describe('MCP local server section', () => {
       port: 3093,
       background: true,
       logging: false,
+      confirmThreshold: 50,
     })
 
     const log = host.querySelector<HTMLButtonElement>('.set-switch[aria-label="Logging"]')
@@ -169,6 +170,7 @@ describe('MCP local server section', () => {
       port: 3093,
       background: false,
       logging: true,
+      confirmThreshold: 50,
     })
   })
 

@@ -67,4 +67,6 @@ export const ms = {
   dvhUseThis: 'Guna ini',
   dvhHistoryFor: 'Sejarah {name}',
   dvhHistoryAll: 'Tunjuk semua',
+  dvhConfirmAction:
+    'AI mahu menjalankan {action}, menyentuh {count} objek:\n{summary}\n\nTeruskan?',
 } satisfies Record<keyof typeof zh, string>

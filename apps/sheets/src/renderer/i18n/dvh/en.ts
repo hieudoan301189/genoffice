@@ -35,4 +35,6 @@ export const en = {
   dvhNoCollections: 'No collections yet.',
   dvhNoTables: 'No tables yet.',
   dvhErrSelectAnchor: 'Select the cell where the table should start.',
+  dvhConfirmAction:
+    'The AI wants to run {action}, touching {count} object(s):\n{summary}\n\nContinue?',
 } satisfies Record<keyof typeof zh, string>

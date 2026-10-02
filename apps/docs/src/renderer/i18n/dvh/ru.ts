@@ -64,4 +64,6 @@ export const ru = {
   dvhUseThis: 'Использовать эту',
   dvhHistoryFor: 'История {name}',
   dvhHistoryAll: 'Показать всё',
+  dvhConfirmAction:
+    'ИИ хочет выполнить {action}, затронув объектов: {count}:\n{summary}\n\nПродолжить?',
 } satisfies Record<keyof typeof zh, string>

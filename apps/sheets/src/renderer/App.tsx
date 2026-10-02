@@ -291,14 +291,20 @@ import { installFormulaFormatChannel } from './dvh-format-channel'
 import { installDvhFormatFunctions } from './dvh-format-functions'
 import { showToast } from './toast-bus'
 import {
+  dvhStateOf,
   installDvhBindingWatch,
   loadDvhSmartData,
   registerDvhSheetsContext,
 } from './dvh-smart-data'
-import { createSheetsDvhActions } from './dvh-actions'
+import { createSheetsDvhActions, sheetsSagaParticipant } from './dvh-actions'
+import {
+  createBridgeEndpoint,
+  createDvhActionsSkill,
+  type ActionRegistry,
+} from '@genoffice/dvh-actions'
 import { installDvhTableWatch } from './dvh-tables'
 import { installDvhLivePublisher } from './dvh-live'
-import { isDvhDefinedName } from '@genoffice/dvh-model'
+import { isDvhDefinedName, newDvhId } from '@genoffice/dvh-model'
 import { installCellFilenameFunction } from './cell-function'
 import { installFormulaLexerFix } from './formula-lexer-fix'
 import { installErrorValueAlignment } from './error-value-align'
@@ -441,6 +447,8 @@ import { handleSheetsControl, type ControlRequest } from './control'
 
 // Source sheet id of an in-flight copy-sheet command; the next insert-sheet
 // mutation is that copy and must journal as a duplicate, not a blank add.
+/** the in-app agent's Sheets action registry, built on first use */
+let sheetsAgentDvhRegistry: ActionRegistry | null = null
 let pendingCopySource: string | undefined
 
 /// Plain text of a rich-text cell: neither the raw model nor the view model
@@ -1203,6 +1211,26 @@ export function App({
       skill: composeSkills('sheets+files', '', [
         createWorkbookSkill(sheetsSkillDeps()),
         createFilesSkill(availableAttachments),
+        // P4: the workbook's DVH action catalog (Smart Data, tables, Spreadsheet.* ops)
+        createDvhActionsSkill({
+          registry: () =>
+            (sheetsAgentDvhRegistry ??= createSheetsDvhActions({
+              applyOps: async (ops, dryRun) =>
+                (await mcpSheetHandlersRef.current?.applyOps(ops, dryRun)) ?? {
+                  ok: false,
+                  reason: 'not ready',
+                },
+            })),
+          docId: () => dvhStateOf(lazyWorkbookRef.current)?.model?.docId ?? 'doc_unsaved',
+          confirm: (action, preview) =>
+            window.confirm(
+              t('dvhConfirmAction', {
+                action,
+                count: preview.objects,
+                summary: [...preview.summary, ...preview.warnings].slice(0, 12).join('\n'),
+              }),
+            ),
+        }),
         createMergeSkill({
           getAttachments: availableAttachments,
           mergePaths: (paths) => {
@@ -4371,6 +4399,22 @@ export function App({
   }
   useEffect(() => {
     const handlers = mcpSheetHandlersRef
+    // P4: the workbook's action catalog over the same bridge; Spreadsheet.* ops run
+    // through the agent's own apply path (planFromOps + applyChangePlan)
+    const dvhRegistry = createSheetsDvhActions({
+      applyOps: async (ops, dryRun) =>
+        (await handlers.current?.applyOps(ops, dryRun)) ?? { ok: false, reason: 'not ready' },
+    })
+    const sessionDocId = newDvhId('doc')
+    const dvhActionsEndpoint = createBridgeEndpoint(() => {
+      if (!univerRef.current) return null
+      const docId = dvhStateOf(lazyWorkbookRef.current)?.model?.docId ?? sessionDocId
+      return {
+        docId,
+        registry: dvhRegistry,
+        participant: sheetsSagaParticipant(() => univerRef.current, dvhRegistry, docId),
+      }
+    })
     return installSheetsMcpBridge({
       hasWorkbook: () => handlers.current?.hasWorkbook() ?? false,
       context: () => handlers.current?.context(),
@@ -4379,6 +4423,7 @@ export function App({
       focusSheet: (sheetId, address) => handlers.current?.focusSheet(sheetId, address),
       applyOps: async (ops, dryRun) =>
         (await handlers.current?.applyOps(ops, dryRun)) ?? { ok: false, reason: 'not ready' },
+      dvhActions: dvhActionsEndpoint,
       saveTo: async (path, overwrite) =>
         (await handlers.current?.saveTo(path, overwrite)) ?? {
           ok: false,

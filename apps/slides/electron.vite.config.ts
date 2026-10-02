@@ -52,6 +52,8 @@ export default defineConfig({
     plugins: [
       externalizeDepsPlugin({
         exclude: [
+          '@genoffice/dvh-actions',
+          '@genoffice/dvh-model',
           '@genoffice/pptx-engine',
           '@genoffice/pptx-ops',
           '@genoffice/pptx-render',

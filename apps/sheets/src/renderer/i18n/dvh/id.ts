@@ -36,4 +36,6 @@ export const id = {
   dvhNoCollections: 'Belum ada koleksi.',
   dvhNoTables: 'Belum ada tabel.',
   dvhErrSelectAnchor: 'Pilih sel tempat tabel dimulai.',
+  dvhConfirmAction:
+    'AI ingin menjalankan {action}, mengenai {count} objek:\n{summary}\n\nLanjutkan?',
 } satisfies Record<keyof typeof zh, string>

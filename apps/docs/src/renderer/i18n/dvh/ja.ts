@@ -64,4 +64,6 @@ export const ja = {
   dvhUseThis: 'これを使用',
   dvhHistoryFor: '{name} の履歴',
   dvhHistoryAll: 'すべて表示',
+  dvhConfirmAction:
+    'AI が {action} の実行を求めています（{count} 個のオブジェクトに影響）:\n{summary}\n\n続行しますか？',
 } satisfies Record<keyof typeof zh, string>

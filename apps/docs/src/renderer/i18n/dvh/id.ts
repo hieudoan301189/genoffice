@@ -64,4 +64,6 @@ export const id = {
   dvhUseThis: 'Gunakan ini',
   dvhHistoryFor: 'Riwayat {name}',
   dvhHistoryAll: 'Tampilkan semua',
+  dvhConfirmAction:
+    'AI ingin menjalankan {action}, mengenai {count} objek:\n{summary}\n\nLanjutkan?',
 } satisfies Record<keyof typeof zh, string>

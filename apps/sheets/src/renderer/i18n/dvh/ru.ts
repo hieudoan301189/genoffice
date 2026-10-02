@@ -35,4 +35,6 @@ export const ru = {
   dvhNoCollections: 'Коллекций пока нет.',
   dvhNoTables: 'Таблиц пока нет.',
   dvhErrSelectAnchor: 'Выберите ячейку, с которой начнётся таблица.',
+  dvhConfirmAction:
+    'ИИ хочет выполнить {action}, затронув объектов: {count}:\n{summary}\n\nПродолжить?',
 } satisfies Record<keyof typeof zh, string>

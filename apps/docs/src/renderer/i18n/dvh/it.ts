@@ -68,4 +68,5 @@ export const it = {
   dvhUseThis: 'Usa questa',
   dvhHistoryFor: 'Cronologia di {name}',
   dvhHistoryAll: 'Mostra tutto',
+  dvhConfirmAction: 'L’IA vuole eseguire {action} su {count} oggetto/i:\n{summary}\n\nContinuare?',
 } satisfies Record<keyof typeof zh, string>

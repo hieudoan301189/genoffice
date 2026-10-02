@@ -156,7 +156,7 @@ export interface SheetsBridgeDeps {
 export function createSheetsControl(deps: SheetsBridgeDeps): SheetsControl {
   const runCommand = async (
     wcId: number,
-    command: 'apply_ops' | 'read_sheet' | 'save_sheet',
+    command: 'apply_ops' | 'read_sheet' | 'save_sheet' | 'dvh_actions',
     payload: unknown,
   ): Promise<unknown> => {
     const wc = webContents.fromId(wcId)

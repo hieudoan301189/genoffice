@@ -194,6 +194,9 @@ export const strings = {
     setMcpDesc:
       '让外部 AI 助手（如 Claude Desktop、Cursor）通过本应用生成 Word 文档。仅限本机访问。',
     setMcpPort: '端口',
+    setMcpConfirmThreshold: '确认阈值',
+    setMcpConfirmThresholdDesc:
+      '外部代理的 DVH 操作计划影响超过此数量的对象时，先请你确认。删除类和外部操作始终需要确认。',
     setMcpRunning: '运行中',
     setMcpStopped: '未运行',
     setMcpConn: '连接信息',
@@ -570,6 +573,9 @@ export const strings = {
     setMcpDesc:
       'Let external AI agents (Claude Desktop, Cursor…) create Word documents through this running app. Localhost only.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Confirmation threshold',
+    setMcpConfirmThresholdDesc:
+      'DVH action plans from an external agent that touch more objects than this ask you first. Destructive and external actions always ask.',
     setMcpRunning: 'Running',
     setMcpStopped: 'Not running',
     setMcpConn: 'Connection',
@@ -684,7 +690,8 @@ export const strings = {
     setAiProvider: 'Provider',
     setAiModelId: 'Model',
     setAiApiKey: 'API Key',
-    setAiKeyHint: 'Encrypted for your Windows account; existing DVH-Tool Gemini key is loaded automatically.',
+    setAiKeyHint:
+      'Encrypted for your Windows account; existing DVH-Tool Gemini key is loaded automatically.',
     setAiBaseUrl: 'Base URL',
     setAiBaseUrlHint: 'Leave empty for the official endpoint.',
     setAiGensparkHint: 'Uses your Genspark sign-in; no API key needed.',
@@ -693,8 +700,7 @@ export const strings = {
     setAiCodexAutoPlaceholder: 'Auto-detect (recommended)',
     setAiCodexHint:
       'Automatically finds the current signed-in Codex CLI after updates; a custom path is optional. No API key is needed.',
-    setAiByokNote:
-      'DVH Office uses your Gemini API key for AI chat and translation.',
+    setAiByokNote: 'DVH Office uses your Gemini API key for AI chat and translation.',
     setAiSave: 'Save',
     setAiSaved: 'Saved',
     setAiTest: 'Test connection',
@@ -967,6 +973,9 @@ export const strings = {
     setMcpDesc:
       '外部の AI エージェント（Claude Desktop、Cursor など）がこのアプリ経由で Word 文書を作成できるようにします。ローカルホストのみ。',
     setMcpPort: 'ポート',
+    setMcpConfirmThreshold: '確認のしきい値',
+    setMcpConfirmThresholdDesc:
+      '外部エージェントの DVH 操作計画がこの数を超えるオブジェクトに影響する場合、先に確認します。削除系と外部操作は常に確認します。',
     setMcpRunning: '実行中',
     setMcpStopped: '停止中',
     setMcpConn: '接続情報',
@@ -1362,6 +1371,9 @@ export const strings = {
     setMcpDesc:
       '외부 AI 에이전트(Claude Desktop, Cursor 등)가 이 앱을 통해 Word 문서를 만들 수 있게 합니다. 로컬호스트 전용.',
     setMcpPort: '포트',
+    setMcpConfirmThreshold: '확인 임계값',
+    setMcpConfirmThresholdDesc:
+      '외부 에이전트의 DVH 작업 계획이 이 수보다 많은 개체에 영향을 주면 먼저 확인합니다. 삭제 및 외부 작업은 항상 확인합니다.',
     setMcpRunning: '실행 중',
     setMcpStopped: '중지됨',
     setMcpConn: '연결 정보',
@@ -1760,6 +1772,9 @@ export const strings = {
     setMcpDesc:
       'Permet à des agents IA externes (Claude Desktop, Cursor…) de créer des documents Word via cette application. Localhost uniquement.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Seuil de confirmation',
+    setMcpConfirmThresholdDesc:
+      'Les plans d’actions DVH d’un agent externe touchant plus d’objets que ce nombre vous sont d’abord soumis. Les actions destructives et externes demandent toujours.',
     setMcpRunning: 'En cours',
     setMcpStopped: 'À l’arrêt',
     setMcpConn: 'Connexion',
@@ -2170,6 +2185,9 @@ export const strings = {
     setMcpDesc:
       'Erlaubt externen KI-Agenten (Claude Desktop, Cursor…), über diese laufende App Word-Dokumente zu erstellen. Nur localhost.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Bestätigungsschwelle',
+    setMcpConfirmThresholdDesc:
+      'DVH-Aktionspläne eines externen Agenten, die mehr Objekte betreffen, werden Ihnen zuerst vorgelegt. Löschende und externe Aktionen fragen immer.',
     setMcpRunning: 'Läuft',
     setMcpStopped: 'Gestoppt',
     setMcpConn: 'Verbindung',
@@ -2577,6 +2595,9 @@ export const strings = {
     setMcpDesc:
       'Permite que agentes de IA externos (Claude Desktop, Cursor…) creen documentos de Word a través de esta aplicación. Solo localhost.',
     setMcpPort: 'Puerto',
+    setMcpConfirmThreshold: 'Umbral de confirmación',
+    setMcpConfirmThresholdDesc:
+      'Los planes de acciones DVH de un agente externo que afecten a más objetos te piden confirmación. Las acciones destructivas y externas siempre la piden.',
     setMcpRunning: 'En ejecución',
     setMcpStopped: 'Detenido',
     setMcpConn: 'Conexión',
@@ -2973,6 +2994,9 @@ export const strings = {
     setMcpDesc:
       'ให้เอเจนต์ AI ภายนอก (Claude Desktop, Cursor…) สร้างเอกสาร Word ผ่านแอปที่เปิดอยู่ได้ จำกัดเฉพาะ localhost',
     setMcpPort: 'พอร์ต',
+    setMcpConfirmThreshold: 'เกณฑ์การยืนยัน',
+    setMcpConfirmThresholdDesc:
+      'แผนการกระทำ DVH จากเอเจนต์ภายนอกที่กระทบวัตถุมากกว่าจำนวนนี้จะถามคุณก่อน การกระทำที่ลบหรือภายนอกจะถามเสมอ',
     setMcpRunning: 'กำลังทำงาน',
     setMcpStopped: 'หยุดทำงานอยู่',
     setMcpConn: 'การเชื่อมต่อ',
@@ -3367,6 +3391,9 @@ export const strings = {
     setMcpDesc:
       'Izinkan agen AI eksternal (Claude Desktop, Cursor…) membuat dokumen Word melalui aplikasi ini. Hanya localhost.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Ambang konfirmasi',
+    setMcpConfirmThresholdDesc:
+      'Rencana tindakan DVH dari agen eksternal yang menyentuh lebih banyak objek akan meminta konfirmasi. Tindakan destruktif dan eksternal selalu meminta.',
     setMcpRunning: 'Berjalan',
     setMcpStopped: 'Tidak berjalan',
     setMcpConn: 'Koneksi',
@@ -3763,6 +3790,9 @@ export const strings = {
     setMcpDesc:
       'Позволяет внешним ИИ-агентам (Claude Desktop, Cursor…) создавать документы Word через это приложение. Только localhost.',
     setMcpPort: 'Порт',
+    setMcpConfirmThreshold: 'Порог подтверждения',
+    setMcpConfirmThresholdDesc:
+      'Планы действий DVH внешнего агента, затрагивающие больше объектов, сначала показываются вам. Удаляющие и внешние действия подтверждаются всегда.',
     setMcpRunning: 'Работает',
     setMcpStopped: 'Остановлен',
     setMcpConn: 'Подключение',
@@ -4160,6 +4190,9 @@ export const strings = {
     setMcpDesc:
       'يتيح لوكلاء الذكاء الاصطناعي الخارجيين (Claude Desktop وCursor…) إنشاء مستندات Word عبر هذا التطبيق. على المضيف المحلي فقط.',
     setMcpPort: 'المنفذ',
+    setMcpConfirmThreshold: 'حد التأكيد',
+    setMcpConfirmThresholdDesc:
+      'خطط إجراءات DVH من وكيل خارجي التي تمس عناصر أكثر من هذا العدد تطلب تأكيدك أولاً. الإجراءات الحاذفة والخارجية تطلب دائمًا.',
     setMcpRunning: 'قيد التشغيل',
     setMcpStopped: 'متوقف',
     setMcpConn: 'معلومات الاتصال',
@@ -4546,6 +4579,9 @@ export const strings = {
     setMcpDesc:
       'Permite que agentes de IA externos (Claude Desktop, Cursor…) criem documentos do Word por meio deste aplicativo. Somente localhost.',
     setMcpPort: 'Porta',
+    setMcpConfirmThreshold: 'Limite de confirmação',
+    setMcpConfirmThresholdDesc:
+      'Planos de ações DVH de um agente externo que afetem mais objetos pedem sua confirmação. Ações destrutivas e externas sempre pedem.',
     setMcpRunning: 'Em execução',
     setMcpStopped: 'Parado',
     setMcpConn: 'Conexão',
@@ -4939,6 +4975,9 @@ export const strings = {
     setMcpDesc:
       'Consente ad agenti IA esterni (Claude Desktop, Cursor…) di creare documenti Word tramite questa app. Solo localhost.',
     setMcpPort: 'Porta',
+    setMcpConfirmThreshold: 'Soglia di conferma',
+    setMcpConfirmThresholdDesc:
+      'I piani di azioni DVH di un agente esterno che toccano più oggetti chiedono prima conferma. Le azioni distruttive ed esterne la chiedono sempre.',
     setMcpRunning: 'In esecuzione',
     setMcpStopped: 'Non in esecuzione',
     setMcpConn: 'Connessione',
@@ -5331,6 +5370,9 @@ export const strings = {
     setMcpDesc:
       'Pozwala zewnętrznym agentom AI (Claude Desktop, Cursor…) tworzyć dokumenty Word przez tę aplikację. Tylko localhost.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Próg potwierdzenia',
+    setMcpConfirmThresholdDesc:
+      'Plany akcji DVH zewnętrznego agenta dotyczące większej liczby obiektów najpierw pytają o zgodę. Akcje usuwające i zewnętrzne pytają zawsze.',
     setMcpRunning: 'Działa',
     setMcpStopped: 'Zatrzymany',
     setMcpConn: 'Połączenie',
@@ -5692,6 +5734,9 @@ export const strings = {
     setMcpDesc:
       'Umožňuje externím AI agentům (Claude Desktop, Cursor…) vytvářet dokumenty Word prostřednictvím této aplikace. Pouze localhost.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Práh potvrzení',
+    setMcpConfirmThresholdDesc:
+      'Plány akcí DVH od externího agenta, které mění více objektů, se nejdřív zeptají. Mazací a externí akce se ptají vždy.',
     setMcpRunning: 'Běží',
     setMcpStopped: 'Zastaveno',
     setMcpConn: 'Připojení',
@@ -6108,6 +6153,9 @@ export const strings = {
     setMcpDesc:
       'Laat externe AI-agenten (Claude Desktop, Cursor…) Word-documenten maken via deze actieve app. Alleen localhost.',
     setMcpPort: 'Poort',
+    setMcpConfirmThreshold: 'Bevestigingsdrempel',
+    setMcpConfirmThresholdDesc:
+      'DVH-actieplannen van een externe agent die meer objecten raken, vragen eerst om bevestiging. Verwijderende en externe acties vragen altijd.',
     setMcpRunning: 'Actief',
     setMcpStopped: 'Gestopt',
     setMcpConn: 'Verbinding',
@@ -6499,6 +6547,9 @@ export const strings = {
     setMcpDesc:
       'Benarkan ejen AI luar (Claude Desktop, Cursor…) mencipta dokumen Word melalui aplikasi ini. Localhost sahaja.',
     setMcpPort: 'Port',
+    setMcpConfirmThreshold: 'Ambang pengesahan',
+    setMcpConfirmThresholdDesc:
+      'Pelan tindakan DVH daripada ejen luaran yang menyentuh lebih banyak objek akan meminta pengesahan. Tindakan memadam dan luaran sentiasa meminta.',
     setMcpRunning: 'Sedang berjalan',
     setMcpStopped: 'Tidak berjalan',
     setMcpConn: 'Maklumat sambungan',
@@ -6888,6 +6939,9 @@ export const strings = {
     setMcpDesc:
       'מאפשר לסוכני בינה מלאכותית חיצוניים (Claude Desktop, Cursor…) ליצור מסמכי Word דרך האפליקציה הפועלת. localhost בלבד.',
     setMcpPort: 'יציאה',
+    setMcpConfirmThreshold: 'סף אישור',
+    setMcpConfirmThresholdDesc:
+      'תוכניות פעולות DVH מסוכן חיצוני שנוגעות ביותר אובייקטים מכך יבקשו אישור. פעולות מחיקה וחיצוניות מבקשות תמיד.',
     setMcpRunning: 'פעיל',
     setMcpStopped: 'לא פעיל',
     setMcpConn: 'פרטי חיבור',
@@ -7269,6 +7323,9 @@ export const strings = {
     setMcpDesc:
       'बाहरी AI एजेंट (Claude Desktop, Cursor…) को इस चल रहे ऐप के ज़रिए Word दस्तावेज़ बनाने दें। केवल localhost।',
     setMcpPort: 'पोर्ट',
+    setMcpConfirmThreshold: 'पुष्टि सीमा',
+    setMcpConfirmThresholdDesc:
+      'बाहरी एजेंट की DVH योजनाएँ जो इससे अधिक वस्तुओं को बदलें, पहले आपसे पूछेंगी। हटाने वाली और बाहरी क्रियाएँ हमेशा पूछती हैं।',
     setMcpRunning: 'चल रहा है',
     setMcpStopped: 'बंद है',
     setMcpConn: 'कनेक्शन जानकारी',
@@ -7652,6 +7709,9 @@ export const strings = {
     setMcpDesc:
       '讓外部 AI 助理（如 Claude Desktop、Cursor）透過本應用程式產生 Word 文件。僅限本機存取。',
     setMcpPort: '連接埠',
+    setMcpConfirmThreshold: '確認門檻',
+    setMcpConfirmThresholdDesc:
+      '外部代理的 DVH 動作計畫影響超過此數量的物件時，先請你確認。刪除類與外部動作一律需要確認。',
     setMcpRunning: '執行中',
     setMcpStopped: '未執行',
     setMcpConn: '連線資訊',

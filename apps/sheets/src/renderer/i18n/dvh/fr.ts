@@ -38,4 +38,5 @@ export const fr = {
   dvhNoCollections: 'Aucune collection.',
   dvhNoTables: 'Aucun tableau.',
   dvhErrSelectAnchor: 'Sélectionnez la cellule où le tableau doit commencer.',
+  dvhConfirmAction: 'L’IA veut exécuter {action}, sur {count} objet(s) :\n{summary}\n\nContinuer ?',
 } satisfies Record<keyof typeof zh, string>

@@ -36,4 +36,5 @@ export const nl = {
   dvhNoCollections: 'Nog geen verzamelingen.',
   dvhNoTables: 'Nog geen tabellen.',
   dvhErrSelectAnchor: 'Selecteer de cel waar de tabel moet beginnen.',
+  dvhConfirmAction: 'De AI wil {action} uitvoeren op {count} object(en):\n{summary}\n\nDoorgaan?',
 } satisfies Record<keyof typeof zh, string>

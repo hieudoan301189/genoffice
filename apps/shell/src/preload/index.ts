@@ -306,6 +306,7 @@ const homeApi: HomeApi = {
       port?: unknown
       background?: unknown
       logging?: unknown
+      confirmThreshold?: unknown
       url?: unknown
       capabilities?: unknown
       error?: unknown
@@ -316,6 +317,7 @@ const homeApi: HomeApi = {
       port: typeof r?.port === 'number' ? r.port : 3093,
       background: r?.background === true,
       logging: r?.logging === true,
+      confirmThreshold: typeof r?.confirmThreshold === 'number' ? r.confirmThreshold : 50,
       url: typeof r?.url === 'string' ? r.url : null,
       capabilities: Array.isArray(r?.capabilities)
         ? r.capabilities.filter((c): c is string => typeof c === 'string')
@@ -328,6 +330,7 @@ const homeApi: HomeApi = {
     port?: number
     background?: boolean
     logging?: boolean
+    confirmThreshold?: number
   }) {
     const result: unknown = await ipcRenderer.invoke(HOME_CHANNELS.setMcpSettings, patch)
     const r = result as {
@@ -336,6 +339,7 @@ const homeApi: HomeApi = {
       port?: unknown
       background?: unknown
       logging?: unknown
+      confirmThreshold?: unknown
       url?: unknown
       capabilities?: unknown
       error?: unknown
@@ -346,6 +350,7 @@ const homeApi: HomeApi = {
       port: typeof r?.port === 'number' ? r.port : 3093,
       background: r?.background === true,
       logging: r?.logging === true,
+      confirmThreshold: typeof r?.confirmThreshold === 'number' ? r.confirmThreshold : 50,
       url: typeof r?.url === 'string' ? r.url : null,
       capabilities: Array.isArray(r?.capabilities)
         ? r.capabilities.filter((c): c is string => typeof c === 'string')

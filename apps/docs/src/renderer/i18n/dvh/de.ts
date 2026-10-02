@@ -68,4 +68,6 @@ export const de = {
   dvhUseThis: 'Diese verwenden',
   dvhHistoryFor: 'Verlauf von {name}',
   dvhHistoryAll: 'Alle anzeigen',
+  dvhConfirmAction:
+    'Die KI möchte {action} ausführen ({count} Objekt(e)):\n{summary}\n\nFortfahren?',
 } satisfies Record<keyof typeof zh, string>

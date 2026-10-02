@@ -62,4 +62,5 @@ export const zh = {
   dvhUseThis: '使用此文件',
   dvhHistoryFor: '{name} 的历史',
   dvhHistoryAll: '显示全部',
+  dvhConfirmAction: 'AI 请求运行 {action}，影响 {count} 个对象：\n{summary}\n\n继续吗？',
 }

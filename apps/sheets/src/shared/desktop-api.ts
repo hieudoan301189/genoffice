@@ -2605,7 +2605,7 @@ export interface RecoveryPromptPayload {
 /** MCP visible-grid bridge message (shell → renderer, correlated by requestId). */
 export interface McpCommandMessage {
   requestId: string
-  command: 'apply_ops' | 'read_sheet' | 'save_sheet'
+  command: 'apply_ops' | 'read_sheet' | 'save_sheet' | 'dvh_actions'
   payload: unknown
 }
 

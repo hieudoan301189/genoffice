@@ -4,6 +4,10 @@ import type { McpCommandMessage, McpEditorCommand } from '../shared/ipc'
 import { executeTool, markDocSeen } from './ai/tools'
 import { findNumId, type NumIds } from './ai/protocol'
 import { save, type FileActionContext } from './file-actions'
+import { createBridgeEndpoint, type ActionRegistry } from '@genoffice/dvh-actions'
+import { newDvhId } from '@genoffice/dvh-model'
+import { createDocsDvhActions, docsSagaParticipant, type DocsActionHost } from './dvh-actions'
+import { activeDvhDocs } from './dvh-smart-data'
 
 /**
  * MCP bridge (renderer half).
@@ -72,6 +76,28 @@ function clearAiChangedFlags(editor: Editor): void {
  */
 function mcpErrorText(output: string): string {
   return output.replaceAll('get_document_context', 'read_document')
+}
+
+/** a document without Smart Data still needs a stable id for its change sets this session */
+const sessionDocId = newDvhId('doc')
+let dvhEndpoint: ((request: unknown) => Promise<unknown>) | null = null
+
+/** The tab's DVH action endpoint (P4): one registry, rebuilt per call on the live editor. */
+function dvhActionsEndpoint(deps: McpBridgeDeps): (request: unknown) => Promise<unknown> {
+  if (dvhEndpoint) return dvhEndpoint
+  const host: DocsActionHost = {
+    editor: () => deps.getCtx().editor ?? null,
+    filePath: () => deps.getCtx().doc?.filePath ?? null,
+    readSource: (path) => window.desktop.dvhReadSource({ path }),
+  }
+  let registry: ActionRegistry | null = null
+  dvhEndpoint = createBridgeEndpoint(() => {
+    if (!host.editor()) return null
+    registry ??= createDocsDvhActions(host)
+    const docId = activeDvhDocs()?.model?.docId ?? sessionDocId
+    return { docId, registry, participant: docsSagaParticipant(host, registry, docId) }
+  })
+  return dvhEndpoint
 }
 
 async function runCommand(
@@ -170,6 +196,9 @@ async function runCommand(
       if (!ok) throw new Error(reason || 'the document could not be saved')
       return { ok: true, path: input.path }
     }
+
+    case 'dvh_actions':
+      return dvhActionsEndpoint(deps)(payload)
 
     default: {
       const unreachable: never = command

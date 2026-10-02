@@ -53,6 +53,8 @@ export interface McpStatus {
   background: boolean
   /** server/tool activity is recorded to the local log file */
   logging: boolean
+  /** DVH action plans touching more objects than this ask the user first */
+  confirmThreshold: number
   /** base URL when running, else null */
   url: string | null
   /** capability families the running build exposes, e.g. ['docs', 'slides'] */
@@ -265,6 +267,7 @@ export interface HomeApi {
     port?: number
     background?: boolean
     logging?: boolean
+    confirmThreshold?: number
   }): Promise<McpStatus>
   /** last MCP log lines (empty when logging has never been on) */
   getMcpLogs(): Promise<string[]>

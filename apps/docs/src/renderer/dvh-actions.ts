@@ -6,9 +6,24 @@
  * change set a run returns is the caller's receipt of the same changes.
  */
 import type { Editor } from '@tiptap/core'
-import { ActionRegistry, z, type ActionContext, type PreviewReport } from '@genoffice/dvh-actions'
-import { dvhCellStyleSchema, fieldText, scalarSchema, type DvhLink } from '@genoffice/dvh-model'
-import { executeOps, type Op } from './ai/ops'
+import {
+  ActionRegistry,
+  localParticipant,
+  registerOpFamily,
+  z,
+  type ActionContext,
+  type PreviewReport,
+  type SagaParticipant,
+} from '@genoffice/dvh-actions'
+import {
+  dvhCellStyleSchema,
+  fieldText,
+  scalarSchema,
+  type ChangeSet,
+  type DvhLink,
+  type DvhModel,
+} from '@genoffice/dvh-model'
+import { executeOps, opCatalog, type Op } from './ai/ops'
 import {
   activeDvhDocs,
   fieldOccurrences,
@@ -282,5 +297,74 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
     },
   })
 
+  // P4 adapter: every op of the editor's op system is a Document.* action. The
+  // op system validates it; preview is its dry run; execute is one transaction
+  // (one undo item), exactly as apply_ops runs it.
+  registerOpFamily(registry, {
+    group: 'Document',
+    entries: opCatalog().map((def) => ({ op: def.name, summary: def.signature })),
+    run: async (op, dryRun, ctx) => {
+      const editor = host.editor()
+      if (!editor) throw new Error('no document is open')
+      const outcome = executeOps(editor, [op], {
+        source: ctx.caller === 'ai' ? 'ai' : 'ui',
+        dryRun,
+      })
+      if (!outcome.ok) throw new Error(outcome.error ?? 'the edit was rejected')
+      const changed = outcome.results.reduce((n, r) => n + r.changed, 0)
+      return {
+        summary: dryRun ? (outcome.plan ?? []) : [outcome.summary],
+        // a dry run cannot count matches without applying: one op, one object at least
+        objects: dryRun ? 1 : changed,
+        output: { summary: outcome.summary, results: outcome.results },
+      }
+    },
+  })
+
   return registry
+}
+
+/** What a saga restores a document to: its content and its Smart Data. */
+interface DocsCheckpoint {
+  readonly content: unknown
+  readonly model: DvhModel | null
+  readonly pending: readonly ChangeSet[]
+}
+
+/**
+ * The document as a saga participant (P4): the checkpoint is the editor's
+ * content and the Smart Data model; restoring puts both back as one undoable
+ * edit, so the user can still see (and redo) what the failed saga did.
+ */
+export function docsSagaParticipant(
+  host: DocsActionHost,
+  registry: ActionRegistry,
+  docId: string,
+): SagaParticipant {
+  return localParticipant({
+    docId,
+    ...(host.filePath() ? { label: host.filePath()! } : {}),
+    registry,
+    checkpoint: (): DocsCheckpoint => {
+      const editor = host.editor()
+      if (!editor) throw new Error('no document is open')
+      const dvh = activeDvhDocs()
+      return {
+        content: editor.getJSON(),
+        model: dvh?.model ? structuredClone(dvh.model) : null,
+        pending: [...(dvh?.pending ?? [])],
+      }
+    },
+    restore: (checkpoint) => {
+      const editor = host.editor()
+      if (!editor) throw new Error('no document is open')
+      const cp = checkpoint as DocsCheckpoint
+      editor.commands.setContent(cp.content as never, { emitUpdate: true })
+      const dvh = activeDvhDocs()
+      if (dvh) {
+        dvh.model = cp.model ? structuredClone(cp.model) : null
+        dvh.pending.splice(0, dvh.pending.length, ...cp.pending)
+      }
+    },
+  })
 }

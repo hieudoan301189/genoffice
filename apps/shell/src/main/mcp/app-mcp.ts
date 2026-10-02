@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIRM_POLICY } from '@genoffice/dvh-actions'
+import { createDvhTools, type DvhActionsControl } from './tools/dvh-tools'
 import { McpServerService, DEFAULT_MCP_PORT, type McpToolDefinition } from './mcp-server'
 import { McpLogger } from './mcp-logger'
 import type { CliRunner } from './cli-runner'
@@ -49,6 +51,8 @@ export interface McpRuntimeDeps {
    * the argument from the tool schemas
    */
   resolveTarget?: TargetResolver
+  /** DVH Action Core across open documents (dvh_list_actions / dvh_preview / dvh_execute) */
+  dvhControl?: DvhActionsControl
   /** where the MCP log file lives (userData); logging is unavailable without it */
   logFilePath?: string
 }
@@ -60,6 +64,8 @@ export interface McpSettings {
   background: boolean
   /** server/tool activity is written to the log file; default off */
   logging: boolean
+  /** DVH plans touching more objects than this ask the user first (P4) */
+  confirmThreshold: number
 }
 
 export interface McpStatus {
@@ -68,6 +74,7 @@ export interface McpStatus {
   port: number
   background: boolean
   logging: boolean
+  confirmThreshold: number
   url: string | null
   /** capability families the current build exposes (settings pane rows) */
   capabilities: string[]
@@ -81,6 +88,12 @@ let currentSettings: McpSettings = {
   port: DEFAULT_MCP_PORT,
   background: false,
   logging: false,
+  confirmThreshold: DEFAULT_CONFIRM_POLICY.bulkThreshold,
+}
+
+/** the current DVH confirmation threshold (read by the dvh tools at call time) */
+export function mcpConfirmThreshold(): number {
+  return currentSettings.confirmThreshold
 }
 
 export function configureMcpRuntime(runtimeDeps: McpRuntimeDeps): void {
@@ -177,6 +190,8 @@ function buildTools(): McpToolDefinition[] {
     // headless, session-free read access (read_pdf); registered whenever the
     // pdf workspace is bundled in, which the shell always does
     ...createPdfTools(),
+    // the DVH action catalog of open documents, executed as one saga (P4)
+    ...createDvhTools(deps.dvhControl),
     // documents the user has open, independent of the session above
     ...createOpenDocumentTools({
       defaultSaveDir: deps.defaultSaveDir,
@@ -252,6 +267,7 @@ export function mcpStatus(): McpStatus {
     port: currentSettings.port,
     background: currentSettings.background,
     logging: currentSettings.logging,
+    confirmThreshold: currentSettings.confirmThreshold,
     url: running ? service!.getUrl() : null,
     capabilities: [
       'docs',
@@ -274,5 +290,12 @@ function normalize(settings: McpSettings): McpSettings {
     port,
     background: settings.background === true,
     logging: settings.logging === true,
+    confirmThreshold: normalizeConfirmThreshold(settings.confirmThreshold),
   }
+}
+
+export function normalizeConfirmThreshold(value: unknown): number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100_000
+    ? value
+    : DEFAULT_CONFIRM_POLICY.bulkThreshold
 }

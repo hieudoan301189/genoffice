@@ -65,4 +65,5 @@ export const hi = {
   dvhUseThis: 'इसका उपयोग करें',
   dvhHistoryFor: '{name} का इतिहास',
   dvhHistoryAll: 'सभी दिखाएँ',
+  dvhConfirmAction: 'AI {action} चलाना चाहता है, {count} वस्तुओं पर:\n{summary}\n\nजारी रखें?',
 } satisfies Record<keyof typeof zh, string>

@@ -35,4 +35,5 @@ export const ar = {
   dvhNoCollections: 'لا توجد مجموعات بعد.',
   dvhNoTables: 'لا توجد جداول بعد.',
   dvhErrSelectAnchor: 'حدد الخلية التي يبدأ منها الجدول.',
+  dvhConfirmAction: 'يريد الذكاء الاصطناعي تشغيل {action} على {count} عنصر:\n{summary}\n\nمتابعة؟',
 } satisfies Record<keyof typeof zh, string>

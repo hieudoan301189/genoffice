@@ -36,4 +36,6 @@ export const pt = {
   dvhNoCollections: 'Ainda não há coleções.',
   dvhNoTables: 'Ainda não há tabelas.',
   dvhErrSelectAnchor: 'Selecione a célula onde a tabela deve começar.',
+  dvhConfirmAction:
+    'A IA quer executar {action}, afetando {count} objeto(s):\n{summary}\n\nContinuar?',
 } satisfies Record<keyof typeof zh, string>

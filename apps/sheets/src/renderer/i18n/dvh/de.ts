@@ -36,4 +36,6 @@ export const de = {
   dvhNoCollections: 'Noch keine Sammlungen.',
   dvhNoTables: 'Noch keine Tabellen.',
   dvhErrSelectAnchor: 'Wählen Sie die Zelle, in der die Tabelle beginnen soll.',
+  dvhConfirmAction:
+    'Die KI möchte {action} ausführen ({count} Objekt(e)):\n{summary}\n\nFortfahren?',
 } satisfies Record<keyof typeof zh, string>

@@ -4,8 +4,22 @@
  * written by dvh-smart-data; the change set a run returns is the caller's
  * receipt of the same changes.
  */
-import { ActionRegistry, z, type ActionContext, type PreviewReport } from '@genoffice/dvh-actions'
+import {
+  ActionRegistry,
+  localParticipant,
+  registerOpFamily,
+  z,
+  type ActionContext,
+  type PreviewReport,
+  type SagaParticipant,
+} from '@genoffice/dvh-actions'
 import { dvhCellStyleSchema, fieldText, scalarSchema } from '@genoffice/dvh-model'
+import {
+  workbookOperationSchema,
+  type WorkbookOperation,
+} from '@genoffice/xlsx-gateway/domain/workbook-dsl'
+import { undoStackDepth } from './undo-carry'
+import type { UniverRuntime } from './univer-state'
 import {
   boundCellValue,
   createField,
@@ -66,7 +80,32 @@ export function parseCellRef(
   return { sheetName: target.sheet, row: Number(m[2]) - 1, column: column - 1 }
 }
 
-export function createSheetsDvhActions(): ActionRegistry {
+/** The workbook's op system, as App wires it for the agent and MCP (planFromOps + applyChangePlan). */
+export interface SheetsActionHost {
+  applyOps(ops: WorkbookOperation[], dryRun: boolean): Promise<unknown>
+}
+
+/** Objects a planned or applied batch touches, from the outcome App returns. */
+function countOf(outcome: Record<string, unknown>): number {
+  const list = (key: string) =>
+    Array.isArray(outcome[key]) ? (outcome[key] as unknown[]).length : 0
+  const cells =
+    typeof outcome.cellChangeCount === 'number' ? outcome.cellChangeCount : list('cellChanges')
+  return cells + list('structuralChanges') + list('formatChanges') + list('sheetRenames')
+}
+
+function linesOf(outcome: Record<string, unknown>): string[] {
+  const out: string[] = []
+  for (const key of ['structuralChanges', 'formatChanges', 'sheetRenames']) {
+    if (Array.isArray(outcome[key])) out.push(...(outcome[key] as unknown[]).map(String))
+  }
+  const cells = countOf(outcome) - out.length
+  if (cells > 0) out.push(`${cells} cell(s)`)
+  if (typeof outcome.message === 'string') out.push(outcome.message)
+  return out
+}
+
+export function createSheetsDvhActions(host?: SheetsActionHost): ActionRegistry {
   const registry = new ActionRegistry()
 
   registry.register({
@@ -282,5 +321,64 @@ export function createSheetsDvhActions(): ActionRegistry {
     },
   })
 
+  // P4 adapter: every workbook DSL operation is a Spreadsheet.* action. Its
+  // input is the operation's own schema; preview is planFromOps, execute is
+  // one applyChangePlan batch (one undo item).
+  if (host) {
+    registerOpFamily(registry, {
+      group: 'Spreadsheet',
+      entries: workbookOperationSchema.options.map((option) => {
+        const shape = option as unknown as {
+          shape: { op: { value: string } }
+          omit(mask: { op: true }): z.ZodType
+        }
+        return { op: shape.shape.op.value, input: shape.omit({ op: true }) }
+      }),
+      run: async (op, dryRun) => {
+        const outcome = (await host.applyOps([op as WorkbookOperation], dryRun)) as Record<
+          string,
+          unknown
+        >
+        if (outcome.ok === false) {
+          throw new Error(String(outcome.reason ?? outcome.error ?? 'the edit was rejected'))
+        }
+        return {
+          summary: linesOf(outcome),
+          objects: Math.max(1, countOf(outcome)),
+          output: outcome,
+        }
+      },
+    })
+  }
+
   return registry
+}
+
+/**
+ * The workbook as a saga participant (P4): the checkpoint is the depth of its
+ * undo stack; restoring undoes back down to it, so every batch the saga
+ * applied is undone the way the user would undo it.
+ */
+export function sheetsSagaParticipant(
+  runtime: () => UniverRuntime | null,
+  registry: ActionRegistry,
+  docId: string,
+): SagaParticipant {
+  return localParticipant({
+    docId,
+    registry,
+    checkpoint: () => undoStackDepth(runtime()),
+    restore: async (checkpoint) => {
+      const current = runtime()
+      if (!current) throw new Error('no workbook is open')
+      const target = Number(checkpoint)
+      // bounded: an undo that does not shrink the stack stops the loop
+      for (let guard = 0; undoStackDepth(current) > target && guard < 500; guard++) {
+        const before = undoStackDepth(current)
+        await current.univerAPI.undo()
+        if (undoStackDepth(current) >= before) break
+      }
+      if (undoStackDepth(current) > target) throw new Error('the workbook could not be undone')
+    },
+  })
 }

@@ -41,6 +41,9 @@ import { DOCS_CONTINUE_INSTRUCTION } from './continuation'
 import { waitForFullContent } from '../phased-content'
 import { currentDocGeneration } from '../file-actions'
 import { createFilesSkill } from './files-skill'
+import { createDvhActionsSkill, type ActionRegistry } from '@genoffice/dvh-actions'
+import { createDocsDvhActions } from '../dvh-actions'
+import { activeDvhDocs } from '../dvh-smart-data'
 import { createElectronTransport } from './transport'
 import { useI18n, t as tModule, aiLangDirective, type StringKey } from '../i18n/locale'
 import { Markdown } from '@genoffice/ui'
@@ -742,6 +745,30 @@ export function AiPanel({
     decidePartial(false)
   }
 
+  /** P4: the document's DVH action catalog as agent tools (dvh_list_actions / dvh_run) */
+  const filePathRef = useRef(filePath ?? null)
+  filePathRef.current = filePath ?? null
+  const dvhActionsSkill = () => {
+    let registry: ActionRegistry | null = null
+    return createDvhActionsSkill({
+      registry: () =>
+        (registry ??= createDocsDvhActions({
+          editor: () => editorRef.current,
+          filePath: () => filePathRef.current,
+          readSource: (path) => window.desktop.dvhReadSource({ path }),
+        })),
+      docId: () => activeDvhDocs()?.model?.docId ?? 'doc_unsaved',
+      confirm: (action, preview) =>
+        window.confirm(
+          tModule('dvhConfirmAction', {
+            action,
+            count: preview.objects,
+            summary: [...preview.summary, ...preview.warnings].slice(0, 12).join('\n'),
+          }),
+        ),
+    })
+  }
+
   const loopRef = useRef<AgentLoop<PmNode> | null>(null)
   if (!loopRef.current) {
     const numIds = (): NumIds => ({
@@ -768,6 +795,7 @@ export function AiPanel({
           () => mediaAnalysisAvailable(settingsRef.current, gskLoggedInRef.current),
         ),
         createFilesSkill(availableAttachments),
+        dvhActionsSkill(),
       ]),
       captureSnapshot: () => editorRef.current.getJSON() as PmNode,
       events: {

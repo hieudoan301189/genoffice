@@ -45,7 +45,12 @@ export interface DocToolDeps {
 
 /** editor commands the docs renderer bridge understands (see docs shared/ipc.ts) */
 export type McpEditorCommandName =
-  'insert_content' | 'replace_blocks' | 'apply_ops' | 'read_document' | 'save_document'
+  | 'insert_content'
+  | 'replace_blocks'
+  | 'apply_ops'
+  | 'read_document'
+  | 'save_document'
+  | 'dvh_actions'
 
 /**
  * Visible-editor control: opens a docs tab and pushes editor commands into it,

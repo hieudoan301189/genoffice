@@ -37,4 +37,6 @@ export const ms = {
   dvhNoCollections: 'Belum ada koleksi.',
   dvhNoTables: 'Belum ada jadual.',
   dvhErrSelectAnchor: 'Pilih sel tempat jadual bermula.',
+  dvhConfirmAction:
+    'AI mahu menjalankan {action}, menyentuh {count} objek:\n{summary}\n\nTeruskan?',
 } satisfies Record<keyof typeof zh, string>

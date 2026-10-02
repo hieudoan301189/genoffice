@@ -35,4 +35,5 @@ export const he = {
   dvhNoCollections: 'אין עדיין אוספים.',
   dvhNoTables: 'אין עדיין טבלאות.',
   dvhErrSelectAnchor: 'בחר את התא שבו הטבלה תתחיל.',
+  dvhConfirmAction: 'ה-AI רוצה להפעיל את {action} על {count} אובייקטים:\n{summary}\n\nלהמשיך?',
 } satisfies Record<keyof typeof zh, string>

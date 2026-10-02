@@ -67,4 +67,5 @@ export const fr = {
   dvhUseThis: 'Utiliser celui-ci',
   dvhHistoryFor: 'Historique de {name}',
   dvhHistoryAll: 'Tout afficher',
+  dvhConfirmAction: 'L’IA veut exécuter {action}, sur {count} objet(s) :\n{summary}\n\nContinuer ?',
 } satisfies Record<keyof typeof zh, string>

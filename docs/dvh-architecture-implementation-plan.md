@@ -340,6 +340,13 @@ Word/Excel thật còn chờ chạy trên Windows (danh sách trong báo cáo).
 - **Nghiệm thu:** _Transaction_ (workflow lỗi giữa chừng quay về checkpoint); gọi action ngoài catalog
   hoặc không đủ quyền đều bị từ chối.
 
+**Kết quả (02/10/2026):** catalog chung cho cả ba ứng dụng (`Document.*` bọc `OpDef`, `Spreadsheet.*` bọc
+`WorkbookOperation`, `Presentation.*` bọc `pptx-ops`) cùng các action Smart Data; fingerprint catalog; chính
+sách xác nhận theo mức tác động và ngưỡng trong Cài đặt; saga xuyên tài liệu với checkpoint từng ứng dụng;
+tool MCP `dvh_list_actions` / `dvh_preview` / `dvh_execute` và skill `dvh-actions` cho tác tử Docs/Sheets –
+[báo cáo](phases/p4-action-core.md). Nghiệm thu Transaction và từ chối action ngoài catalog/thiếu quyền đạt
+bằng vitest; bài trên bản đóng gói còn chờ chạy trên Windows.
+
 ### P5. Lịch sử theo đối tượng (3–4 tuần)
 
 - **Lịch sử nhúng trong file** (đã chốt): phần `customXml` riêng chứa change-set dạng JSON, ghi cùng

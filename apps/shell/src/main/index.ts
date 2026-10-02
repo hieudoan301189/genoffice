@@ -136,14 +136,17 @@ import {
   clearMcpLogs,
   configureMcpRuntime,
   getMcpRecentLogs,
+  mcpConfirmThreshold,
   mcpLogFilePath,
   mcpStatus,
+  normalizeConfirmThreshold,
   revealMcpLogFile,
   startMcpFromSettings,
   stopMcpSync,
   type McpSettings,
 } from './mcp/app-mcp'
 import { createCliRunner } from './mcp/cli-runner'
+import { createDvhActionsControl } from './mcp/dvh-bridge'
 import { DEFAULT_MCP_PORT } from './mcp/mcp-server'
 import { createDocsControl, installDocsBridge } from './mcp/docs-bridge'
 import { createSlidesControl } from './mcp/slides-bridge'
@@ -505,6 +508,7 @@ function currentMcpSettings(): McpSettings {
         : DEFAULT_MCP_PORT,
     background: saved.mcpBackground === true,
     logging: saved.mcpLogging === true,
+    confirmThreshold: normalizeConfirmThreshold(saved.mcpConfirmThreshold),
   }
 }
 
@@ -724,6 +728,9 @@ const tMain = createI18n({
     pdfDocxLocalCorruptDetail: '文件已损坏或不是有效的 PDF，无法转换。',
     dlgPickSaveDir: '选择默认保存位置',
     errSaveDirUnusable: '所选文件夹不可写，无法用作默认保存位置',
+    dvhConfirmPlan: '运行这些 DVH 操作？外部代理请求了以下计划。',
+    dvhConfirmRun: '运行',
+    dvhConfirmCancel: '取消',
   },
   en: {
     dlgAddFolderRoot: 'Add Folder to Home',
@@ -818,6 +825,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Choose Default Save Location',
     errSaveDirUnusable:
       'The selected folder is not writable and cannot be used as the default save location',
+    dvhConfirmPlan: 'Run these DVH actions? An external agent asked for this plan.',
+    dvhConfirmRun: 'Run',
+    dvhConfirmCancel: 'Cancel',
   },
   ja: {
     dlgAddFolderRoot: 'フォルダーをホームに追加',
@@ -912,6 +922,9 @@ const tMain = createI18n({
     dlgPickSaveDir: '既定の保存先を選択',
     errSaveDirUnusable:
       '選択したフォルダーは書き込みできないため、既定の保存先として使用できません',
+    dvhConfirmPlan: 'これらの DVH 操作を実行しますか？外部エージェントがこの計画を要求しました。',
+    dvhConfirmRun: '実行',
+    dvhConfirmCancel: 'キャンセル',
   },
   ko: {
     dlgAddFolderRoot: '홈에 폴더 추가',
@@ -1005,6 +1018,9 @@ const tMain = createI18n({
     pdfDocxLocalCorruptDetail: '파일이 손상되었거나 유효한 PDF가 아니어서 변환할 수 없습니다.',
     dlgPickSaveDir: '기본 저장 위치 선택',
     errSaveDirUnusable: '선택한 폴더에 쓸 수 없어 기본 저장 위치로 사용할 수 없습니다',
+    dvhConfirmPlan: '이 DVH 작업을 실행할까요? 외부 에이전트가 이 계획을 요청했습니다.',
+    dvhConfirmRun: '실행',
+    dvhConfirmCancel: '취소',
   },
   fr: {
     dlgAddFolderRoot: "Ajouter un dossier à l'accueil",
@@ -1100,6 +1116,9 @@ const tMain = createI18n({
     dlgPickSaveDir: "Choisir l'emplacement d'enregistrement par défaut",
     errSaveDirUnusable:
       "Le dossier sélectionné n'est pas accessible en écriture et ne peut pas servir d'emplacement d'enregistrement par défaut",
+    dvhConfirmPlan: 'Exécuter ces actions DVH ? Un agent externe a demandé ce plan.',
+    dvhConfirmRun: 'Exécuter',
+    dvhConfirmCancel: 'Annuler',
   },
   de: {
     dlgAddFolderRoot: 'Ordner zur Startseite hinzufügen',
@@ -1195,6 +1214,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Standard-Speicherort auswählen',
     errSaveDirUnusable:
       'Der ausgewählte Ordner ist nicht beschreibbar und kann nicht als Standard-Speicherort verwendet werden',
+    dvhConfirmPlan: 'Diese DVH-Aktionen ausführen? Ein externer Agent hat diesen Plan angefordert.',
+    dvhConfirmRun: 'Ausführen',
+    dvhConfirmCancel: 'Abbrechen',
   },
   es: {
     dlgAddFolderRoot: 'Añadir carpeta al inicio',
@@ -1290,6 +1312,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Elegir ubicación de guardado predeterminada',
     errSaveDirUnusable:
       'La carpeta seleccionada no admite escritura y no puede usarse como ubicación de guardado predeterminada',
+    dvhConfirmPlan: '¿Ejecutar estas acciones DVH? Un agente externo pidió este plan.',
+    dvhConfirmRun: 'Ejecutar',
+    dvhConfirmCancel: 'Cancelar',
   },
   th: {
     dlgAddFolderRoot: 'เพิ่มโฟลเดอร์ไปยังหน้าแรก',
@@ -1381,6 +1406,9 @@ const tMain = createI18n({
     pdfDocxLocalCorruptDetail: 'ไฟล์เสียหายหรือไม่ใช่ PDF ที่ถูกต้อง จึงไม่สามารถแปลงได้',
     dlgPickSaveDir: 'เลือกตำแหน่งบันทึกเริ่มต้น',
     errSaveDirUnusable: 'โฟลเดอร์ที่เลือกไม่สามารถเขียนได้ จึงใช้เป็นตำแหน่งบันทึกเริ่มต้นไม่ได้',
+    dvhConfirmPlan: 'เรียกใช้การกระทำ DVH เหล่านี้หรือไม่ เอเจนต์ภายนอกขอแผนนี้',
+    dvhConfirmRun: 'เรียกใช้',
+    dvhConfirmCancel: 'ยกเลิก',
   },
   id: {
     dlgAddFolderRoot: 'Tambahkan Folder ke Beranda',
@@ -1476,6 +1504,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Pilih Lokasi Penyimpanan Default',
     errSaveDirUnusable:
       'Folder yang dipilih tidak dapat ditulis dan tidak bisa digunakan sebagai lokasi penyimpanan default',
+    dvhConfirmPlan: 'Jalankan tindakan DVH ini? Agen eksternal meminta rencana ini.',
+    dvhConfirmRun: 'Jalankan',
+    dvhConfirmCancel: 'Batal',
   },
   ru: {
     dlgAddFolderRoot: 'Добавить папку на главную',
@@ -1571,6 +1602,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Выбрать папку сохранения по умолчанию',
     errSaveDirUnusable:
       'Выбранная папка недоступна для записи и не может использоваться как папка сохранения по умолчанию',
+    dvhConfirmPlan: 'Выполнить эти действия DVH? Внешний агент запросил этот план.',
+    dvhConfirmRun: 'Выполнить',
+    dvhConfirmCancel: 'Отмена',
   },
   ar: {
     dlgAddFolderRoot: 'إضافة مجلد إلى الصفحة الرئيسية',
@@ -1662,6 +1696,9 @@ const tMain = createI18n({
     pdfDocxLocalCorruptDetail: 'الملف تالف أو ليس ملف PDF صالحًا ولا يمكن تحويله.',
     dlgPickSaveDir: 'اختيار موقع الحفظ الافتراضي',
     errSaveDirUnusable: 'المجلد المحدد غير قابل للكتابة ولا يمكن استخدامه كموقع حفظ افتراضي',
+    dvhConfirmPlan: 'تشغيل إجراءات DVH هذه؟ طلب وكيل خارجي هذه الخطة.',
+    dvhConfirmRun: 'تشغيل',
+    dvhConfirmCancel: 'إلغاء',
   },
   pt: {
     dlgAddFolderRoot: 'Adicionar pasta à página inicial',
@@ -1757,6 +1794,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Escolher local de salvamento padrão',
     errSaveDirUnusable:
       'A pasta selecionada não permite gravação e não pode ser usada como local de salvamento padrão',
+    dvhConfirmPlan: 'Executar estas ações DVH? Um agente externo pediu este plano.',
+    dvhConfirmRun: 'Executar',
+    dvhConfirmCancel: 'Cancelar',
   },
   it: {
     dlgAddFolderRoot: 'Aggiungi cartella alla Home',
@@ -1852,6 +1892,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Scegli la posizione di salvataggio predefinita',
     errSaveDirUnusable:
       'La cartella selezionata non è scrivibile e non può essere usata come posizione di salvataggio predefinita',
+    dvhConfirmPlan: 'Eseguire queste azioni DVH? Un agente esterno ha chiesto questo piano.',
+    dvhConfirmRun: 'Esegui',
+    dvhConfirmCancel: 'Annulla',
   },
   pl: {
     dlgAddFolderRoot: 'Dodaj folder do strony głównej',
@@ -1947,6 +1990,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Wybierz domyślną lokalizację zapisu',
     errSaveDirUnusable:
       'Wybrany folder nie pozwala na zapis i nie może być domyślną lokalizacją zapisu',
+    dvhConfirmPlan: 'Uruchomić te akcje DVH? Zewnętrzny agent poprosił o ten plan.',
+    dvhConfirmRun: 'Uruchom',
+    dvhConfirmCancel: 'Anuluj',
   },
   cs: {
     dlgAddFolderRoot: 'Přidat složku na domovskou stránku',
@@ -2040,6 +2086,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Zvolte výchozí umístění pro ukládání',
     errSaveDirUnusable:
       'Do vybrané složky nelze zapisovat a nelze ji použít jako výchozí umístění pro ukládání',
+    dvhConfirmPlan: 'Spustit tyto akce DVH? Externí agent požádal o tento plán.',
+    dvhConfirmRun: 'Spustit',
+    dvhConfirmCancel: 'Zrušit',
   },
   nl: {
     dlgAddFolderRoot: 'Map toevoegen aan startpagina',
@@ -2135,6 +2184,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Standaard opslaglocatie kiezen',
     errSaveDirUnusable:
       'De geselecteerde map is niet beschrijfbaar en kan niet als standaard opslaglocatie worden gebruikt',
+    dvhConfirmPlan: 'Deze DVH-acties uitvoeren? Een externe agent heeft dit plan gevraagd.',
+    dvhConfirmRun: 'Uitvoeren',
+    dvhConfirmCancel: 'Annuleren',
   },
   ms: {
     dlgAddFolderRoot: 'Tambah Folder ke Laman Utama',
@@ -2229,6 +2281,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'Pilih Lokasi Simpanan Lalai',
     errSaveDirUnusable:
       'Folder yang dipilih tidak boleh ditulis dan tidak dapat digunakan sebagai lokasi simpanan lalai',
+    dvhConfirmPlan: 'Jalankan tindakan DVH ini? Ejen luaran meminta pelan ini.',
+    dvhConfirmRun: 'Jalankan',
+    dvhConfirmCancel: 'Batal',
   },
   he: {
     dlgAddFolderRoot: 'הוספת תיקייה לדף הבית',
@@ -2321,6 +2376,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'בחירת מיקום שמירה כברירת מחדל',
     errSaveDirUnusable:
       'התיקייה שנבחרה אינה ניתנת לכתיבה ולא ניתן להשתמש בה כמיקום שמירה כברירת מחדל',
+    dvhConfirmPlan: 'להפעיל את פעולות DVH האלה? סוכן חיצוני ביקש את התוכנית הזאת.',
+    dvhConfirmRun: 'הפעלה',
+    dvhConfirmCancel: 'ביטול',
   },
   hi: {
     dlgAddFolderRoot: 'होम में फ़ोल्डर जोड़ें',
@@ -2416,6 +2474,9 @@ const tMain = createI18n({
     dlgPickSaveDir: 'डिफ़ॉल्ट सहेजने का स्थान चुनें',
     errSaveDirUnusable:
       'चयनित फ़ोल्डर में लिखा नहीं जा सकता, इसलिए इसे डिफ़ॉल्ट सहेजने के स्थान के रूप में उपयोग नहीं किया जा सकता',
+    dvhConfirmPlan: 'ये DVH क्रियाएँ चलाएँ? एक बाहरी एजेंट ने यह योजना माँगी है।',
+    dvhConfirmRun: 'चलाएँ',
+    dvhConfirmCancel: 'रद्द करें',
   },
   'zh-TW': {
     dlgAddFolderRoot: '將資料夾加入首頁',
@@ -2502,6 +2563,9 @@ const tMain = createI18n({
     pdfDocxLocalCorruptDetail: '檔案已損壞或不是有效的 PDF，無法轉換。',
     dlgPickSaveDir: '選擇預設儲存位置',
     errSaveDirUnusable: '所選資料夾無法寫入，無法作為預設儲存位置',
+    dvhConfirmPlan: '執行這些 DVH 動作？外部代理要求了以下計畫。',
+    dvhConfirmRun: '執行',
+    dvhConfirmCancel: '取消',
   },
 })
 
@@ -3688,6 +3752,7 @@ function registerHomeIpc(): void {
       port?: unknown
       background?: unknown
       logging?: unknown
+      confirmThreshold?: unknown
     }
     const current = currentMcpSettings()
     const enabled = typeof request.enabled === 'boolean' ? request.enabled : current.enabled
@@ -3701,14 +3766,19 @@ function registerHomeIpc(): void {
     const background =
       typeof request.background === 'boolean' ? request.background : current.background
     const logging = typeof request.logging === 'boolean' ? request.logging : current.logging
+    const confirmThreshold =
+      request.confirmThreshold === undefined
+        ? current.confirmThreshold
+        : normalizeConfirmThreshold(request.confirmThreshold)
     writeAppSettings(APP_SETTINGS_PATH(), {
       mcpEnabled: enabled,
       mcpPort: port,
       mcpBackground: background,
       mcpLogging: logging,
+      mcpConfirmThreshold: confirmThreshold,
     })
     try {
-      return await applyMcpSettings({ enabled, port, background, logging })
+      return await applyMcpSettings({ enabled, port, background, logging, confirmThreshold })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return { ...mcpStatus(), error: message }
@@ -5263,6 +5333,37 @@ app.whenReady().then(async () => {
     authorizeSave: authorizeMcpSheetWrite,
     abandonBlankTab: (wcId) => abandonBlankSheetsTabForMcp(wcId),
   })
+  // DVH actions over MCP: tab lookup, the family bridges, and the user's confirmation
+  const listOpenDocuments = async () => {
+    const tabs = tabManager ? await tabManager.openDocuments() : []
+    return [...tabs, ...(await detachedOpenDocuments())]
+  }
+  const dvhControl = createDvhActionsControl({
+    list: listOpenDocuments,
+    webContentsFor: (tabId) =>
+      tabManager?.webContentsForTab(tabId) ?? detachedWebContentsFor(tabId),
+    docs: mcpDocsControl,
+    sheets: mcpSheetsControl,
+    bulkThreshold: () => mcpConfirmThreshold(),
+    confirm: async (title, lines) => {
+      const parent = shellWindow && !shellWindow.isDestroyed() ? shellWindow : undefined
+      const options = {
+        type: 'warning' as const,
+        title,
+        message: tm('dvhConfirmPlan'),
+        detail:
+          lines.slice(0, 40).join('\n') + (lines.length > 40 ? `\n… (+${lines.length - 40})` : ''),
+        buttons: [tm('dvhConfirmRun'), tm('dvhConfirmCancel')],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true,
+      }
+      const { response } = parent
+        ? await dialog.showMessageBox(parent, options)
+        : await dialog.showMessageBox(options)
+      return response === 0
+    },
+  })
   configureMcpRuntime({
     version: app.getVersion(),
     defaultSaveDir: () => defaultSaveDir(),
@@ -5270,6 +5371,7 @@ app.whenReady().then(async () => {
     docsControl: mcpDocsControl,
     slidesControl: mcpSlidesControl,
     sheetsControl: mcpSheetsControl,
+    dvhControl,
     // documents the user has open: the tab list plus each family's own bridge,
     // so an agent reaches a tab nobody but the user opened
     openDocumentsControl: createOpenDocumentsControl({

@@ -41,6 +41,8 @@ export interface McpSheetHandlers {
   applyOps: (ops: WorkbookOperation[], dryRun: boolean) => Promise<unknown>
   /** bring a sheet (and optionally a cell) into view before/after an edit */
   focusSheet: (sheetId: string, address?: string) => void
+  /** DVH Action Core bridge (P4): catalog / run / checkpoint / restore */
+  dvhActions?: (request: unknown) => Promise<unknown>
   /** save to an explicit absolute path (dialog-free) */
   saveTo: (
     path: string,
@@ -193,6 +195,14 @@ export function installSheetsMcpBridge(handlers: McpSheetHandlers): () => void {
             return
           }
           reply(true, saved)
+          return
+        }
+        case 'dvh_actions': {
+          if (!handlers.dvhActions) {
+            reply(false, undefined, 'DVH actions are unavailable in this build')
+            return
+          }
+          reply(true, await handlers.dvhActions(message.payload))
           return
         }
         default:

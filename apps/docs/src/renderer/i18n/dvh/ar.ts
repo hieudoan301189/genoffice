@@ -63,4 +63,5 @@ export const ar = {
   dvhUseThis: 'استخدام هذا',
   dvhHistoryFor: 'سجل {name}',
   dvhHistoryAll: 'عرض الكل',
+  dvhConfirmAction: 'يريد الذكاء الاصطناعي تشغيل {action} على {count} عنصر:\n{summary}\n\nمتابعة؟',
 } satisfies Record<keyof typeof zh, string>

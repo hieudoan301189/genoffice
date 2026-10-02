@@ -254,7 +254,13 @@ export interface ZoteroRendererResponse {
  * document to an explicit path.
  */
 export type McpEditorCommand =
-  'insert_content' | 'replace_blocks' | 'apply_ops' | 'read_document' | 'save_document'
+  | 'insert_content'
+  | 'replace_blocks'
+  | 'apply_ops'
+  | 'read_document'
+  | 'save_document'
+  /** DVH Action Core bridge (P4): catalog / run / checkpoint / restore */
+  | 'dvh_actions'
 
 export interface McpCommandMessage {
   requestId: string

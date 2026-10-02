@@ -63,4 +63,6 @@ export const ko = {
   dvhUseThis: '이 파일 사용',
   dvhHistoryFor: '{name} 기록',
   dvhHistoryAll: '모두 표시',
+  dvhConfirmAction:
+    'AI가 {action} 실행을 요청합니다(개체 {count}개에 영향):\n{summary}\n\n계속할까요?',
 } satisfies Record<keyof typeof zh, string>
