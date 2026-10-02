@@ -36,6 +36,7 @@
     "@genoffice/ui": "*",
     "@genoffice/dvh-actions": "*",
     "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-project": "*",
     "@genoffice/dvh-template": "*",
     "@genoffice/dvh-workflow": "*",
     "@genoffice/xlsx-gateway": "*",

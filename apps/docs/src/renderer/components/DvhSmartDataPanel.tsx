@@ -40,6 +40,7 @@ import { DvhDocsTablesSection } from './DvhDocsTablesSection'
 import { DvhHistorySection } from './DvhHistorySection'
 import { DvhTemplateSection } from './DvhTemplateSection'
 import { DvhWorkflowSection } from './DvhWorkflowSection'
+import { DvhProjectSection } from './DvhProjectSection'
 import { announceUi, installDocsUiActions, noteUnrecordable, runUiAction } from '../dvh-workflow'
 import './dvh-smart-data.css'
 
@@ -676,6 +677,8 @@ export function DvhSmartDataPanel({
         {...(buildBytes ? { buildBytes } : {})}
         onChange={repaint}
       />
+
+      <DvhProjectSection dvh={dvh} filePath={filePath} onChange={repaint} />
 
       <DvhWorkflowSection dvh={dvh} onChange={repaint} />
 

@@ -153,6 +153,20 @@ const api: DesktopApi = {
     ipcRenderer.invoke('docs:dvh-convert-template', data, String(name)),
   dvhQlclImport: (into: unknown) => ipcRenderer.invoke('docs:dvh-qlcl-import', into),
   dvhQlclExport: (model: unknown) => ipcRenderer.invoke('docs:dvh-qlcl-export', model),
+  dvhProjectInfo: (filePath: string | null) =>
+    ipcRenderer.invoke('docs:dvh-project-info', filePath),
+  dvhProjectInstallPack: (filePath: string | null) =>
+    ipcRenderer.invoke('docs:dvh-project-install-pack', filePath),
+  dvhProjectObjects: (filePath: string | null, type: string) =>
+    ipcRenderer.invoke('docs:dvh-project-objects', filePath, type),
+  dvhProjectSet: (filePath: string | null, request: unknown) =>
+    ipcRenderer.invoke('docs:dvh-project-set', filePath, request),
+  dvhProjectDelete: (filePath: string | null, objectId: string) =>
+    ipcRenderer.invoke('docs:dvh-project-delete', filePath, objectId),
+  dvhProjectSync: (filePath: string | null, partner: string | null) =>
+    ipcRenderer.invoke('docs:dvh-project-sync', filePath, partner),
+  dvhProjectResolve: (filePath: string | null, partner: string, index: number, keep: string) =>
+    ipcRenderer.invoke('docs:dvh-project-resolve', filePath, partner, index, keep),
   dvhWorkflowExport: (json: string, fileName: string) =>
     ipcRenderer.invoke('docs:dvh-workflow-export', json, fileName),
   dvhWorkflowImport: () => ipcRenderer.invoke('docs:dvh-workflow-import'),

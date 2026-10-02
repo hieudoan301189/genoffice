@@ -25,7 +25,8 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { readDvhSource } from './dvh-source'
-import { registerDvhLinkIpc } from './dvh-link-watch'
+import { notifyDvhSourceChanged, registerDvhLinkIpc, setProjectFieldWriter } from './dvh-link-watch'
+import { ProjectDataService } from './dvh-project-source'
 import { findDvhSources } from './dvh-find-source'
 import { applyReleasePolicy, type DvhReleasePolicy } from './dvh-release'
 import { readHistoryBuffer, writeHistoryBuffer } from './dvh-history-buffer'
@@ -4666,6 +4667,71 @@ export function registerDocsIpc(): void {
   // DVH automatic links: watched workbooks and the live channel from Sheets
   registerDvhLinkIpc()
 
+  // P10: project data — a link source, schema packs, objects, the QLCL exchange
+  const projectData = new ProjectDataService(getProjectStore, notifyDvhSourceChanged)
+  setProjectFieldWriter((request) => projectData.writeFields(request))
+  const projectOfRequest = (filePath: unknown) =>
+    projectData.projectOf(typeof filePath === 'string' && filePath ? filePath : null)
+  ipcMain.handle('docs:dvh-project-info', (_event, filePath: unknown) =>
+    projectData.info(projectOfRequest(filePath)),
+  )
+  ipcMain.handle('docs:dvh-project-install-pack', async (event, filePath: unknown) => {
+    const picked = await openDialog(event, {
+      filters: [{ name: 'DVH schema pack', extensions: ['json'] }],
+      properties: ['openFile'],
+    })
+    if (picked.canceled || picked.filePaths.length === 0) return null
+    return projectData.installPack(
+      projectOfRequest(filePath),
+      await readFile(picked.filePaths[0]!, 'utf8'),
+    )
+  })
+  ipcMain.handle('docs:dvh-project-objects', (_event, filePath: unknown, type: unknown) =>
+    typeof type === 'string' ? projectData.objects(projectOfRequest(filePath), type) : [],
+  )
+  ipcMain.handle('docs:dvh-project-set', (_event, filePath: unknown, request: unknown) => {
+    const r = (request ?? {}) as { type?: unknown; objectId?: unknown; values?: unknown }
+    if (typeof r.type !== 'string' || !r.values || typeof r.values !== 'object') return null
+    const values = Object.fromEntries(
+      Object.entries(r.values as Record<string, unknown>).filter(
+        ([, v]) => v === null || ['string', 'number', 'boolean'].includes(typeof v),
+      ),
+    ) as Record<string, string | number | boolean | null>
+    return projectData.setObject(projectOfRequest(filePath), {
+      type: r.type,
+      objectId: typeof r.objectId === 'string' ? r.objectId : null,
+      values,
+    })
+  })
+  ipcMain.handle('docs:dvh-project-delete', (_event, filePath: unknown, objectId: unknown) => {
+    if (typeof objectId === 'string') projectData.deleteObject(projectOfRequest(filePath), objectId)
+  })
+  ipcMain.handle('docs:dvh-project-sync', async (event, filePath: unknown, partner: unknown) => {
+    let target = typeof partner === 'string' && partner ? partner : null
+    if (!target) {
+      const picked = await openDialog(event, {
+        filters: [{ name: 'QLCL', extensions: ['xlsx', 'json'] }],
+        properties: ['openFile'],
+      })
+      if (picked.canceled || picked.filePaths.length === 0) return null
+      target = picked.filePaths[0]!
+    }
+    if (!/\.(xlsx|json)$/i.test(target) || !existsSync(target)) return { error: 'not found' }
+    try {
+      return { partner: target, ...(await projectData.sync(projectOfRequest(filePath), target)) }
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) }
+    }
+  })
+  ipcMain.handle(
+    'docs:dvh-project-resolve',
+    (_event, filePath: unknown, partner: unknown, index: unknown, keep: unknown) => {
+      if (typeof partner !== 'string' || typeof index !== 'number') return
+      if (keep !== 'mine' && keep !== 'theirs') return
+      projectData.resolve(projectOfRequest(filePath), partner, index, keep)
+    },
+  )
+
   // DVH tables format numbers like Excel does: by the OS regional settings, not the UI language
   ipcMain.handle('docs:dvh-system-locale', () => app.getSystemLocale() || app.getLocale())
 
@@ -4673,6 +4739,12 @@ export function registerDocsIpc(): void {
   ipcMain.handle('docs:dvh-read-source', async (event, request: unknown) => {
     const { path, pick } = (request ?? {}) as { path?: unknown; pick?: unknown }
     let target = typeof path === 'string' && path ? path : null
+    // P10: a project is a source too
+    if (target?.startsWith('dvh-project://') && pick !== true) {
+      const project = projectData.readSource(target)
+      if (!project) throw new Error('The project is not available.')
+      return project
+    }
     if (pick === true || target === null) {
       const result = await openDialog(event, {
         filters: [{ name: 'Excel', extensions: ['xlsx', 'xlsm'] }],

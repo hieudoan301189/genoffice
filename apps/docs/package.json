@@ -100,6 +100,7 @@
   "dependencies": {
     "@genoffice/dvh-actions": "*",
     "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-project": "*",
     "@genoffice/dvh-script": "*",
     "@genoffice/dvh-template": "*",
     "@genoffice/dvh-workflow": "*",

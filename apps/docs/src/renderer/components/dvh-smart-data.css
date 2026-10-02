@@ -285,3 +285,9 @@
   flex: 1 1 160px;
   overflow-wrap: anywhere;
 }
+
+/* P10: project objects */
+.dvh-docs-panel-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}

@@ -1,4 +1,4 @@
-export { ProjectStore, canonicalPathKey } from './store.js'
+export { ProjectStore, canonicalPathKey, MAX_PROJECT_DATA_BYTES } from './store.js'
 export type {
   ChatMessage,
   ChatMeta,

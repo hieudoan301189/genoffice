@@ -474,6 +474,12 @@ catalog, autocomplete, chạy sandbox qua engine P8 (caller `script`, giới h�
   án theo định dạng trao đổi đã có từ P6. Đối tượng được khớp theo ID, có phát hiện xung đột như P3.
 - Chỉ ở đây mới cân nhắc gói `.dvh`, nếu cần đóng gói cả dự án.
 
+**Kết quả (02/10/2026):** package `dvh-project` (gói schema ngoài lõi, đối tượng có revision từng giá trị,
+kiểm tra kiểu và quy tắc, nguồn liên kết ảo `dvh-project://` để tài liệu liên kết thẳng tới đối tượng dự án và ghi
+ngược có kiểm xung đột như P3, đồng bộ hai chiều với QLCL-DVH theo ID với so sánh ba chiều và giải xung đột); kho
+trong `project-store` (`<project>/data`); gói QLCL `qlcl-xay-dung` dạng dữ liệu; mục "Dữ liệu dự án" trong Docs.
+Gói `.dvh` cân nhắc và chưa làm – [báo cáo](phases/p10-project-data.md).
+
 ---
 
 ## 6. Đặc tả lõi P0 (bản nháp)

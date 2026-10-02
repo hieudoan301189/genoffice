@@ -1,0 +1,121 @@
+{
+  "format": "dvh-schema-pack",
+  "version": 1,
+  "id": "qlcl-xay-dung",
+  "name": "QLCL công trình xây dựng",
+  "packVersion": "1.0.0",
+  "description": "Dự án, nhà thầu, hạng mục, nghiệm thu, vật liệu và thí nghiệm theo cách QLCL-DVH tổ chức hồ sơ chất lượng.",
+  "types": [
+    {
+      "name": "Project",
+      "label": "Dự án",
+      "single": true,
+      "fields": [
+        { "key": "Code", "label": "Mã dự án", "type": "text", "required": true },
+        { "key": "Name", "label": "Tên dự án", "type": "text", "required": true },
+        { "key": "Owner", "label": "Chủ đầu tư", "type": "text" },
+        { "key": "Location", "label": "Địa điểm", "type": "text" },
+        { "key": "StartDate", "label": "Ngày khởi công", "type": "date" },
+        { "key": "Contractor", "label": "Nhà thầu chính", "type": "ref", "ref": "Contractor" }
+      ]
+    },
+    {
+      "name": "Contractor",
+      "label": "Nhà thầu",
+      "fields": [
+        { "key": "Code", "label": "Mã nhà thầu", "type": "text", "required": true },
+        { "key": "Name", "label": "Tên nhà thầu", "type": "text", "required": true },
+        { "key": "TaxCode", "label": "Mã số thuế", "type": "text" },
+        { "key": "Representative", "label": "Người đại diện", "type": "text" }
+      ]
+    },
+    {
+      "name": "WorkItem",
+      "label": "Hạng mục",
+      "fields": [
+        { "key": "Code", "label": "Mã hạng mục", "type": "text", "required": true },
+        { "key": "Name", "label": "Tên hạng mục", "type": "text", "required": true },
+        { "key": "Unit", "label": "Đơn vị", "type": "text" },
+        { "key": "Quantity", "label": "Khối lượng", "type": "number" },
+        { "key": "Contractor", "label": "Nhà thầu", "type": "ref", "ref": "Contractor" },
+        {
+          "key": "Status",
+          "label": "Trạng thái",
+          "type": "enum",
+          "enumValues": ["Chưa thi công", "Đang thi công", "Đã nghiệm thu"]
+        }
+      ]
+    },
+    {
+      "name": "Acceptance",
+      "label": "Nghiệm thu",
+      "fields": [
+        { "key": "Code", "label": "Số biên bản", "type": "text", "required": true },
+        {
+          "key": "WorkItem",
+          "label": "Hạng mục",
+          "type": "ref",
+          "ref": "WorkItem",
+          "required": true
+        },
+        { "key": "Date", "label": "Ngày nghiệm thu", "type": "date" },
+        { "key": "Result", "label": "Kết quả", "type": "enum", "enumValues": ["Đạt", "Không đạt"] },
+        { "key": "Note", "label": "Ghi chú", "type": "text" }
+      ]
+    },
+    {
+      "name": "Material",
+      "label": "Vật liệu",
+      "fields": [
+        { "key": "Code", "label": "Mã vật liệu", "type": "text", "required": true },
+        { "key": "Name", "label": "Tên vật liệu", "type": "text", "required": true },
+        { "key": "Supplier", "label": "Nhà cung cấp", "type": "text" },
+        { "key": "Unit", "label": "Đơn vị", "type": "text" }
+      ]
+    },
+    {
+      "name": "Test",
+      "label": "Thí nghiệm",
+      "fields": [
+        { "key": "Code", "label": "Số phiếu", "type": "text", "required": true },
+        {
+          "key": "Material",
+          "label": "Vật liệu",
+          "type": "ref",
+          "ref": "Material",
+          "required": true
+        },
+        { "key": "Date", "label": "Ngày thí nghiệm", "type": "date" },
+        { "key": "Standard", "label": "Tiêu chuẩn", "type": "text" },
+        { "key": "Result", "label": "Kết quả", "type": "enum", "enumValues": ["Đạt", "Không đạt"] }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "quantity_positive",
+      "type": "WorkItem",
+      "when": "NOT ISBLANK(Quantity)",
+      "expr": "Quantity > 0",
+      "message": "Khối lượng hạng mục phải lớn hơn 0",
+      "severity": "error"
+    },
+    {
+      "id": "accepted_item_status",
+      "type": "Acceptance",
+      "when": "Result = \"Đạt\"",
+      "expr": "WorkItem.Status = \"Đã nghiệm thu\"",
+      "message": "Hạng mục đã nghiệm thu đạt nhưng trạng thái chưa là \"Đã nghiệm thu\"",
+      "severity": "warning"
+    },
+    {
+      "id": "failed_needs_note",
+      "type": "Acceptance",
+      "when": "Result = \"Không đạt\"",
+      "expr": "NOT ISBLANK(Note)",
+      "message": "Biên bản không đạt phải ghi rõ lý do",
+      "severity": "error"
+    }
+  ],
+  "templates": []
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@genoffice/dvh-project",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "DVH Project Data Model: project-level objects typed by installable schema packs (no business schema in the core), validation rules, a virtual link source for documents, field write-back and two-way exchange sync matched by id with conflict detection",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-template": "*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

@@ -50,6 +50,7 @@ import type {
   WriteFieldsResult,
 } from '@genoffice/dvh-model'
 import type { ConversionReport } from '@genoffice/dvh-template'
+import type { ProjectIssue, SyncConflict } from '@genoffice/dvh-project'
 
 /** P6: a batch generation request (the template bytes travel separately) */
 export interface DvhBatchRequest {
@@ -427,6 +428,39 @@ export interface DesktopApi {
   dvhQlclImport(into: DvhModel | null): Promise<{ path: string; model: DvhModel } | null>
   /** P6: Smart Data written as a QLCL workbook; the saved path */
   dvhQlclExport(model: DvhModel): Promise<string | null>
+  /** P10: the project of a document (unsaved: the default project) and its data */
+  dvhProjectInfo(filePath: string | null): Promise<DvhProjectInfo>
+  /** P10: picks a schema pack file and installs it into the project */
+  dvhProjectInstallPack(filePath: string | null): Promise<DvhProjectInfo | null>
+  dvhProjectObjects(
+    filePath: string | null,
+    type: string,
+  ): Promise<{ id: string; values: Record<string, string | number | boolean | null> }[]>
+  /** creates (objectId null) or edits an object; its id */
+  dvhProjectSet(
+    filePath: string | null,
+    request: {
+      type: string
+      objectId: string | null
+      values: Record<string, string | number | boolean | null>
+    },
+  ): Promise<string | null>
+  dvhProjectDelete(filePath: string | null, objectId: string): Promise<void>
+  /** two-way exchange with a QLCL file (picked when partner is null) */
+  dvhProjectSync(
+    filePath: string | null,
+    partner: string | null,
+  ): Promise<
+    | { partner: string; stats: Record<string, number>; conflicts: readonly SyncConflict[] }
+    | { error: string }
+    | null
+  >
+  dvhProjectResolve(
+    filePath: string | null,
+    partner: string,
+    index: number,
+    keep: 'mine' | 'theirs',
+  ): Promise<void>
   /** P8: saves a workflow (dvh-workflow JSON) into a project folder */
   dvhWorkflowExport(json: string, fileName: string): Promise<string | null>
   /** P8: picks a workflow file; the renderer validates it */
@@ -646,3 +680,23 @@ export interface DesktopApi {
 
 /** mirrors VIEW_IMAGE_CHANNEL in @genoffice/electron-utils (kept literal so the preload stays free of main-only deps) */
 export const VIEW_IMAGE_CHANNEL = 'genoffice:view-image'
+
+/** P10: what the Smart Data panel shows of the project data */
+export interface DvhProjectInfo {
+  readonly projectId: string
+  readonly name: string
+  /** the link source of the project (`dvh-project://…`) */
+  readonly uri: string
+  readonly docId: string
+  readonly revision: number
+  readonly packs: readonly { id: string; name: string; packVersion: string }[]
+  readonly types: readonly {
+    name: string
+    label?: string
+    single: boolean
+    count: number
+    fields: readonly { key: string; label?: string; type: string; enumValues?: string[] }[]
+  }[]
+  readonly issues: readonly ProjectIssue[]
+  readonly partners: readonly { path: string; at: string; conflicts: readonly SyncConflict[] }[]
+}

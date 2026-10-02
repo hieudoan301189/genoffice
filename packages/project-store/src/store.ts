@@ -80,6 +80,8 @@ const MAX_CHAT_LIMIT = 10_000
 const MAX_CHAT_FILE_READ_BYTES = 8 * 1024 * 1024
 /** Max project name chars: prevents MB names bloating index.json/project.json. */
 export const MAX_PROJECT_NAME_CHARS = 128
+/** Max size of a project's DVH data file (objects, packs, history). */
+export const MAX_PROJECT_DATA_BYTES = 32 * 1024 * 1024
 /** Default timeline entries; upper bound avoids loading every chat fully. */
 const DEFAULT_TIMELINE_LIMIT = 20
 const MAX_TIMELINE_LIMIT = 1_000
@@ -757,6 +759,37 @@ export class ProjectStore {
   /**
    * Gets project info.
    */
+  // ── Project data (P10) ────────────────────────────────────
+
+  private projectDataPath(projectId: string): string {
+    return join(this.projectDir(projectId), 'data', 'project-data.json')
+  }
+
+  /**
+   * The project-level DVH data (objects typed by schema packs), stored as
+   * `<project>/data/project-data.json`. This store keeps the JSON only; the
+   * DVH layer (@genoffice/dvh-project) validates it. Null when there is none
+   * or it cannot be read.
+   */
+  readProjectData(projectId: string): unknown | null {
+    const path = this.projectDataPath(projectId)
+    try {
+      if (!existsSync(path) || statSync(path).size > MAX_PROJECT_DATA_BYTES) return null
+    } catch {
+      return null
+    }
+    return readJson<unknown>(path)
+  }
+
+  /** Writes the project data atomically; the project must exist. */
+  writeProjectData(projectId: string, data: unknown): void {
+    if (!this.readProject(projectId)) throw new Error(`no project ${projectId}`)
+    const text = JSON.stringify(data)
+    if (Buffer.byteLength(text, 'utf8') > MAX_PROJECT_DATA_BYTES)
+      throw new Error('project data is too large')
+    writeJson(this.projectDataPath(projectId), data)
+  }
+
   getProject(projectId: string): ProjectData | null {
     return this.readProject(projectId)
   }

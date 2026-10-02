@@ -65,6 +65,23 @@ async function fingerprint(path: string): Promise<string | null> {
   }
 }
 
+/** Project data (P10) is not a file: its changes are announced by the project service. */
+const isProjectUri = (path: string) => path.startsWith('dvh-project://')
+
+/** Tells the documents watching a source that it changed (project data, P10). */
+export function notifyDvhSourceChanged(path: string): void {
+  notify(path)
+}
+
+let projectFieldWriter: ((request: WriteFieldsRequest) => WriteFieldsResult | null) | null = null
+
+/** Field write-back for `dvh-project://` sources (P10). */
+export function setProjectFieldWriter(
+  writer: ((request: WriteFieldsRequest) => WriteFieldsResult | null) | null,
+): void {
+  projectFieldWriter = writer
+}
+
 function notify(path: string): void {
   for (const [id, paths] of subscriptions) {
     if (![...paths].some((p) => key(p) === key(path))) continue
@@ -97,6 +114,7 @@ function rewatch(): void {
   const wanted = new Map<string, Map<string, string>>()
   for (const paths of subscriptions.values()) {
     for (const path of paths) {
+      if (isProjectUri(path)) continue
       const dir = dirname(path)
       const files = wanted.get(key(dir)) ?? new Map<string, string>()
       files.set(basename(path).toLowerCase(), path)
@@ -158,7 +176,9 @@ export function registerDvhLinkIpc(): void {
   ipcMain.handle('docs:dvh-watch', (event, paths: unknown) => {
     const list = Array.isArray(paths)
       ? paths
-          .filter((p): p is string => typeof p === 'string' && /\.xls[xm]$/i.test(p))
+          .filter(
+            (p): p is string => typeof p === 'string' && (/\.xls[xm]$/i.test(p) || isProjectUri(p)),
+          )
           .slice(0, 64)
       : []
     subscribe(event.sender, list)
@@ -259,6 +279,8 @@ async function writeFile(request: WriteFieldsRequest): Promise<WriteFieldsResult
 }
 
 export async function writeDvhFields(request: WriteFieldsRequest): Promise<WriteFieldsResult> {
+  const project = projectFieldWriter?.(request)
+  if (project) return project
   const live = await writeLive(request)
   if (live) return { via: 'live', path: live.path, results: live.results }
   return writeFile(request)
