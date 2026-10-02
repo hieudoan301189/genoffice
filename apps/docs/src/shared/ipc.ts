@@ -43,6 +43,7 @@ import type {
   AiStreamRequest,
   GenSparkAccountStatus,
 } from '@genoffice/ai-provider'
+import type { WriteFieldsRequest, WriteFieldsResult } from '@genoffice/dvh-model'
 import type { HeadlessExportTarget } from '@genoffice/electron-utils/headless-export'
 import type { FaceVerticalMetrics } from '@genoffice/font-metrics'
 import type { AiPanelPrefs } from '@genoffice/ui'
@@ -364,6 +365,12 @@ export interface DesktopApi {
     path?: string
     pick?: boolean
   }): Promise<{ path: string; modelXml: string | null } | null>
+  /** DVH write-back: set linked fields in their source workbook (open Sheets tab, else the file) */
+  dvhWriteFields(request: WriteFieldsRequest): Promise<WriteFieldsResult>
+  /** DVH links: workbooks on disk with this docId (project files, then the search index) */
+  dvhFindSource(docId: string): Promise<string[]>
+  /** DVH links: open the source workbook in its editor; false when it cannot be opened */
+  dvhOpenSource(path: string): Promise<boolean>
   /** auto=true marks an autosave: an externally modified file then fails with
    *  reason 'external-modified' instead of prompting (manual saves get an
    *  Overwrite/Cancel dialog in the main process) */

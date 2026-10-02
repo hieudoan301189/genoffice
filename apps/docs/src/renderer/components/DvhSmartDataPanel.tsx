@@ -13,6 +13,7 @@ import {
   insertSmartField,
   linkSource,
   loadDvhDocs,
+  relocateLink,
   setActiveDvhDocs,
   setDvhModelChangeListener,
   setLinkUpdateMode,
@@ -21,14 +22,21 @@ import {
 } from '../dvh-smart-data'
 import { refreshDocTable, setDvhNumberLocale, unlinkSource } from '../dvh-tables'
 import {
+  ambiguousSources,
   applySource,
   checkLinksOnOpen,
   installAutoLinks,
+  linkConflicts,
+  linkPendingWrites,
   linkStatus,
+  noteDocumentEdited,
   onLinkStatus,
-  readLinkedSource,
   refreshAutoWatch,
+  resolveConflict,
+  resolveLinkedSource,
   setLinkStatus,
+  writeBackLink,
+  type WriteBackOutcome,
 } from '../dvh-auto'
 import { DvhDocsTablesSection } from './DvhDocsTablesSection'
 import './dvh-smart-data.css'
@@ -36,6 +44,7 @@ import './dvh-smart-data.css'
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
 const HISTORY_ROWS = 20
 const readSource = (path: string) => window.desktop.dvhReadSource({ path })
+const findSource = (docId: string) => window.desktop.dvhFindSource?.(docId) ?? Promise.resolve([])
 
 /**
  * Mounted once by App: loads the document's Smart Data whenever a document is
@@ -66,9 +75,25 @@ export function DvhSmartDataHost({
         filePath: () => live.current.filePath,
         readSource,
         watch: (paths) => void window.desktop.dvhWatchSources?.(paths),
+        writeFields: window.desktop.dvhWriteFields
+          ? (request) => window.desktop.dvhWriteFields(request)
+          : undefined,
+        findSource,
       }),
     [],
   )
+
+  // Read/Write fields of automatic links go back to their workbook shortly after typing
+  useEffect(() => {
+    if (!editor) return
+    const onUpdate = ({ transaction }: { transaction: { docChanged: boolean } }) => {
+      if (transaction.docChanged) noteDocumentEdited()
+    }
+    editor.on('update', onUpdate)
+    return () => {
+      editor.off('update', onUpdate)
+    }
+  }, [editor])
 
   useEffect(() => {
     if (!parsed) {
@@ -144,6 +169,9 @@ export function DvhSmartDataPanel({
   const [value, setValue] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  /** the history list shows only this field (from a conflict's "History") */
+  const [historyField, setHistoryField] = useState<string | null>(null)
+  const historyRef = useRef<HTMLDetailsElement>(null)
 
   const dvh = dvhDocsStateOf(parsed)
   const fields = dvh?.model?.fields ?? []
@@ -204,11 +232,20 @@ export function DvhSmartDataPanel({
     if (!dvh || busy) return
     setBusy(true)
     try {
-      const source = await readLinkedSource(link, filePath, readSource)
-      if (!source) {
-        setLinkStatus(link.id, 'missing')
-        setError(t('dvhSourceMissing', { path: link.source.path ?? link.source.relPath ?? '' }))
+      const found = await resolveLinkedSource(dvh, link, filePath, readSource, findSource)
+      if (found.kind !== 'found') {
+        setLinkStatus(link.id, found.kind)
+        setError(
+          found.kind === 'missing'
+            ? t('dvhSourceMissing', { path: link.source.path ?? link.source.relPath ?? '' })
+            : '',
+        )
         return
+      }
+      const source = found.source
+      if (found.relocated) {
+        refreshAutoWatch()
+        showToast(t('dvhRelinked', { name: fileName(source.path) }))
       }
       const result = applySource(editor, dvh, link, source, false)
       let tables = result.tables
@@ -221,13 +258,102 @@ export function DvhSmartDataPanel({
         }
         tables += refreshDocTable(editor, dvh, tableId, { force: true, source: 'link' }).refreshed
       }
-      setLinkStatus(link.id, declined ? 'edited' : 'current')
+      if (linkStatus(link.id) !== 'conflict')
+        setLinkStatus(link.id, declined ? 'edited' : 'current')
       setError('')
       showToast(t('dvhUpdated', { count: result.fields + tables, name: fileName(source.path) }))
     } finally {
       setBusy(false)
       repaint()
     }
+  }
+
+  const reportWrite = (outcome: WriteBackOutcome | undefined, link: DvhLink) => {
+    if (!outcome) return
+    if (outcome.error) {
+      setError(t('dvhWriteFailed', { error: outcome.error }))
+      return
+    }
+    setError(
+      outcome.refused.length > 0 ? t('dvhWriteRefused', { count: outcome.refused.length }) : '',
+    )
+    if (outcome.written > 0) {
+      const name = fileName(link.source.path ?? link.source.relPath ?? link.source.docId)
+      showToast(t('dvhWritten', { count: outcome.written, name }))
+    }
+  }
+
+  const writeBack = async (link: DvhLink) => {
+    if (busy) return
+    setBusy(true)
+    try {
+      reportWrite(await writeBackLink(link.id), link)
+    } finally {
+      setBusy(false)
+      repaint()
+    }
+  }
+
+  const settle = async (link: DvhLink, fieldId: string, keep: 'mine' | 'source') => {
+    if (busy) return
+    setBusy(true)
+    try {
+      reportWrite(await resolveConflict(link.id, fieldId, keep), link)
+    } finally {
+      setBusy(false)
+      repaint()
+    }
+  }
+
+  const showHistory = (fieldId: string) => {
+    setHistoryField(fieldId)
+    if (historyRef.current) historyRef.current.open = true
+    historyRef.current?.scrollIntoView({ block: 'nearest' })
+  }
+
+  /** Points the link at another copy of its workbook: same docId, or one carrying every linked object. */
+  const changeSource = async (link: DvhLink, picked?: string) => {
+    if (!dvh || busy) return
+    setBusy(true)
+    try {
+      const read = picked
+        ? await window.desktop.dvhReadSource({ path: picked })
+        : await window.desktop.dvhReadSource({ pick: true })
+      if (!read) return
+      const source = sourceFromRead(read)
+      const ids = new Set([
+        ...(source?.model.fields.map((f) => f.id) ?? []),
+        ...(source?.model.collections.map((c) => c.id) ?? []),
+      ])
+      if (
+        !source ||
+        (source.model.docId !== link.source.docId && !link.targets.every((id) => ids.has(id)))
+      ) {
+        setError(t('dvhNotThisSource'))
+        return
+      }
+      relocateLink(dvh, link, source.path, filePath, source.model.docId)
+      refreshAutoWatch()
+      applySource(editor, dvh, link, source, false)
+      setError('')
+      showToast(t('dvhRelinked', { name: fileName(source.path) }))
+    } catch (e) {
+      setError(t('dvhErrReadSource', { error: e instanceof Error ? e.message : String(e) }))
+    } finally {
+      setBusy(false)
+      repaint()
+    }
+  }
+
+  const openSource = async (link: DvhLink) => {
+    const found = await resolveLinkedSource(dvh!, link, filePath, readSource, findSource)
+    const path = found.kind === 'found' ? found.source.path : null
+    if (!path || !(await window.desktop.dvhOpenSource?.(path))) {
+      setError(
+        t('dvhOpenSourceFailed', { path: path ?? link.source.path ?? link.source.relPath ?? '' }),
+      )
+    }
+    repaint()
   }
 
   const changeMode = (link: DvhLink, mode: LinkUpdateMode) => {
@@ -275,7 +401,10 @@ export function DvhSmartDataPanel({
     repaint()
   }
 
-  const history = historyEntries(dvh).slice(0, HISTORY_ROWS)
+  const history = historyEntries(dvh)
+    .filter((cs) => !historyField || cs.changes.some((c) => c.objectId === historyField))
+    .slice(0, HISTORY_ROWS)
+  const canWrite = typeof window.desktop.dvhWriteFields === 'function'
 
   return (
     <div className="dvh-docs-panel" role="dialog" aria-label={t('dvhPanelTitle')}>
@@ -321,6 +450,69 @@ export function DvhSmartDataPanel({
                   <span className="dvh-docs-panel-warn" data-status="edited">
                     {t('dvhStatusEdited')}
                   </span>
+                ) : linkStatus(link.id) === 'conflict' ? (
+                  <span className="dvh-docs-panel-warn" data-status="conflict">
+                    {t('dvhStatusConflict')}
+                  </span>
+                ) : linkStatus(link.id) === 'ambiguous' ? (
+                  <span className="dvh-docs-panel-warn" data-status="ambiguous">
+                    {t('dvhAmbiguous')}
+                  </span>
+                ) : null}
+                {ambiguousSources(link.id).length > 0 ? (
+                  <ul className="dvh-docs-panel-choices">
+                    {ambiguousSources(link.id).map((path) => (
+                      <li key={path}>
+                        <span title={path}>{path}</span>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void changeSource(link, path)}
+                        >
+                          {t('dvhUseThis')}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {linkConflicts(link.id).map((c) => (
+                  <div
+                    key={c.fieldId}
+                    className="dvh-docs-panel-conflict"
+                    data-field-id={c.fieldId}
+                  >
+                    <strong>{fieldName(c.fieldId)}</strong>
+                    <div>
+                      {t('dvhConflictHere')}: <ins>{c.local}</ins>
+                    </div>
+                    <div>
+                      {t('dvhConflictSource')}: <ins>{c.source.text}</ins>
+                    </div>
+                    <div className="dvh-docs-panel-link-actions">
+                      <button
+                        type="button"
+                        disabled={busy || !canWrite}
+                        onClick={() => void settle(link, c.fieldId, 'mine')}
+                      >
+                        {t('dvhKeepMine')}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void settle(link, c.fieldId, 'source')}
+                      >
+                        {t('dvhKeepSource')}
+                      </button>
+                      <button type="button" onClick={() => showHistory(c.fieldId)}>
+                        {t('dvhViewHistory')}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {linkPendingWrites(editor, dvh!, link).length > 0 ? (
+                  <span className="dvh-docs-panel-muted" data-status="pending-writes">
+                    {t('dvhPendingWrites', { count: linkPendingWrites(editor, dvh!, link).length })}
+                  </span>
                 ) : null}
                 <div className="dvh-docs-panel-link-actions">
                   <select
@@ -334,6 +526,22 @@ export function DvhSmartDataPanel({
                   </select>
                   <button type="button" disabled={busy} onClick={() => void update(link)}>
                     {t('dvhUpdateFromSource')}
+                  </button>
+                  <button
+                    type="button"
+                    data-action="write-back"
+                    disabled={
+                      busy || !canWrite || linkPendingWrites(editor, dvh!, link).length === 0
+                    }
+                    onClick={() => void writeBack(link)}
+                  >
+                    {t('dvhWriteBack')}
+                  </button>
+                  <button type="button" disabled={busy} onClick={() => void openSource(link)}>
+                    {t('dvhOpenSource')}
+                  </button>
+                  <button type="button" disabled={busy} onClick={() => void changeSource(link)}>
+                    {t('dvhChangeSource')}
                   </button>
                   <button type="button" onClick={() => unlink(link)}>
                     {t('dvhUnlink')}
@@ -399,8 +607,15 @@ export function DvhSmartDataPanel({
 
       <DvhDocsTablesSection editor={editor} dvh={dvh} onChange={repaint} />
 
-      <details className="dvh-docs-panel-section dvh-docs-panel-history">
-        <summary>{t('dvhHistory')}</summary>
+      <details ref={historyRef} className="dvh-docs-panel-section dvh-docs-panel-history">
+        <summary>
+          {historyField ? t('dvhHistoryFor', { name: fieldName(historyField) }) : t('dvhHistory')}
+        </summary>
+        {historyField ? (
+          <button type="button" onClick={() => setHistoryField(null)}>
+            {t('dvhHistoryAll')}
+          </button>
+        ) : null}
         {history.length === 0 ? (
           <p className="dvh-docs-panel-empty">{t('dvhNoHistory')}</p>
         ) : (

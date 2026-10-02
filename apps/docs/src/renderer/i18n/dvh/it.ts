@@ -46,4 +46,26 @@ export const it = {
   dvhUnlinkConfirm: 'Scollegare {name}? Campi e tabelle restano come contenuto normale.',
   dvhStatusEdited:
     'Una tabella è stata modificata a mano; gli aggiornamenti automatici la saltano finché non la aggiorni.',
+  dvhWriteBack: 'Scrivi nella sorgente',
+  dvhWritten: '{count} campo/i scritto/i in {name}.',
+  dvhWriteFailed: 'Impossibile scrivere nella sorgente: {error}',
+  dvhWriteRefused:
+    '{count} campo/i non scritto/i: la cella sorgente contiene una formula o non esiste più.',
+  dvhPendingWrites: '{count} campo/i modificato/i qui, non ancora nella sorgente.',
+  dvhStatusConflict: 'Conflitto: campi modificati su entrambi i lati.',
+  dvhConflictHere: 'Qui',
+  dvhConflictSource: 'Sorgente',
+  dvhKeepMine: 'Mantieni questo',
+  dvhKeepSource: 'Mantieni sorgente',
+  dvhViewHistory: 'Cronologia',
+  dvhChangeSource: 'Cambia sorgente…',
+  dvhOpenSource: 'Apri sorgente',
+  dvhOpenSourceFailed: 'Impossibile aprire {path}',
+  dvhNotThisSource:
+    'Questa cartella di lavoro non è la sorgente collegata (nessun Smart Data corrispondente).',
+  dvhRelinked: 'Il collegamento ora legge {name}.',
+  dvhAmbiguous: 'Più cartelle di lavoro contengono questa sorgente. Scegline una:',
+  dvhUseThis: 'Usa questa',
+  dvhHistoryFor: 'Cronologia di {name}',
+  dvhHistoryAll: 'Mostra tutto',
 } satisfies Record<keyof typeof zh, string>

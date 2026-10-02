@@ -18,6 +18,7 @@ import {
 } from '@genoffice/docx-engine'
 import {
   emptyModel,
+  fieldBaseOf,
   fieldSdtPrXml,
   fieldText,
   fieldValueFromText,
@@ -35,8 +36,10 @@ import {
   type DvhField,
   type DvhLink,
   type DvhModel,
+  type FieldBase,
   type HistoryPart,
   type Scalar,
+  threeWay,
 } from '@genoffice/dvh-model'
 
 export interface DvhDocsState {
@@ -333,7 +336,12 @@ export function linkSource(dvh: DvhDocsState, source: DvhSource, docPath: string
       ...source.model.collections.map((c) => c.id),
     ],
     update: 'manual',
-    lastSync: { revision: 0, hash: modelHash(source.model), at: new Date().toISOString() },
+    lastSync: {
+      revision: 0,
+      hash: modelHash(source.model),
+      at: new Date().toISOString(),
+      fields: Object.fromEntries(source.model.fields.map((f) => [f.id, fieldBaseOf(f)])),
+    },
   }
   model.links = [...model.links.filter((l) => l.id !== link.id), link]
   record(
@@ -344,6 +352,36 @@ export function linkSource(dvh: DvhDocsState, source: DvhSource, docPath: string
     true,
   )
   return link
+}
+
+/**
+ * Points a link at the workbook's new place (found by docId after a rename or
+ * a move, or chosen with "Change source"). `docId` changes only when the user
+ * picked a copy that carries every object the link reads.
+ */
+export function relocateLink(
+  dvh: DvhDocsState,
+  link: DvhLink,
+  path: string,
+  docPath: string | null,
+  docId: string = link.source.docId,
+): void {
+  const before = { docId: link.source.docId, path: link.source.path, relPath: link.source.relPath }
+  const relPath = relativeFromDocument(path, docPath)
+  link.source = {
+    docId,
+    ...(relPath ? { relPath } : {}),
+    path,
+    objectId: link.source.objectId,
+  }
+  if (before.path === path && before.relPath === relPath && before.docId === docId) return
+  record(
+    dvh,
+    'Link.Relocate',
+    [{ objectId: link.id, path: 'source', before, after: { docId, path, relPath } }],
+    'link',
+    true,
+  )
 }
 
 /** Candidate paths for a link's workbook: next to the document first, then the last known path. */
@@ -359,11 +397,68 @@ export function linkIsStale(link: DvhLink, source: DvhSource): boolean {
   return link.lastSync?.hash !== modelHash(source.model)
 }
 
+/** A field changed on both sides since the link last synced, to different texts. */
+export interface FieldConflict {
+  readonly fieldId: string
+  /** the document's text */
+  readonly local: string
+  /** the source as it is now */
+  readonly source: FieldBase
+  readonly base: FieldBase | undefined
+}
+
 export interface SourceUpdate {
   /** field occurrences whose text changed */
   readonly fields: number
   /** collections whose columns or rows changed (their tables need a refresh) */
   readonly collections: readonly string[]
+  /** fields edited in the document only: kept, waiting to be written back */
+  readonly localEdits: readonly string[]
+  /** fields edited on both sides: kept as they are here until the user decides */
+  readonly conflicts: readonly FieldConflict[]
+}
+
+/** The text a field shows in the document: its first occurrence, else its model value. */
+export function localFieldTexts(doc: PmNode, dvh: DvhDocsState): Map<string, string> {
+  const texts = new Map<string, string>()
+  for (const occ of fieldOccurrences(doc)) {
+    if (!texts.has(occ.fieldId)) texts.set(occ.fieldId, occ.text)
+  }
+  for (const field of dvh.model?.fields ?? []) {
+    if (!texts.has(field.id)) texts.set(field.id, fieldText(field.value))
+  }
+  return texts
+}
+
+/** The base a link last agreed on for one field (undefined for links made before P3). */
+export function linkFieldBase(link: DvhLink, fieldId: string): FieldBase | undefined {
+  return link.lastSync?.fields?.[fieldId]
+}
+
+/** Moves a link's base for some fields (after a pull, a write-back or a resolved conflict). */
+export function setLinkFieldBases(link: DvhLink, bases: ReadonlyMap<string, FieldBase>): void {
+  if (bases.size === 0) return
+  link.lastSync = {
+    revision: link.lastSync?.revision ?? 0,
+    hash: link.lastSync?.hash ?? '',
+    at: link.lastSync?.at ?? new Date().toISOString(),
+    fields: { ...(link.lastSync?.fields ?? {}), ...Object.fromEntries(bases) },
+  }
+}
+
+/**
+ * Read/Write fields edited here and not yet in the source: the document's
+ * text differs from the base the link last agreed on.
+ */
+export function pendingWriteBacks(doc: PmNode, dvh: DvhDocsState, link: DvhLink): string[] {
+  const texts = localFieldTexts(doc, dvh)
+  return (dvh.model?.fields ?? [])
+    .filter((f) => f.access === 'readwrite' && link.targets.includes(f.id))
+    .filter((f) => {
+      const base = linkFieldBase(link, f.id)
+      return base !== undefined && texts.get(f.id) !== base.text
+    })
+    .map((f) => f.id)
 }
 
 /**
@@ -378,7 +473,7 @@ export function updateFromSource(
   source: DvhSource,
   options: { history?: boolean } = {},
 ): SourceUpdate {
-  if (!dvh.model) return { fields: 0, collections: [] }
+  if (!dvh.model) return { fields: 0, collections: [], localEdits: [], conflicts: [] }
   const incoming = new Map(source.model.fields.map((f) => [f.id, f]))
   const changes: ChangeSet['changes'] = []
   const updatedCollections: string[] = []
@@ -399,10 +494,28 @@ export function updateFromSource(
     updatedCollections.push(next.id)
   }
   const texts = new Map<string, string>()
+  const local = localFieldTexts(editor.state.doc, dvh)
+  const bases = new Map<string, FieldBase>()
+  const localEdits: string[] = []
+  const conflicts: FieldConflict[] = []
   for (const field of dvh.model.fields) {
     const next = link.targets.includes(field.id) ? incoming.get(field.id) : undefined
     if (!next) continue
-    texts.set(field.id, fieldText(next.value))
+    const remote = fieldBaseOf(next)
+    const base = linkFieldBase(link, field.id)
+    // a read-only field is never edited here: the source always wins
+    const state =
+      field.access === 'read' ? 'source' : threeWay(base, local.get(field.id) ?? '', remote)
+    if (state === 'local') {
+      localEdits.push(field.id)
+      continue
+    }
+    if (state === 'conflict') {
+      conflicts.push({ fieldId: field.id, local: local.get(field.id) ?? '', source: remote, base })
+      continue
+    }
+    bases.set(field.id, remote)
+    texts.set(field.id, remote.text)
     if (next.value === field.value) continue
     changes.push({ objectId: field.id, path: 'value', before: field.value, after: next.value })
     field.value = next.value
@@ -411,6 +524,7 @@ export function updateFromSource(
     revision: (link.lastSync?.revision ?? 0) + 1,
     hash: modelHash(source.model),
     at: new Date().toISOString(),
+    fields: { ...(link.lastSync?.fields ?? {}), ...Object.fromEntries(bases) },
   }
   record(dvh, 'Link.Update', changes, 'link', true)
   const tr = editor.state.tr
@@ -418,7 +532,28 @@ export function updateFromSource(
   // automatic updates stay out of the user's undo history
   if (options.history === false) tr.setMeta('addToHistory', false)
   if (tr.docChanged) editor.view.dispatch(tr)
-  return { fields: changed, collections: updatedCollections }
+  return { fields: changed, collections: updatedCollections, localEdits, conflicts }
+}
+
+/**
+ * Shows `text` in every occurrence of a field and makes it the model value
+ * (a pulled source value, or a conflict settled for the source).
+ */
+export function applyFieldText(
+  editor: Editor,
+  dvh: DvhDocsState,
+  fieldId: string,
+  text: string,
+  action: string,
+  source: ChangeSet['source'],
+): void {
+  const field = dvh.model?.fields.find((f) => f.id === fieldId)
+  if (!field) return
+  const value = fieldValueFromText(field.type, text)
+  const tr = editor.state.tr
+  replaceFieldTexts(tr, new Map([[fieldId, text]]))
+  if (tr.docChanged) editor.view.dispatch(tr)
+  setFieldValue(dvh, field, value, action, source)
 }
 
 export type LinkUpdateMode = DvhLink['update']

@@ -59,8 +59,9 @@ export function serializeModelXml(model: DvhModel): string {
   const fields = model.fields
     .map((f) => {
       const enumAttr = f.enumValues ? ` enum="${escapeXml(JSON.stringify(f.enumValues))}"` : ''
+      const revAttr = f.rev !== undefined ? ` rev="${f.rev}"` : ''
       return (
-        `<dvh:f id="${escapeXml(f.id)}" name="${escapeXml(f.name)}" type="${f.type}" access="${f.access}"${enumAttr}>` +
+        `<dvh:f id="${escapeXml(f.id)}" name="${escapeXml(f.name)}" type="${f.type}" access="${f.access}"${enumAttr}${revAttr}>` +
         `${escapeXml(fieldText(f.value))}</dvh:f>`
       )
     })
@@ -94,6 +95,7 @@ export function parseModelXml(xml: string): DvhModel {
     const tag = `<f${m[1] ?? ''}>`
     const type = (attr(tag, 'type') ?? 'text') as FieldType
     const enumText = attr(tag, 'enum')
+    const rev = Number(attr(tag, 'rev'))
     fields.push({
       id: attr(tag, 'id') ?? '',
       name: attr(tag, 'name') ?? '',
@@ -101,6 +103,7 @@ export function parseModelXml(xml: string): DvhModel {
       access: attr(tag, 'access') ?? 'readwrite',
       value: fieldValueFromText(type, decodeXml(m[2] ?? '')),
       ...(enumText ? { enumValues: JSON.parse(enumText) as string[] } : {}),
+      ...(Number.isInteger(rev) && rev >= 0 ? { rev } : {}),
     })
   }
   const objectsMatch = /<(?:\w+:)?objects\b[^>]*>([\s\S]*?)<\/(?:\w+:)?objects>/.exec(xml)
@@ -119,19 +122,30 @@ export function parseModelXml(xml: string): DvhModel {
 
 /**
  * Replaces one field's text inside an existing model part, leaving every other
- * byte alone (what Word's own two-way binding does). Returns null when the
- * part has no such field.
+ * byte alone (what Word's own two-way binding does); `rev` also sets the
+ * field's revision. Returns null when the part has no such field.
  */
-export function setFieldTextInXml(xml: string, fieldId: string, text: string): string | null {
+export function setFieldTextInXml(
+  xml: string,
+  fieldId: string,
+  text: string,
+  rev?: number,
+): string | null {
   const re = new RegExp(
     `(<(?:\\w+:)?f\\b[^>]*\\sid=["']${fieldId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*?)(?:/>|>[\\s\\S]*?</((?:\\w+:)?f)>)`,
   )
   const m = re.exec(xml)
   if (!m) return null
   const close = m[2] ?? (/<(\w+:)?f\b/.exec(m[1]!)?.[1] ?? '') + 'f'
+  let open = m[1]!
+  if (rev !== undefined) {
+    open = /\srev=["'][^"']*["']/.test(open)
+      ? open.replace(/\srev=["'][^"']*["']/, ` rev="${Math.trunc(rev)}"`)
+      : `${open} rev="${Math.trunc(rev)}"`
+  }
   return (
     xml.slice(0, m.index) +
-    `${m[1]}>${escapeXml(text)}</${close}>` +
+    `${open}>${escapeXml(text)}</${close}>` +
     xml.slice(m.index + m[0].length)
   )
 }

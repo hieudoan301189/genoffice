@@ -227,6 +227,16 @@ const desktopApi: DesktopApi = {
       modelXml: payload.modelXml,
     })
   },
+  onDvhSetFields(handler) {
+    // same channel as DVH_SHEETS_SET_FIELDS_CHANNEL (@genoffice/dvh-model); the renderer validates it
+    const listener = (_event: Electron.IpcRendererEvent, request: unknown) => handler(request)
+    ipcRenderer.on('sheets:dvh-set-fields', listener)
+    return () => ipcRenderer.removeListener('sheets:dvh-set-fields', listener)
+  },
+  dvhSetFieldsReply(reply) {
+    // DVH_SHEETS_SET_FIELDS_RESULT_CHANNEL; the main process validates the reply
+    if (isRecord(reply)) ipcRenderer.send('dvh:set-fields-result', reply)
+  },
   async saveWorkbookEdits(request) {
     const validatedRequest = parseSaveRequest(request)
     const result: unknown = await ipcRenderer.invoke(IPC_CHANNELS.saveWorkbook, validatedRequest)

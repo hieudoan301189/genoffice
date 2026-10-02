@@ -130,6 +130,12 @@ const api: DesktopApi = {
       ...(typeof request.path === 'string' ? { path: request.path } : {}),
       pick: request.pick === true,
     }),
+  // DVH_WRITE_FIELDS_CHANNEL (@genoffice/dvh-model); the main process validates the request
+  dvhWriteFields: (request: unknown) => ipcRenderer.invoke('docs:dvh-write-fields', request),
+  dvhFindSource: (docId: string) =>
+    ipcRenderer.invoke('docs:dvh-find-source', typeof docId === 'string' ? docId : ''),
+  dvhOpenSource: (path: string) =>
+    ipcRenderer.invoke('docs:dvh-open-source', typeof path === 'string' ? path : ''),
   writeRecoveryCopy: (path: string, data: ArrayBuffer) =>
     ipcRenderer.invoke('docs:write-recovery', path, data),
   onTeardown: (handler) => {

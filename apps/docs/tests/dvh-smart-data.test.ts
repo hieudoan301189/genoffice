@@ -148,7 +148,7 @@ describe('Docs Smart Data', () => {
       path: 'D:\\Work\\boq.xlsx',
       model: workbookModel('Dự án B'),
     })
-    expect(changed).toEqual({ fields: 2, collections: [] })
+    expect(changed).toEqual({ fields: 2, collections: [], localEdits: [], conflicts: [] })
     expect(fieldOccurrences(editor.state.doc).map((o) => o.text)).toEqual(['Dự án B', 'Dự án B'])
     expect(link.lastSync?.revision).toBe(1)
     const parts = dvhDocsCustomXmlParts(parsed, editor)!

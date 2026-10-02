@@ -2839,6 +2839,10 @@ function createShellWindow(): void {
       else tabManager?.closeActiveTab()
     },
     openGeneratedPath: (path) => openGeneratedDocument(path),
+    findDvhDocId: (docId) => {
+      ensureFileIndexer()
+      return fileIndexStore?.pathsWithDvhDocId(docId) ?? []
+    },
   })
   setSheetsCloseTabHook(() => {
     const focused = BrowserWindow.getFocusedWindow()

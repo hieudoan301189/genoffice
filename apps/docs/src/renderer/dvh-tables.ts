@@ -29,6 +29,7 @@ import {
   ensureModel,
   recordDvhDocsChange,
   updateFromSource,
+  type FieldConflict,
   type DvhDocsState,
   type DvhSource,
 } from './dvh-smart-data'
@@ -285,6 +286,10 @@ export interface LinkUpdate {
   readonly tables: number
   /** tables edited by hand: not refreshed, the caller asks before forcing them */
   readonly editedTables: readonly string[]
+  /** fields edited here only, waiting to be written back (none when the source did not change) */
+  readonly localEdits?: readonly string[]
+  /** fields edited on both sides (see FieldConflict) */
+  readonly conflicts?: readonly FieldConflict[]
 }
 
 /**
@@ -313,7 +318,13 @@ export function updateLinkFromSource(
     if (result.needsConfirm) editedTables.push(table.id)
     else tables += result.refreshed
   }
-  return { fields: update.fields, tables, editedTables }
+  return {
+    fields: update.fields,
+    tables,
+    editedTables,
+    localEdits: update.localEdits,
+    conflicts: update.conflicts,
+  }
 }
 
 /**

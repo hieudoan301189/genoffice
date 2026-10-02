@@ -311,8 +311,14 @@ S5 đạt (01/10/2026, [báo cáo](spikes/s5-format-functions.md)). Kênh địn
 
 **Kết quả phần 1 (02/10/2026):** liên kết Tự động chạy cả khi nguồn đang mở trong Sheets (kênh trực tiếp,
 không cần lưu) lẫn khi nguồn được sửa và lưu bằng Excel (theo dõi file, đọc từ ô) –
-[báo cáo](phases/p3-auto-link.md). Link Manager có chế độ, trạng thái, ngắt liên kết. Còn lại: ghi ngược
-Field đơn, tìm nguồn theo project/docId.
+[báo cáo](phases/p3-auto-link.md). Link Manager có chế độ, trạng thái, ngắt liên kết.
+
+**Kết quả phần 2 (02/10/2026):** ghi ngược Field đơn qua tab Sheets đang mở (`Data.SetField`) hoặc vá thẳng xlsx
+khi nguồn đóng; mỗi lần ghi có change-set ở cả hai bên. Xung đột phát hiện theo `rev` của từng Field kèm so sánh
+giá trị, người dùng chọn giữ bên này / giữ nguồn / xem lịch sử. Tìm nguồn theo đường dẫn tương đối → đường dẫn
+cuối → `fileMap` → chỉ mục `docId` của shell; hai bản trùng thì hỏi. Link Manager thêm Ghi về nguồn, Mở nguồn,
+Đổi nguồn – [báo cáo](phases/p3-write-back.md). Đã kiểm bằng vitest; các bài trên bản đóng gói và bằng
+Word/Excel thật còn chờ chạy trên Windows (danh sách trong báo cáo).
 
 ### P4. Action Core hợp nhất (3–4 tuần)
 

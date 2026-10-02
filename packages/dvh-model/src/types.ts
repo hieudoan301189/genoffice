@@ -21,6 +21,13 @@ export const dvhFieldSchema = z
     value: scalarSchema,
     enumValues: z.array(z.string()).optional(),
     access: z.enum(['read', 'readwrite']),
+    /**
+     * bumped by every DVH write of the value (P3 write-back): a linked document
+     * compares it with the revision it last synced to detect conflicts.
+     * Writers that know nothing of DVH (Excel) leave it alone, so the value is
+     * compared as well.
+     */
+    rev: z.number().int().nonnegative().optional(),
   })
   .strict()
 export type DvhField = z.infer<typeof dvhFieldSchema>
@@ -144,6 +151,12 @@ export const dvhTableSchema = z
   .strict()
 export type DvhTable = z.infer<typeof dvhTableSchema>
 
+/** A field as both sides last agreed on it: the source revision and the text. */
+export const fieldBaseSchema = z
+  .object({ rev: z.number().int().nonnegative(), text: z.string() })
+  .strict()
+export type FieldBase = z.infer<typeof fieldBaseSchema>
+
 export const dvhLinkSchema = z
   .object({
     id: z.string().min(1),
@@ -161,7 +174,16 @@ export const dvhLinkSchema = z
     targets: z.array(z.string().min(1)),
     update: z.enum(['manual', 'onOpen', 'auto']),
     lastSync: z
-      .object({ revision: z.number().int(), hash: z.string(), at: z.string() })
+      .object({
+        revision: z.number().int(),
+        hash: z.string(),
+        at: z.string(),
+        /**
+         * per field: the source revision and text this document last agreed on
+         * (the common base of a three-way compare); absent in links made before P3
+         */
+        fields: z.record(z.string(), fieldBaseSchema).optional(),
+      })
       .strict()
       .optional(),
   })

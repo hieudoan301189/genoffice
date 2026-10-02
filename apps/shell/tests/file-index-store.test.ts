@@ -1,4 +1,5 @@
 import { mkdtempSync, rmSync } from 'node:fs'
+import { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -165,5 +166,34 @@ describe('FileIndexStore', () => {
     store.upsert(meta('/f/one.md'), 'alpha only', 'ok')
     expect(store.search('alpha beta').hits.map((h) => h.name)).toEqual(['both.pdf'])
     expect(store.search('alpha beta', { exts: ['md'] }).hits.map((h) => h.name)).toEqual(['one.md'])
+  })
+
+  it('keeps the DVH docId of Office files for link resolution (P3)', () => {
+    store.upsert(meta('/w/kl.xlsx'), 'cells', 'ok', 'doc_workbook')
+    store.upsert(meta('/w/copy.xlsx'), null, 'name-only', 'doc_workbook')
+    store.upsert(meta('/w/other.xlsx'), 'cells', 'ok', 'doc_other')
+    store.upsert(meta('/w/plain.xlsx'), 'cells', 'ok')
+    expect(store.pathsWithDvhDocId('doc_workbook').sort()).toEqual(['/w/copy.xlsx', '/w/kl.xlsx'])
+    // re-extraction replaces the row, docId included
+    store.upsert(meta('/w/kl.xlsx'), 'cells', 'ok', null)
+    expect(store.pathsWithDvhDocId('doc_workbook')).toEqual(['/w/copy.xlsx'])
+  })
+
+  it('adds the docId column to an older database and re-extracts its Office files', () => {
+    store.close()
+    const path = join(dir, 'old.db')
+    const db = new DatabaseSync(path)
+    db.exec(
+      'CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);' +
+        'CREATE TABLE files (id INTEGER PRIMARY KEY, path TEXT NOT NULL UNIQUE, name TEXT NOT NULL, ext TEXT NOT NULL, mtime_ms REAL NOT NULL, size_bytes INTEGER NOT NULL, status TEXT NOT NULL, body TEXT);' +
+        "INSERT INTO meta VALUES ('tokenizer', '2');" +
+        "INSERT INTO files(path, name, ext, mtime_ms, size_bytes, status) VALUES ('/w/a.xlsx', 'a.xlsx', 'xlsx', 5, 1, 'ok'), ('/w/b.pdf', 'b.pdf', 'pdf', 5, 1, 'ok');",
+    )
+    db.close()
+    store = new FileIndexStore(path)
+    const all = store.listAll()
+    expect(all.get('/w/a.xlsx')!.mtimeMs).toBe(-1)
+    expect(all.get('/w/b.pdf')!.mtimeMs).toBe(5)
+    expect(store.pathsWithDvhDocId('doc_x')).toEqual([])
   })
 })

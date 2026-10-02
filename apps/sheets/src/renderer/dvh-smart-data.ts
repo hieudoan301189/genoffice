@@ -294,6 +294,8 @@ export function setBoundFieldValue(
   if (field.value !== value) {
     const before = field.value
     field.value = value
+    // linked documents detect conflicts by it (P3 write-back)
+    field.rev = (field.rev ?? 0) + 1
     record(
       dvh,
       'Data.SetField',
@@ -319,6 +321,7 @@ export function syncFieldValues(runtime: UniverRuntime, dvh: DvhSheetState): voi
       after: value,
     })
     binding.field.value = value
+    binding.field.rev = (binding.field.rev ?? 0) + 1
   }
   record(dvh, 'Spreadsheet.CellEdited', changes)
 }

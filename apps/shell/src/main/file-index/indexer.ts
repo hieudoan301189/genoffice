@@ -136,18 +136,18 @@ export class FileIndexer {
         }
         const res = await this.ask({ id: 0, type: 'extract', path: st.path })
         if (res.type !== 'extract') continue
-        this.apply(st, res.result)
+        this.apply(st, res.result, res.dvhDocId ?? null)
       }
     } finally {
       this.draining = false
     }
   }
 
-  private apply(f: ScannedFile, r: Extracted): void {
+  private apply(f: ScannedFile, r: Extracted, dvhDocId: string | null): void {
     try {
-      if (r.kind === 'text') this.store.upsert(f, r.text, 'ok')
-      else if (r.kind === 'name-only') this.store.upsert(f, null, 'name-only')
-      else this.store.upsert(f, null, 'error')
+      if (r.kind === 'text') this.store.upsert(f, r.text, 'ok', dvhDocId)
+      else if (r.kind === 'name-only') this.store.upsert(f, null, 'name-only', dvhDocId)
+      else this.store.upsert(f, null, 'error', dvhDocId)
     } catch {
       // a corrupt row must not stall the queue; the next scan retries it
     }

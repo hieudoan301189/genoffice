@@ -173,3 +173,39 @@
   border: 1px solid var(--border-strong);
   border-radius: 4px;
 }
+
+/* P3 write-back: a field changed on both sides, and the workbooks to choose from */
+.dvh-docs-panel-conflict {
+  margin: 4px 0;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  background: var(--hover);
+}
+
+.dvh-docs-panel-conflict ins {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.dvh-docs-panel-choices {
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dvh-docs-panel-choices li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dvh-docs-panel-choices span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}

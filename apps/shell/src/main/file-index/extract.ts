@@ -1,6 +1,7 @@
 import { readFile, stat } from 'node:fs/promises'
 import { extname } from 'node:path'
 import { parseFileToText } from '@genoffice/file-parse'
+import { peekDvhDocId } from '../../../../docs/src/main/dvh-find-source'
 
 /** larger files are indexed by name and folder only */
 export const MAX_EXTRACT_BYTES = 64 * 1024 * 1024
@@ -43,4 +44,9 @@ export async function extractText(path: string): Promise<Extracted> {
   } catch (e) {
     return { kind: 'error', error: e instanceof Error ? e.message : String(e) }
   }
+}
+
+/** The DVH docId of an xlsx/xlsm/docx with Smart Data, else null; never throws. */
+export async function extractDvhDocId(path: string): Promise<string | null> {
+  return peekDvhDocId(path)
 }

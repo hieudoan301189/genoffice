@@ -2657,6 +2657,10 @@ export interface DesktopApi {
   readDvhParts(request: WorkbookDvhRequest): Promise<WorkbookDvhParts>
   /// DVH automatic links: the workbook's Smart Data after an edit, relayed to linked documents
   dvhPublishLive?(payload: { docId: string; path: string | null; modelXml: string }): void
+  /// DVH field write-back: a linked document asks this workbook to set fields (P3 Read/Write)
+  onDvhSetFields?(handler: (request: unknown) => void): () => void
+  /// the answer to one onDvhSetFields request (validated by the main process)
+  dvhSetFieldsReply?(reply: unknown): void
   readLocalImage(request: LocalImageRequest): Promise<LocalImageResult>
   captureScreenSources(): Promise<ScreenSourcesResult>
   /// null when the source vanished between listing and capture.

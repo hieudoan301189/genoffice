@@ -18,6 +18,7 @@ export {
 } from './smart-field'
 export {
   customXmlItemPropsXml,
+  findCustomXmlItemByNamespace,
   readCustomXmlPart,
   type CustomXmlPart,
   type CustomXmlPartWrite,

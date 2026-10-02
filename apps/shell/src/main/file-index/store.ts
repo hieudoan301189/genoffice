@@ -116,6 +116,29 @@ export class FileIndexStore {
       this.setMeta('tokenizer', String(TOKENIZER_VERSION))
     }
     this.db.exec(FTS_SCHEMA)
+    this.ensureDvhDocIdColumn()
+  }
+
+  /**
+   * DVH links find a moved workbook by its docId (P3). Added to existing
+   * databases in place; their Office files are marked stale so the next scan
+   * re-extracts them and fills the column.
+   */
+  private ensureDvhDocIdColumn(): void {
+    const columns = this.db.prepare('PRAGMA table_info(files)').all() as Array<{ name: string }>
+    if (!columns.some((c) => c.name === 'dvh_doc_id')) {
+      this.db.exec('ALTER TABLE files ADD COLUMN dvh_doc_id TEXT')
+      this.db.exec("UPDATE files SET mtime_ms = -1 WHERE ext IN ('xlsx', 'xlsm', 'docx')")
+    }
+    this.db.exec('CREATE INDEX IF NOT EXISTS files_dvh_doc_id ON files(dvh_doc_id)')
+  }
+
+  /** files whose DVH model part carries this docId (as of their last extraction) */
+  pathsWithDvhDocId(docId: string): string[] {
+    const rows = this.db
+      .prepare('SELECT path FROM files WHERE dvh_doc_id = ? ORDER BY mtime_ms DESC LIMIT 50')
+      .all(docId) as Array<{ path: string }>
+    return rows.map((r) => r.path)
   }
 
   private meta(key: string): string | null {
@@ -156,6 +179,7 @@ export class FileIndexStore {
     meta: { path: string; mtimeMs: number; sizeBytes: number },
     text: string | null,
     status: IndexStatus,
+    dvhDocId: string | null = null,
   ): void {
     const name = basename(meta.path)
     const ext = extname(meta.path).slice(1).toLowerCase()
@@ -173,9 +197,9 @@ export class FileIndexStore {
       }
       const inserted = this.db
         .prepare(
-          'INSERT INTO files(path, name, ext, mtime_ms, size_bytes, status, body) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          'INSERT INTO files(path, name, ext, mtime_ms, size_bytes, status, body, dvh_doc_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         )
-        .run(meta.path, name, ext, meta.mtimeMs, meta.sizeBytes, status, body)
+        .run(meta.path, name, ext, meta.mtimeMs, meta.sizeBytes, status, body, dvhDocId)
       this.db
         .prepare(
           'INSERT INTO file_fts(rowid, name, path, body, name_u, path_u, body_u) VALUES (?, ?, ?, ?, ?, ?, ?)',

@@ -46,4 +46,26 @@ export const de = {
     'Verknüpfung mit {name} lösen? Felder und Tabellen bleiben als normaler Inhalt erhalten.',
   dvhStatusEdited:
     'Eine Tabelle wurde von Hand geändert; automatische Aktualisierungen überspringen sie, bis Sie sie aktualisieren.',
+  dvhWriteBack: 'In Quelle zurückschreiben',
+  dvhWritten: '{count} Feld(er) in {name} geschrieben.',
+  dvhWriteFailed: 'Schreiben in die Quelle nicht möglich: {error}',
+  dvhWriteRefused:
+    '{count} Feld(er) nicht geschrieben: Die Quellzelle enthält eine Formel oder existiert nicht mehr.',
+  dvhPendingWrites: '{count} Feld(er) hier bearbeitet, noch nicht in der Quelle.',
+  dvhStatusConflict: 'Konflikt: Felder auf beiden Seiten geändert.',
+  dvhConflictHere: 'Hier',
+  dvhConflictSource: 'Quelle',
+  dvhKeepMine: 'Dies behalten',
+  dvhKeepSource: 'Quelle behalten',
+  dvhViewHistory: 'Verlauf',
+  dvhChangeSource: 'Quelle ändern…',
+  dvhOpenSource: 'Quelle öffnen',
+  dvhOpenSourceFailed: '{path} konnte nicht geöffnet werden',
+  dvhNotThisSource:
+    'Diese Arbeitsmappe ist nicht die verknüpfte Quelle (keine passenden Smart Data).',
+  dvhRelinked: 'Die Verknüpfung liest jetzt {name}.',
+  dvhAmbiguous: 'Mehrere Arbeitsmappen tragen diese Quelle. Wählen Sie eine:',
+  dvhUseThis: 'Diese verwenden',
+  dvhHistoryFor: 'Verlauf von {name}',
+  dvhHistoryAll: 'Alle anzeigen',
 } satisfies Record<keyof typeof zh, string>

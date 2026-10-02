@@ -45,4 +45,26 @@ export const pt = {
   dvhUnlinkConfirm: 'Desvincular {name}? Seus campos e tabelas ficam como conteúdo normal.',
   dvhStatusEdited:
     'Uma tabela foi editada à mão; as atualizações automáticas a ignoram até você atualizá-la.',
+  dvhWriteBack: 'Gravar na origem',
+  dvhWritten: '{count} campo(s) gravado(s) em {name}.',
+  dvhWriteFailed: 'Não foi possível gravar na origem: {error}',
+  dvhWriteRefused:
+    '{count} campo(s) não gravado(s): a célula de origem contém uma fórmula ou não existe mais.',
+  dvhPendingWrites: '{count} campo(s) editado(s) aqui, ainda não na origem.',
+  dvhStatusConflict: 'Conflito: campos alterados nos dois lados.',
+  dvhConflictHere: 'Aqui',
+  dvhConflictSource: 'Origem',
+  dvhKeepMine: 'Manter este',
+  dvhKeepSource: 'Manter origem',
+  dvhViewHistory: 'Histórico',
+  dvhChangeSource: 'Alterar origem…',
+  dvhOpenSource: 'Abrir origem',
+  dvhOpenSourceFailed: 'Não foi possível abrir {path}',
+  dvhNotThisSource:
+    'Esta pasta de trabalho não é a origem vinculada (sem Smart Data correspondente).',
+  dvhRelinked: 'O vínculo agora lê {name}.',
+  dvhAmbiguous: 'Várias pastas de trabalho têm esta origem. Escolha uma:',
+  dvhUseThis: 'Usar esta',
+  dvhHistoryFor: 'Histórico de {name}',
+  dvhHistoryAll: 'Mostrar tudo',
 } satisfies Record<keyof typeof zh, string>

@@ -5,15 +5,29 @@
 //   the document hears `docs:dvh-source-changed` once the file settles.
 // - A workbook open in Sheets publishes its Smart Data after each edit; this
 //   relays it to every subscribed document (`docs:dvh-live`), no save needed.
+// - Field write-back (Read/Write links): a document's write goes to the Sheets
+//   tab holding the workbook (`Data.SetField` there, undoable, saved with the
+//   workbook) or, when no tab holds it, into the xlsx on disk.
+import { randomUUID } from 'node:crypto'
 import { watch, type FSWatcher } from 'node:fs'
-import { stat } from 'node:fs/promises'
-import { basename, dirname } from 'node:path'
+import { readFile, stat } from 'node:fs/promises'
+import { basename, dirname, extname } from 'node:path'
 import { ipcMain, webContents, type WebContents } from 'electron'
 import {
   DVH_LIVE_DOCS_CHANNEL,
   DVH_LIVE_PUBLISH_CHANNEL,
+  DVH_SHEETS_SET_FIELDS_CHANNEL,
+  DVH_SHEETS_SET_FIELDS_RESULT_CHANNEL,
+  DVH_WRITE_FIELDS_CHANNEL,
   dvhLivePayloadSchema,
+  sheetsSetFieldsReplySchema,
+  writeFieldsRequestSchema,
+  type SheetsSetFieldsReply,
+  type WriteFieldsRequest,
+  type WriteFieldsResult,
 } from '@genoffice/dvh-model'
+import { atomicWriteFile } from './atomic-write'
+import { writeFieldsToXlsx } from './dvh-xlsx-write'
 
 const SOURCE_CHANGED_CHANNEL = 'docs:dvh-source-changed'
 /** writers save in steps (temp file, rename, metadata): report once the file is quiet */
@@ -30,6 +44,15 @@ interface FolderWatch {
 const subscriptions = new Map<number, Set<string>>()
 const folders = new Map<string, FolderWatch>()
 const lastSeen = new Map<string, string>()
+/** workbook docId → the Sheets webContents that last published it */
+const publishers = new Map<string, number>()
+/** a Sheets tab answers a write within this time, or the write goes to the file */
+const LIVE_WRITE_TIMEOUT_MS = 5000
+/** requestId → the tab asked and how to finish; only that tab's answer counts */
+const pendingWrites = new Map<
+  string,
+  { sender: number; finish: (reply: SheetsSetFieldsReply | null) => void }
+>()
 
 const key = (path: string) => path.toLowerCase()
 
@@ -145,10 +168,98 @@ export function registerDvhLinkIpc(): void {
   ipcMain.on(DVH_LIVE_PUBLISH_CHANNEL, (event, payload: unknown) => {
     const parsed = dvhLivePayloadSchema.safeParse(payload)
     if (!parsed.success) return
+    notePublisher(parsed.data.docId, event.sender)
     for (const id of subscriptions.keys()) {
       if (id === event.sender.id) continue
       const target = webContents.fromId(id)
       if (target && !target.isDestroyed()) target.send(DVH_LIVE_DOCS_CHANNEL, parsed.data)
     }
   })
+
+  ipcMain.on(DVH_SHEETS_SET_FIELDS_RESULT_CHANNEL, (event, reply: unknown) => {
+    const parsed = sheetsSetFieldsReplySchema.safeParse(reply)
+    if (!parsed.success) return
+    const pending = pendingWrites.get(parsed.data.requestId)
+    if (pending && pending.sender === event.sender.id) pending.finish(parsed.data)
+  })
+
+  ipcMain.handle(DVH_WRITE_FIELDS_CHANNEL, async (_event, request: unknown) => {
+    const parsed = writeFieldsRequestSchema.safeParse(request)
+    if (!parsed.success) throw new Error('Invalid DVH write request.')
+    return writeDvhFields(parsed.data)
+  })
+}
+
+function notePublisher(docId: string, sender: WebContents): void {
+  if (publishers.get(docId) === sender.id) return
+  publishers.set(docId, sender.id)
+  sender.once('destroyed', () => {
+    if (publishers.get(docId) === sender.id) publishers.delete(docId)
+  })
+}
+
+/** Sends the write to the Sheets tab that published the workbook; null when none answers for it. */
+function writeLive(request: WriteFieldsRequest): Promise<SheetsSetFieldsReply | null> {
+  const id = publishers.get(request.docId)
+  const target = id === undefined ? null : webContents.fromId(id)
+  if (!target || target.isDestroyed()) return Promise.resolve(null)
+  const requestId = randomUUID()
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => finish(null), LIVE_WRITE_TIMEOUT_MS)
+    const finish = (reply: SheetsSetFieldsReply | null) => {
+      clearTimeout(timer)
+      pendingWrites.delete(requestId)
+      resolve(reply && reply.handled ? reply : null)
+    }
+    pendingWrites.set(requestId, { sender: target.id, finish })
+    target.send(DVH_SHEETS_SET_FIELDS_CHANNEL, {
+      requestId,
+      docId: request.docId,
+      writes: request.writes,
+      origin: request.origin,
+    })
+  })
+}
+
+/** Writes fields into the first candidate workbook on disk that is the linked one. */
+async function writeFile(request: WriteFieldsRequest): Promise<WriteFieldsResult> {
+  let lastError = 'The source workbook was not found.'
+  for (const path of request.paths) {
+    if (!/^\.xls[xm]$/i.test(extname(path))) continue
+    let bytes: Uint8Array
+    try {
+      bytes = new Uint8Array(await readFile(path))
+    } catch {
+      continue
+    }
+    let out
+    try {
+      out = await writeFieldsToXlsx(bytes, request)
+    } catch (error) {
+      // another workbook at that path (moved, replaced): try the next candidate
+      lastError = error instanceof Error ? error.message : String(error)
+      continue
+    }
+    if (out.bytes) {
+      try {
+        await atomicWriteFile(path, Buffer.from(out.bytes))
+      } catch (error) {
+        // Excel holds the file open (Windows locks it): nothing was written
+        return {
+          via: 'none',
+          path,
+          results: [],
+          error: error instanceof Error ? error.message : String(error),
+        }
+      }
+    }
+    return { via: 'file', path, results: out.results }
+  }
+  return { via: 'none', path: null, results: [], error: lastError }
+}
+
+export async function writeDvhFields(request: WriteFieldsRequest): Promise<WriteFieldsResult> {
+  const live = await writeLive(request)
+  if (live) return { via: 'live', path: live.path, results: live.results }
+  return writeFile(request)
 }

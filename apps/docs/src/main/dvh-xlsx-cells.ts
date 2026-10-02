@@ -49,7 +49,7 @@ const attr = (tag: string, name: string) => {
   return m ? decode(m[1]!) : undefined
 }
 
-function columnIndex(letters: string): number {
+export function columnIndex(letters: string): number {
   let n = 0
   for (const ch of letters.toUpperCase()) n = n * 26 + (ch.charCodeAt(0) - 64)
   return n - 1
@@ -294,13 +294,18 @@ function matchColumns(previous: readonly DvhColumn[], titles: readonly string[])
   })
 }
 
-/**
- * The model with its field values and collections re-read from the cells the
- * hidden DVH names point at. Objects whose names are missing keep the values
- * the model part holds.
- */
-export async function modelFromCells(bytes: Uint8Array, model: DvhModel): Promise<DvhModel> {
-  const zip = await JSZip.loadAsync(bytes)
+export interface WorkbookLayout {
+  /** every `_dvh.f.*` / `_dvh.c.*` name → its reference text */
+  names: Map<string, string>
+  /** relationship id → package path */
+  targets: Map<string, string>
+  /** sheet name → worksheet part path */
+  sheetPaths: Map<string, string>
+  workbookXml: string
+}
+
+/** The workbook's DVH names and where each sheet lives in the package. */
+export async function workbookLayout(zip: JSZip): Promise<WorkbookLayout> {
   const text = async (path: string) => (await zip.file(path)?.async('string')) ?? ''
   const workbookXml = await text('xl/workbook.xml')
   const names = new Map<string, string>()
@@ -310,8 +315,6 @@ export async function modelFromCells(bytes: Uint8Array, model: DvhModel): Promis
       names.set(name, decode(m[2]!))
     }
   }
-  if (names.size === 0) return model
-
   const rels = await text('xl/_rels/workbook.xml.rels')
   const targets = new Map<string, string>()
   for (const m of rels.matchAll(/<Relationship\b[^>]*>/g)) {
@@ -331,6 +334,20 @@ export async function modelFromCells(bytes: Uint8Array, model: DvhModel): Promis
     const path = rid ? targets.get(rid) : undefined
     if (name && path) sheetPaths.set(name, path)
   }
+  return { names, targets, sheetPaths, workbookXml }
+}
+
+/**
+ * The model with its field values and collections re-read from the cells the
+ * hidden DVH names point at. Objects whose names are missing keep the values
+ * the model part holds.
+ */
+export async function modelFromCells(bytes: Uint8Array, model: DvhModel): Promise<DvhModel> {
+  const zip = await JSZip.loadAsync(bytes)
+  const text = async (path: string) => (await zip.file(path)?.async('string')) ?? ''
+  const { names, targets, sheetPaths } = await workbookLayout(zip)
+  if (names.size === 0) return model
+
   const strings = sharedStrings(await text('xl/sharedStrings.xml'))
   const themePath =
     [...targets.values()].find((p) => /theme\d*\.xml$/.test(p)) ?? 'xl/theme/theme1.xml'

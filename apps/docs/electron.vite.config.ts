@@ -32,6 +32,7 @@ export default defineConfig({
           '@genoffice/dvh-model',
           '@genoffice/electron-utils',
           '@genoffice/font-metrics',
+          '@genoffice/xlsx-gateway',
         ],
       }),
     ],

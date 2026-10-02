@@ -26,6 +26,7 @@ import {
 import { tmpdir } from 'node:os'
 import { readDvhSource } from './dvh-source'
 import { registerDvhLinkIpc } from './dvh-link-watch'
+import { findDvhSources } from './dvh-find-source'
 import { basename, dirname, extname, isAbsolute, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
@@ -4663,6 +4664,26 @@ export function registerDocsIpc(): void {
     return readDvhSource(target)
   })
 
+  // DVH links: the workbook with this docId when its paths no longer hold it —
+  // project files first (their keys follow renames), then the shell's file index
+  ipcMain.handle('docs:dvh-find-source', async (_event, docId: unknown) => {
+    if (typeof docId !== 'string' || !docId || docId.length > 128) return []
+    let indexed: string[] = []
+    try {
+      indexed = shellHooks?.findDvhDocId?.(docId) ?? []
+    } catch {
+      // the index is optional: a closed or broken database just finds nothing
+    }
+    return findDvhSources(docId, [...projectFilePaths(), ...indexed])
+  })
+
+  // DVH links: open the source workbook in its editor (a Sheets tab in the shell)
+  ipcMain.handle('docs:dvh-open-source', async (_event, path: unknown) => {
+    if (typeof path !== 'string' || !/\.xls[xm]$/i.test(path) || !existsSync(path)) return false
+    if (shellHooks?.openGeneratedPath?.(path)) return true
+    return (await shell.openPath(path)) === ''
+  })
+
   ipcMain.handle('docs:pick-image', async (event) => {
     const result = await openDialog(event, {
       title: tm('dlgInsertImage'),
@@ -5080,6 +5101,8 @@ interface DocsShellHooks {
   closeActiveTab(): void
   /** Shell router used to open exported PDFs in a new GenOffice tab. */
   openGeneratedPath?(path: string): boolean
+  /** DVH links: files the shell's search index lists with this DVH docId */
+  findDvhDocId?(docId: string): string[]
 }
 let shellHooks: DocsShellHooks | null = null
 export function setDocsShellHooks(hooks: DocsShellHooks | null): void {

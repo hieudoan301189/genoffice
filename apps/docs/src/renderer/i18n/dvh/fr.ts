@@ -45,4 +45,26 @@ export const fr = {
   dvhUnlinkConfirm: 'Délier {name} ? Ses champs et tableaux restent en contenu simple.',
   dvhStatusEdited:
     'Un tableau a été modifié à la main ; les mises à jour automatiques l’ignorent jusqu’à son actualisation.',
+  dvhWriteBack: 'Écrire dans la source',
+  dvhWritten: '{count} champ(s) écrit(s) dans {name}.',
+  dvhWriteFailed: 'Impossible d’écrire dans la source : {error}',
+  dvhWriteRefused:
+    '{count} champ(s) non écrit(s) : la cellule source contient une formule ou n’existe plus.',
+  dvhPendingWrites: '{count} champ(s) modifié(s) ici, pas encore dans la source.',
+  dvhStatusConflict: 'Conflit : champs modifiés des deux côtés.',
+  dvhConflictHere: 'Ici',
+  dvhConflictSource: 'Source',
+  dvhKeepMine: 'Garder ceci',
+  dvhKeepSource: 'Garder la source',
+  dvhViewHistory: 'Historique',
+  dvhChangeSource: 'Changer de source…',
+  dvhOpenSource: 'Ouvrir la source',
+  dvhOpenSourceFailed: 'Impossible d’ouvrir {path}',
+  dvhNotThisSource:
+    'Ce classeur n’est pas la source liée (aucune donnée intelligente correspondante).',
+  dvhRelinked: 'Le lien lit maintenant {name}.',
+  dvhAmbiguous: 'Plusieurs classeurs portent cette source. Choisissez-en un :',
+  dvhUseThis: 'Utiliser celui-ci',
+  dvhHistoryFor: 'Historique de {name}',
+  dvhHistoryAll: 'Tout afficher',
 } satisfies Record<keyof typeof zh, string>
