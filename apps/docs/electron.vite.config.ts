@@ -30,6 +30,7 @@ export default defineConfig({
           '@genoffice/docx-engine',
           '@genoffice/dvh-actions',
           '@genoffice/dvh-model',
+          '@genoffice/dvh-template',
           '@genoffice/electron-utils',
           '@genoffice/font-metrics',
           '@genoffice/xlsx-gateway',

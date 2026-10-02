@@ -36,6 +36,7 @@
     "@genoffice/ui": "*",
     "@genoffice/dvh-actions": "*",
     "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-template": "*",
     "@genoffice/xlsx-gateway": "*",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@types/react": "^19.2.14",

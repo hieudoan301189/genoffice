@@ -3,7 +3,7 @@ import { BLANK_BULLET_NUM_ID, BLANK_ORDERED_NUM_ID } from '@genoffice/docx-engin
 import type { McpCommandMessage, McpEditorCommand } from '../shared/ipc'
 import { executeTool, markDocSeen } from './ai/tools'
 import { findNumId, type NumIds } from './ai/protocol'
-import { save, type FileActionContext } from './file-actions'
+import { buildDocBytes, save, type FileActionContext } from './file-actions'
 import { createBridgeEndpoint, type ActionRegistry } from '@genoffice/dvh-actions'
 import { newDvhId } from '@genoffice/dvh-model'
 import { createDocsDvhActions, docsSagaParticipant, type DocsActionHost } from './dvh-actions'
@@ -89,6 +89,7 @@ function dvhActionsEndpoint(deps: McpBridgeDeps): (request: unknown) => Promise<
     editor: () => deps.getCtx().editor ?? null,
     filePath: () => deps.getCtx().doc?.filePath ?? null,
     readSource: (path) => window.desktop.dvhReadSource({ path }),
+    buildBytes: () => buildDocBytes(deps.getCtx()),
   }
   let registry: ActionRegistry | null = null
   dvhEndpoint = createBridgeEndpoint(() => {

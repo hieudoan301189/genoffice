@@ -93,6 +93,7 @@
   "dependencies": {
     "@genoffice/dvh-actions": "*",
     "@genoffice/dvh-model": "*",
+    "@genoffice/dvh-template": "*",
     "@genoffice/electron-utils": "*",
     "@genoffice/font-metrics": "*",
     "electron-updater": "^6.8.9",

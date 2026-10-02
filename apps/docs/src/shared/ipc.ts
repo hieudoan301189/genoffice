@@ -43,7 +43,28 @@ import type {
   AiStreamRequest,
   GenSparkAccountStatus,
 } from '@genoffice/ai-provider'
-import type { ChangeSet, WriteFieldsRequest, WriteFieldsResult } from '@genoffice/dvh-model'
+import type {
+  ChangeSet,
+  DvhModel,
+  WriteFieldsRequest,
+  WriteFieldsResult,
+} from '@genoffice/dvh-model'
+import type { ConversionReport } from '@genoffice/dvh-template'
+
+/** P6: a batch generation request (the template bytes travel separately) */
+export interface DvhBatchRequest {
+  model: DvhModel
+  collectionId?: string
+  filter?: string
+  nameRule: string
+  release?: 'none' | 'strip' | 'all'
+  locale?: string
+  /** the template's own path: relative image paths resolve from its folder */
+  docPath?: string | null
+}
+
+export type DvhBatchPlanReply =
+  { count: number; names: string[]; duplicates: string[]; warnings: string[] } | { error: string }
 import type { HeadlessExportTarget } from '@genoffice/electron-utils/headless-export'
 import type { FaceVerticalMetrics } from '@genoffice/font-metrics'
 import type { AiPanelPrefs } from '@genoffice/ui'
@@ -385,6 +406,31 @@ export interface DesktopApi {
     data: ArrayBuffer,
     policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
   ): Promise<string | null>
+  /** P6 batch: the documents a batch would make (count, first names, duplicates, warnings) */
+  dvhBatchPlan(request: DvhBatchRequest): Promise<DvhBatchPlanReply>
+  /** P6 batch: generate into a folder or a zip the user picks; null when cancelled */
+  dvhBatchRun(
+    request: DvhBatchRequest & { format: 'docx' | 'pdf'; output: 'folder' | 'zip' },
+    template: ArrayBuffer,
+  ): Promise<{ count: number; output: string; warnings: string[] } | { error: string } | null>
+  /** P6: the template filled for one record, opened in a new tab */
+  dvhTemplatePreview(
+    request: Omit<DvhBatchRequest, 'nameRule'> & { index: number },
+    template: ArrayBuffer,
+  ): Promise<{ path: string; warnings: string[] } | { error: string }>
+  /** P6: a DVH-Tool template converted to a Smart Template, saved and opened */
+  dvhConvertTemplate(
+    template: ArrayBuffer,
+    name: string,
+  ): Promise<{ path: string; report: ConversionReport } | null>
+  /** P6: a QLCL workbook read as Smart Data (ids kept from `into` where names match) */
+  dvhQlclImport(into: DvhModel | null): Promise<{ path: string; model: DvhModel } | null>
+  /** P6: Smart Data written as a QLCL workbook; the saved path */
+  dvhQlclExport(model: DvhModel): Promise<string | null>
+  /** File.Package: files zipped with an index */
+  dvhPackage(paths: string[]): Promise<{ path: string; count: number } | null>
+  /** File.ExportPDF: a docx on disk exported to PDF next to it (headless renderer) */
+  dvhExportPdf(path: string): Promise<string | null>
   /** DVH links: open the source workbook in its editor; false when it cannot be opened */
   dvhOpenSource(path: string): Promise<boolean>
   /** auto=true marks an autosave: an externally modified file then fails with

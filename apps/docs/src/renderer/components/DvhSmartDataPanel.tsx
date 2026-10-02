@@ -39,6 +39,7 @@ import {
 } from '../dvh-auto'
 import { DvhDocsTablesSection } from './DvhDocsTablesSection'
 import { DvhHistorySection } from './DvhHistorySection'
+import { DvhTemplateSection } from './DvhTemplateSection'
 import './dvh-smart-data.css'
 
 const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path
@@ -56,6 +57,7 @@ export function DvhSmartDataHost({
   filePath,
   markDirty,
   exportCopy,
+  buildBytes,
 }: {
   editor: Editor | null
   parsed: ParsedDocFull | null
@@ -65,6 +67,8 @@ export function DvhSmartDataHost({
   exportCopy?: (
     policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
   ) => Promise<string | null>
+  /** P6: the document's current bytes (the template of a batch) */
+  buildBytes?: () => Promise<Uint8Array | null>
 }) {
   const [open, setOpen] = useState(false)
   const live = useRef({ editor, filePath })
@@ -151,6 +155,7 @@ export function DvhSmartDataHost({
       filePath={filePath}
       onClose={() => setOpen(false)}
       {...(exportCopy ? { exportCopy } : {})}
+      {...(buildBytes ? { buildBytes } : {})}
     />
   )
 }
@@ -162,6 +167,7 @@ export function DvhSmartDataPanel({
   filePath,
   onClose,
   exportCopy,
+  buildBytes,
 }: {
   editor: Editor
   parsed: ParsedDocFull
@@ -170,6 +176,7 @@ export function DvhSmartDataPanel({
   exportCopy?: (
     policy: { kind: 'all' | 'none' | 'strip' } | { kind: 'from'; at: string },
   ) => Promise<string | null>
+  buildBytes?: () => Promise<Uint8Array | null>
 }) {
   const { t } = useI18n()
   const [, setTick] = useState(0)
@@ -605,6 +612,15 @@ export function DvhSmartDataPanel({
       </div>
 
       <DvhDocsTablesSection editor={editor} dvh={dvh} onChange={repaint} />
+
+      <DvhTemplateSection
+        editor={editor}
+        dvh={dvh}
+        filePath={filePath}
+        fileName={fileName(filePath ?? 'Template.docx')}
+        {...(buildBytes ? { buildBytes } : {})}
+        onChange={repaint}
+      />
 
       <DvhHistorySection
         editor={editor}

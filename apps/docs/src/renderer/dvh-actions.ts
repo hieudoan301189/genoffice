@@ -28,6 +28,12 @@ import {
 import { executeOps, opCatalog, type Op } from './ai/ops'
 import { allChangeSets, applyHistoryWrite, restoreObject, revertTransaction } from './dvh-history'
 import {
+  insertColumnControl,
+  saveCondition,
+  wrapInCondition,
+  wrapInRepeat,
+} from './dvh-template-designer'
+import {
   activeDvhDocs,
   fieldOccurrences,
   findField,
@@ -48,6 +54,8 @@ export interface DocsActionHost {
   filePath(): string | null
   /** reads a workbook's model part (window.desktop.dvhReadSource in the app) */
   readSource(path: string): Promise<{ path: string; modelXml: string | null } | null>
+  /** the document's current bytes (the template of Document.Generate) */
+  buildBytes?(): Promise<Uint8Array | null>
 }
 
 const preview = (objects: number, summary: string[], warnings: string[] = []): PreviewReport => ({
@@ -409,6 +417,218 @@ export function createDocsDvhActions(host: DocsActionHost): ActionRegistry {
       if (!outcome.applied) throw new Error(outcome.reason ?? 'not replaced')
       ctx.emit([{ objectId: found.id, path: 'data', before: null, after: rows.length }])
       return outcome
+    },
+  })
+
+  // P6: Smart Templates — conditions, sections, column values, batch generation, files
+  const requireDoc = () => {
+    const dvh = activeDvhDocs()
+    const editor = host.editor()
+    if (!dvh || !editor) throw new Error('no document is open')
+    return { dvh, editor }
+  }
+  const selectBlocks = (editor: Editor, from: number, to: number) => {
+    const doc = editor.state.doc
+    if (from < 0 || to >= doc.childCount || from > to)
+      throw new Error('block range out of the document')
+    let start = 0
+    for (let i = 0; i < from; i++) start += doc.child(i).nodeSize
+    let end = start
+    for (let i = from; i <= to; i++) end += doc.child(i).nodeSize
+    editor.commands.setTextSelection({ from: start + 1, to: end - 1 })
+  }
+  const desktop = () => (typeof window === 'undefined' ? undefined : window.desktop)
+
+  registry.register({
+    name: 'Template.SetCondition',
+    group: 'Document',
+    summary:
+      'Add or change a Smart Template condition (an expression, e.g. NOT row.ok AND row.qty > 0)',
+    input: z
+      .object({ expr: z.string().min(1), name: z.string().optional(), id: z.string().optional() })
+      .strict(),
+    effect: 'write',
+    preview: ({ expr }) => preview(1, [`condition ${expr}`]),
+    execute: ({ expr, name, id }, ctx) => {
+      const { dvh } = requireDoc()
+      const saved = saveCondition(dvh, expr, name ?? '', id)
+      if ('error' in saved) throw new Error(`expression: ${saved.error}`)
+      ctx.emit([{ objectId: saved.id, path: 'expr', before: null, after: expr }])
+      return saved
+    },
+  })
+
+  registry.register({
+    name: 'Template.WrapSection',
+    group: 'Document',
+    summary:
+      'Make blocks a Smart Template section: shown only if a condition holds, or repeated per record of a collection (a single table repeats its rows)',
+    input: z
+      .object({
+        fromBlock: z.number().int().min(0),
+        toBlock: z.number().int().min(0),
+        kind: z.enum(['if', 'repeat']),
+        condition: z.string().optional().describe('condition id (if) or record filter (repeat)'),
+        collection: z.string().optional().describe('collection id or name (repeat)'),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ fromBlock, toBlock, kind }) =>
+      preview(toBlock - fromBlock + 1, [`${kind} section ${fromBlock}–${toBlock}`]),
+    execute: ({ fromBlock, toBlock, kind, condition, collection }, ctx) => {
+      const { dvh, editor } = requireDoc()
+      selectBlocks(editor, fromBlock, toBlock)
+      let ok: boolean
+      if (kind === 'if') {
+        const found = dvh.model?.conditions?.find((c) => c.id === condition)
+        if (!found) throw new Error(`unknown condition ${condition ?? ''}`)
+        ok = wrapInCondition(editor, found)
+      } else {
+        const coll = dvh.model?.collections.find(
+          (c) => c.id === collection || c.name === collection,
+        )
+        if (!coll) throw new Error(`unknown collection ${collection ?? ''}`)
+        ok = wrapInRepeat(editor, dvh, coll.id, condition)
+      }
+      if (!ok) throw new Error('these blocks already belong to a content control')
+      ctx.emit([
+        { objectId: `blocks:${fromBlock}-${toBlock}`, path: 'section', before: null, after: kind },
+      ])
+      return { ok }
+    },
+  })
+
+  registry.register({
+    name: 'Template.InsertColumn',
+    group: 'Document',
+    summary: "Insert a record's column value (Smart Template) at the end of a paragraph",
+    input: z
+      .object({
+        collection: z.string().min(1),
+        column: z.string().min(1),
+        blockIndex: z.number().int().min(0),
+      })
+      .strict(),
+    effect: 'write',
+    preview: ({ collection, column }) => preview(1, [`column ${collection}.${column}`]),
+    execute: ({ collection, column, blockIndex }, ctx) => {
+      const { dvh, editor } = requireDoc()
+      const coll = dvh.model?.collections.find((c) => c.id === collection || c.name === collection)
+      const col = coll?.columns.find(
+        (c) => c.id === column || c.key === column || c.title === column,
+      )
+      if (!coll || !col) throw new Error(`unknown column ${collection}.${column}`)
+      selectBlocks(editor, blockIndex, blockIndex)
+      editor.commands.setTextSelection(editor.state.selection.to)
+      if (!insertColumnControl(editor, dvh, coll.id, col.id))
+        throw new Error('could not insert the column')
+      ctx.emit([{ objectId: col.id, path: 'occurrence', before: null, after: blockIndex }])
+      return { column: col.id }
+    },
+  })
+
+  registry.register({
+    name: 'Document.Generate',
+    group: 'Document',
+    summary:
+      'Generate documents from this Smart Template: one per record of a collection (filtered), named by a rule, as docx or PDF, into a folder or a zip with an index',
+    input: z
+      .object({
+        collection: z.string().optional(),
+        filter: z.string().optional(),
+        nameRule: z
+          .string()
+          .min(1)
+          .describe('file name rule with {expression} holes, e.g. BB-{PAD(INDEX,3)}-{row.code}'),
+        format: z.enum(['docx', 'pdf']).optional(),
+        output: z.enum(['folder', 'zip']).optional(),
+        release: z.enum(['none', 'strip', 'all']).optional(),
+      })
+      .strict(),
+    effect: 'external',
+    preview: async ({ collection, filter, nameRule }) => {
+      const { dvh } = requireDoc()
+      const coll = dvh.model?.collections.find((c) => c.id === collection || c.name === collection)
+      const plan = await desktop()?.dvhBatchPlan({
+        model: dvh.model!,
+        ...(coll ? { collectionId: coll.id } : {}),
+        ...(filter ? { filter } : {}),
+        nameRule,
+      })
+      if (!plan || 'error' in plan)
+        throw new Error(plan && 'error' in plan ? plan.error : 'unavailable here')
+      return {
+        objects: plan.count,
+        files: plan.names,
+        summary: [`${plan.count} document(s)`],
+        warnings: [...plan.warnings, ...plan.duplicates.map((d) => `duplicate name ${d}`)],
+      }
+    },
+    execute: async ({ collection, filter, nameRule, format, output, release }, ctx) => {
+      const { dvh } = requireDoc()
+      const bytes = await host.buildBytes?.()
+      const api = desktop()
+      if (!bytes || !api) throw new Error('generation is unavailable here')
+      const coll = dvh.model?.collections.find((c) => c.id === collection || c.name === collection)
+      const result = await api.dvhBatchRun(
+        {
+          model: dvh.model!,
+          ...(coll ? { collectionId: coll.id } : {}),
+          ...(filter ? { filter } : {}),
+          nameRule,
+          format: format ?? 'docx',
+          output: output ?? 'folder',
+          release: release ?? 'none',
+          docPath: host.filePath(),
+        },
+        bytes.slice().buffer as ArrayBuffer,
+      )
+      if (!result) throw new Error('cancelled')
+      if ('error' in result) throw new Error(result.error)
+      ctx.emit([
+        { objectId: dvh.model!.docId, path: 'generate', before: null, after: result.output },
+      ])
+      return result
+    },
+  })
+
+  registry.register({
+    name: 'File.ExportPDF',
+    group: 'File',
+    summary: 'Export a docx file on disk to PDF next to it',
+    input: z.object({ path: z.string().min(1) }).strict(),
+    effect: 'external',
+    preview: ({ path }) => ({
+      objects: 1,
+      files: [path.replace(/\.docx$/i, '.pdf')],
+      summary: [`export ${path}`],
+      warnings: [],
+    }),
+    execute: async ({ path }, ctx) => {
+      const out = await desktop()?.dvhExportPdf(path)
+      if (!out) throw new Error('the PDF could not be exported')
+      ctx.emit([{ objectId: path, path: 'pdf', before: null, after: out }])
+      return out
+    },
+  })
+
+  registry.register({
+    name: 'File.Package',
+    group: 'File',
+    summary: 'Zip files into one package with an index (the user picks where)',
+    input: z.object({ paths: z.array(z.string().min(1)).min(1) }).strict(),
+    effect: 'external',
+    preview: ({ paths }) => ({
+      objects: paths.length,
+      files: paths,
+      summary: [`package ${paths.length} file(s)`],
+      warnings: [],
+    }),
+    execute: async ({ paths }, ctx) => {
+      const result = await desktop()?.dvhPackage(paths)
+      if (!result) throw new Error('cancelled')
+      ctx.emit([{ objectId: result.path, path: 'package', before: null, after: result.count }])
+      return result
     },
   })
 

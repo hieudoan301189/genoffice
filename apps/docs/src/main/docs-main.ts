@@ -29,6 +29,23 @@ import { registerDvhLinkIpc } from './dvh-link-watch'
 import { findDvhSources } from './dvh-find-source'
 import { applyReleasePolicy, type DvhReleasePolicy } from './dvh-release'
 import { readHistoryBuffer, writeHistoryBuffer } from './dvh-history-buffer'
+import {
+  exportPdfHeadless,
+  existingNames,
+  imageLoader,
+  packageFiles,
+  runBatch,
+  type BatchOutput,
+} from './dvh-batch'
+import {
+  convertDvhToolTemplate,
+  exportQlclWorkbook,
+  fillTemplate,
+  importQlclWorkbook,
+  planBatch,
+  type BatchSpec,
+} from '@genoffice/dvh-template'
+import { dvhModelSchema } from '@genoffice/dvh-model'
 import { basename, dirname, extname, isAbsolute, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
@@ -4725,6 +4742,198 @@ export function registerDocsIpc(): void {
       return result.filePath
     },
   )
+
+  // ---- P6 Smart Templates ----
+  const headlessLauncher = () => ({
+    execPath: process.execPath,
+    appArgs: app.isPackaged ? [] : [app.getAppPath()],
+  })
+  const bytesOf = (data: unknown): Uint8Array | null =>
+    data instanceof ArrayBuffer
+      ? new Uint8Array(data)
+      : ArrayBuffer.isView(data)
+        ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+        : null
+  /** a batch request from the renderer, validated; null when malformed */
+  const batchSpecOf = (request: unknown, template: Uint8Array): BatchSpec | null => {
+    const r = (request ?? {}) as Record<string, unknown>
+    const model = dvhModelSchema.safeParse(r.model)
+    if (!model.success || typeof r.nameRule !== 'string' || !r.nameRule.trim()) return null
+    const docPath = typeof r.docPath === 'string' ? r.docPath : null
+    const release =
+      r.release === 'strip' || r.release === 'all' ? { kind: r.release } : { kind: 'none' as const }
+    return {
+      template,
+      model: model.data,
+      ...(typeof r.collectionId === 'string' && r.collectionId
+        ? { collectionId: r.collectionId }
+        : {}),
+      ...(typeof r.filter === 'string' && r.filter.trim() ? { filter: r.filter } : {}),
+      nameRule: r.nameRule,
+      options: {
+        ...(typeof r.locale === 'string' ? { locale: r.locale } : {}),
+        images: imageLoader(docPath ? dirname(docPath) : null),
+        release: release as { kind: 'none' | 'strip' | 'all' },
+      },
+    }
+  }
+
+  // the list of documents a batch would make: count, names, duplicates, warnings
+  ipcMain.handle('docs:dvh-batch-plan', (_event, request: unknown) => {
+    const spec = batchSpecOf(request, new Uint8Array())
+    if (!spec) return { error: 'invalid batch request' }
+    try {
+      const plan = planBatch(spec)
+      return {
+        count: plan.items.length,
+        names: plan.items.slice(0, 200).map((i) => i.name),
+        duplicates: plan.duplicates,
+        warnings: plan.warnings.slice(0, 50),
+      }
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) }
+    }
+  })
+
+  // generate: pick a folder (or a zip), confirm overwrites, write documents and the index
+  ipcMain.handle('docs:dvh-batch-run', async (event, request: unknown, data: unknown) => {
+    const template = bytesOf(data)
+    const spec = template ? batchSpecOf(request, template) : null
+    if (!spec) return { error: 'invalid batch request' }
+    const r = request as { format?: unknown; output?: unknown }
+    const format = r.format === 'pdf' ? 'pdf' : 'docx'
+    let output: BatchOutput
+    if (r.output === 'zip') {
+      const picked = await saveDialog(event, {
+        title: tm('dlgSaveAs'),
+        defaultPath: saveAsSuggestion(null, 'HoSo.zip'),
+        filters: [{ name: 'Zip', extensions: ['zip'] }],
+      })
+      if (picked.canceled || !picked.filePath) return null
+      output = { kind: 'zip', path: picked.filePath }
+    } else {
+      const picked = await openDialog(event, { properties: ['openDirectory', 'createDirectory'] })
+      if (picked.canceled || picked.filePaths.length === 0) return null
+      output = { kind: 'folder', dir: picked.filePaths[0]! }
+      const clashes = existingNames(
+        output.dir,
+        planBatch(spec).items.map((i) => i.name),
+        format,
+      )
+      if (clashes.length > 0) {
+        const { response } = await dialog.showMessageBox({
+          type: 'warning',
+          message: `${clashes.length} file(s) already exist and will be replaced.`,
+          detail: clashes.slice(0, 20).join('\n'),
+          buttons: ['Replace', 'Cancel'],
+          defaultId: 1,
+          cancelId: 1,
+        })
+        if (response !== 0) return null
+      }
+    }
+    try {
+      return await runBatch(spec, output, format, headlessLauncher(), app.getPath('temp'))
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : String(error) }
+    }
+  })
+
+  // preview: the template filled for one record, opened in a new tab
+  ipcMain.handle('docs:dvh-template-preview', async (_event, request: unknown, data: unknown) => {
+    const template = bytesOf(data)
+    const spec = template
+      ? batchSpecOf({ nameRule: 'preview', ...(request as object) }, template)
+      : null
+    if (!spec) return { error: 'invalid preview request' }
+    const index = Number((request as { index?: unknown }).index ?? 0)
+    const plan = planBatch(spec)
+    const item = plan.items[Math.max(0, Math.min(plan.items.length - 1, Math.trunc(index) || 0))]
+    if (!item) return { error: 'no record to preview' }
+    const filled = await fillTemplate(
+      spec.template,
+      {
+        model: spec.model,
+        ...(item.record ? { record: item.record } : {}),
+        count: plan.items.length,
+      },
+      spec.options,
+    )
+    const dir = join(app.getPath('temp'), 'dvh-preview')
+    await mkdir(dir, { recursive: true })
+    const path = join(dir, `${Date.now()}-${item.name}`)
+    await atomicWriteFile(path, Buffer.from(filled.bytes))
+    openGeneratedFile(path)
+    return { path, warnings: filled.warnings }
+  })
+
+  // DVH-Tool template → Smart Template: written as a new file and opened
+  ipcMain.handle('docs:dvh-convert-template', async (event, data: unknown, name: unknown) => {
+    const bytes = bytesOf(data)
+    if (!bytes) return null
+    const { bytes: converted, report } = await convertDvhToolTemplate(bytes)
+    const picked = await saveDialog(event, {
+      title: tm('dlgSaveAs'),
+      defaultPath: saveAsSuggestion(
+        null,
+        `${String(name ?? 'Template').replace(/\.docx$/i, '')}-smart.docx`,
+      ),
+      filters: [{ name: tm('filterWord'), extensions: ['docx'] }],
+    })
+    if (picked.canceled || !picked.filePath) return null
+    const { bytes: materialized } = await materializeLazyDocx(Buffer.from(converted))
+    await atomicWriteFile(picked.filePath, materialized)
+    openGeneratedFile(picked.filePath)
+    return { path: picked.filePath, report }
+  })
+
+  // QLCL exchange: a QLCL workbook read as Smart Data, or Smart Data written as one
+  ipcMain.handle('docs:dvh-qlcl-import', async (event, into: unknown) => {
+    const picked = await openDialog(event, {
+      filters: [{ name: 'Excel', extensions: ['xlsx', 'xlsm'] }],
+      properties: ['openFile'],
+    })
+    if (picked.canceled || picked.filePaths.length === 0) return null
+    const base = dvhModelSchema.safeParse(into)
+    const model = await importQlclWorkbook(
+      new Uint8Array(await readFile(picked.filePaths[0]!)),
+      base.success ? base.data : undefined,
+    )
+    return { path: picked.filePaths[0]!, model }
+  })
+  ipcMain.handle('docs:dvh-qlcl-export', async (event, model: unknown) => {
+    const parsed = dvhModelSchema.safeParse(model)
+    if (!parsed.success) return null
+    const picked = await saveDialog(event, {
+      title: tm('dlgSaveAs'),
+      defaultPath: saveAsSuggestion(null, 'QLCL-Data.xlsx'),
+      filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+    })
+    if (picked.canceled || !picked.filePath) return null
+    await atomicWriteFile(picked.filePath, Buffer.from(await exportQlclWorkbook(parsed.data)))
+    return picked.filePath
+  })
+
+  // File.Package and File.ExportPDF actions
+  ipcMain.handle('docs:dvh-package', async (event, paths: unknown) => {
+    const list = Array.isArray(paths)
+      ? paths.filter((p): p is string => typeof p === 'string' && existsSync(p))
+      : []
+    if (list.length === 0) return null
+    const picked = await saveDialog(event, {
+      title: tm('dlgSaveAs'),
+      defaultPath: saveAsSuggestion(null, 'HoSo.zip'),
+      filters: [{ name: 'Zip', extensions: ['zip'] }],
+    })
+    if (picked.canceled || !picked.filePath) return null
+    return { path: picked.filePath, count: await packageFiles(list, picked.filePath) }
+  })
+  ipcMain.handle('docs:dvh-export-pdf', async (_event, path: unknown) => {
+    if (typeof path !== 'string' || !/\.docx$/i.test(path) || !existsSync(path)) return null
+    const out = path.replace(/\.docx$/i, '.pdf')
+    await exportPdfHeadless(path, out, headlessLauncher())
+    return out
+  })
 
   // DVH links: open the source workbook in its editor (a Sheets tab in the shell)
   ipcMain.handle('docs:dvh-open-source', async (_event, path: unknown) => {

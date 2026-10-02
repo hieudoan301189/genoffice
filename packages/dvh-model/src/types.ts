@@ -6,7 +6,8 @@
 
 import { z } from 'zod'
 
-export const fieldTypeSchema = z.enum(['text', 'number', 'date', 'boolean', 'enum'])
+/** `image`: the value is a path or data URL of a picture (Smart Template image fields, P6) */
+export const fieldTypeSchema = z.enum(['text', 'number', 'date', 'boolean', 'enum', 'image'])
 export type FieldType = z.infer<typeof fieldTypeSchema>
 
 export const scalarSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
@@ -190,6 +191,21 @@ export const dvhLinkSchema = z
   .strict()
 export type DvhLink = z.infer<typeof dvhLinkSchema>
 
+/**
+ * A Smart Template condition (P6): the block control tagged `dvh:if:<id>`
+ * shows its content only when `expr` is true; a repeating section tagged
+ * `dvh:repeat:<collectionId>:<id>` keeps only the records it is true for.
+ */
+export const dvhConditionSchema = z
+  .object({
+    id: z.string().min(1),
+    expr: z.string().min(1).max(2000),
+    /** what the author called it */
+    name: z.string().optional(),
+  })
+  .strict()
+export type DvhCondition = z.infer<typeof dvhConditionSchema>
+
 export const dvhModelSchema = z
   .object({
     docId: z.string().min(1),
@@ -199,6 +215,8 @@ export const dvhModelSchema = z
     /** P2; absent in P1 files */
     tables: z.array(dvhTableSchema).default([]),
     links: z.array(dvhLinkSchema),
+    /** P6; absent in documents that are not Smart Templates (keeps their hashes) */
+    conditions: z.array(dvhConditionSchema).optional(),
   })
   .strict()
 export type DvhModel = z.infer<typeof dvhModelSchema>

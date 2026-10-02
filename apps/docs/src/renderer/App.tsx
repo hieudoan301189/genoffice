@@ -6796,6 +6796,7 @@ export function App() {
             policy,
           )
         }}
+        buildBytes={() => buildDocBytes(fileCtxRef.current)}
       />
       {docCss && <style data-doc-css="">{docCss}</style>}
       {liveLineFactor != null && (

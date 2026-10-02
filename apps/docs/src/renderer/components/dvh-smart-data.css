@@ -224,3 +224,8 @@
   color: var(--accent);
   border-color: var(--accent);
 }
+
+/* P6: multi-line messages of the template tools */
+.dvh-docs-panel-pre {
+  white-space: pre-wrap;
+}

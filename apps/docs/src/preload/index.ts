@@ -144,6 +144,18 @@ const api: DesktopApi = {
     ipcRenderer.invoke('docs:dvh-read-history-buffer', String(docId)),
   dvhExportCopy: (defaultName: string, data: ArrayBuffer, policy: unknown) =>
     ipcRenderer.invoke('docs:dvh-export-copy', String(defaultName), data, policy),
+  dvhBatchPlan: (request: unknown) => ipcRenderer.invoke('docs:dvh-batch-plan', request),
+  dvhBatchRun: (request: unknown, data: ArrayBuffer) =>
+    ipcRenderer.invoke('docs:dvh-batch-run', request, data),
+  dvhTemplatePreview: (request: unknown, data: ArrayBuffer) =>
+    ipcRenderer.invoke('docs:dvh-template-preview', request, data),
+  dvhConvertTemplate: (data: ArrayBuffer, name: string) =>
+    ipcRenderer.invoke('docs:dvh-convert-template', data, String(name)),
+  dvhQlclImport: (into: unknown) => ipcRenderer.invoke('docs:dvh-qlcl-import', into),
+  dvhQlclExport: (model: unknown) => ipcRenderer.invoke('docs:dvh-qlcl-export', model),
+  dvhPackage: (paths: string[]) =>
+    ipcRenderer.invoke('docs:dvh-package', Array.isArray(paths) ? paths : []),
+  dvhExportPdf: (path: string) => ipcRenderer.invoke('docs:dvh-export-pdf', String(path)),
   dvhOpenSource: (path: string) =>
     ipcRenderer.invoke('docs:dvh-open-source', typeof path === 'string' ? path : ''),
   writeRecoveryCopy: (path: string, data: ArrayBuffer) =>

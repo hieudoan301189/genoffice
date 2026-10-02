@@ -272,6 +272,15 @@ describe('Smart Data ops and actions', () => {
       'History.RevertTransaction',
       'Table.ReplaceData',
     ])
-    expect(names.slice(11).every((name) => name.startsWith('Document.'))).toBe(true)
+    // P6 template actions and files
+    expect(names.slice(11, 17)).toEqual([
+      'Template.SetCondition',
+      'Template.WrapSection',
+      'Template.InsertColumn',
+      'Document.Generate',
+      'File.ExportPDF',
+      'File.Package',
+    ])
+    expect(names.slice(17).every((name) => name.startsWith('Document.'))).toBe(true)
   })
 })

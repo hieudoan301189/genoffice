@@ -10,12 +10,18 @@ import { attrsOf, findChild, serializeXNode, type XNode } from './xml-utils'
 
 export const DVH_FIELD_TAG_PREFIX = 'dvh:f:'
 
-/** The w:sdtPr XML of a DVH Smart Field control, or null for any other w:sdt. */
+/**
+ * Run-level DVH controls kept verbatim through an edit: Smart Fields, and the
+ * Smart Template's column values (`dvh:c:`) and image fields (`dvh:img:`, P6).
+ */
+const DVH_INLINE_TAG = /^dvh:(f|c|img):/
+
+/** The w:sdtPr XML of a run-level DVH control, or null for any other w:sdt. */
 export function dvhFieldSdtPr(sdt: XNode): string | null {
   const sdtPr = findChild(sdt, 'w:sdtPr')
   const tag = sdtPr ? findChild(sdtPr, 'w:tag') : undefined
   const value = tag ? attrsOf(tag)['w:val'] : undefined
-  if (!sdtPr || typeof value !== 'string' || !value.startsWith(DVH_FIELD_TAG_PREFIX)) return null
+  if (!sdtPr || typeof value !== 'string' || !DVH_INLINE_TAG.test(value)) return null
   return serializeXNode(sdtPr)
 }
 

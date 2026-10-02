@@ -398,6 +398,13 @@ Word/Excel còn chờ chạy trên Windows. Còn thiếu: phục hồi collectio
 - **Nghiệm thu:** sinh 100 biên bản từ danh sách WorkItems; chạy lại ra kết quả giống hệt; Word mở được;
   đổi giao diện không làm đổi file xuất.
 
+**Kết quả (02/10/2026) – mốc M2:** package `@genoffice/dvh-template` (biểu thức an toàn, điền mẫu với Field/
+cột/điều kiện/lặp khối/lặp dòng bảng/DVH.Table/ảnh, sinh hàng loạt cho ra file giống từng byte, mục lục và
+đóng gói zip, chuyển mẫu DVH-Tool, trao đổi QLCL qua JSON có phiên bản và workbook `ThongTin`/`Data`); Template
+Designer và Batch trong panel Docs; action `Document.Generate`, `File.ExportPDF`, `File.Package`, `Template.*`
+– [báo cáo](phases/p6-smart-template.md). Nghiệm thu "100 biên bản, chạy lại giống hệt" đạt bằng vitest; mở
+bằng Word và batch PDF còn chờ chạy trên Windows.
+
 ### P7. AI Actions (3–4 tuần)
 
 - **Context Provider**: schema Smart Data, đối tượng đang chọn, catalog action kèm fingerprint, chính
